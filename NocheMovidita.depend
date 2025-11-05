@@ -398,11 +398,11 @@
 1762294870 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
 	"Enemigo.h"
 
-1762294872 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
+1762365714 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
 	"GestorEntidades.h"
 	"Fantasma.h"
 
-1762294872 c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.h
+1762365720 c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.h
 	<vector>
 	<list>
 	"Protagonista.h"
@@ -438,7 +438,7 @@
 	"Protagonista.h"
 	"Constantes.h"
 
-1762349875 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1762365712 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raymath.h"
@@ -456,7 +456,7 @@
 	"BalaMonstruosa.h"
 	"Spawner.h"
 
-1762344877 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
+1762365716 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
 	"raylib.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -467,13 +467,13 @@
 	"SistemaInput.h"
 	"Constantes.h"
 
-1762349871 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
+1762369423 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
 	"raylib.h"
 	<vector>
 	<list>
 	"Cofre.h"
 
-1762346913 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
+1762369418 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
 	"raylib.h"
 	"Iluminacion.h"
 	"Protagonista.h"
@@ -504,7 +504,7 @@
 1762344855 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
 	"Consumible.h"
 
-1762294876 c:\users\volpi\onedrive\escritorio\elcisma\src\spawner.h
+1762365718 c:\users\volpi\onedrive\escritorio\elcisma\src\spawner.h
 	"raylib.h"
 	<stdexcept>
 	<new>
@@ -513,7 +513,7 @@
 	"Llave.h"
 	"Protagonista.h"
 
-1762294872 source:c:\users\volpi\onedrive\escritorio\elcisma\src\main.cpp
+1762365710 source:c:\users\volpi\onedrive\escritorio\elcisma\src\main.cpp
 	"raylib.h"
 	"Juego.h"
 	"SistemaArchivos.h"
@@ -522,7 +522,7 @@
 1762294876 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.h
 	<string>
 
-1762359814 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
+1762364146 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
 	"Mapa.h"
 	"Constantes.h"
 	"raymath.h"
