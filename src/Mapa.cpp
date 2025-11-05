@@ -173,6 +173,22 @@ void Mapa::cargarMapa()
     muros.push_back({ -salaX, salaY-pasilloW, salaX - (bossW/2), pasilloW });
     muros.push_back({ (bossW/2), salaY-pasilloW, salaX - (bossW/2), pasilloW });
 
+    // --- ¡NUEVO! Relleno de Pasillo Norte ---
+    muros.push_back({ -200, -750, 400, 20 }); // Muro horizontal largo
+    cajas.push_back({ -220, -780, 40, 40 });  // Escombro
+    cajas.push_back({ 220, -720, 40, 40 });   // Escombro
+
+    // --- ¡NUEVO! Relleno de Pasillo Este ---
+    cajas.push_back({ 750, -50, 80, 40 }); // Maquinaria rota
+    cajas.push_back({ 750, 50, 80, 40 });  // Maquinaria rota
+    cajas.push_back({ 830, 0, 40, 40 });   // Escombro
+
+    // --- ¡NUEVO! Relleno de Pasillo Oeste (Alcove) ---
+    muros.push_back({ -850, -100, 100, 20 }); // Muro superior del alcove
+    muros.push_back({ -850, 100, 100, 20 });  // Muro inferior del alcove
+    muros.push_back({ -850, -100, 20, 220 }); // Muro trasero del alcove
+
+
     // --- Cajas (Obstaculos bajos) ---
     // Sala NO (Almacen - "Camara del Oxido")
     muros.push_back({ -1480, -1200, 380, 40 }); // Estanteria (¡CORREGIDO! (Foto 2) Acortada y pegada a la pared oeste)
@@ -231,7 +247,7 @@ void Mapa::cargarMapa()
     // --- FIN DE NUEVO CONTENIDO ---
 
 
-    // Pasillos
+    // Pasillos (Estos ya estaban, los respetamos)
     cajas.push_back({ -200, 450, 40, 40 });
     cajas.push_back({ 200, 450, 40, 40 });
     cajas.push_back({ 0, 700, 40, 40 });
@@ -266,6 +282,10 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     Rectangle anilloNorte = { -300, -550, 600, 100 };
     Rectangle anilloSur = { -300, 450, 600, 100 };
     std::vector<Rectangle> zonasHabitaciones = { zonaAlmacen, zonaElectrica, zonaOficinas, zonaDormis };
+
+    // --- ¡NUEVO! Definicion de Zona para el Alcove ---
+    Rectangle zonaAlcoveOeste = { -830, -80, 60, 160 }; // El interior del alcove que creamos
+    // ---------------------------------------------
 
     // --- Generacion de Enemigos ---
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(zonaAlmacen)));
@@ -322,6 +342,10 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     SpawnCofre spawnExtra = getSpawnCofrePegadoAPared(pasilloSur);
     gestor.registrarConsumible(new Cofre(spawnExtra.pos, GetRandomValue(1, 4), spawnExtra.orient));
     spawnsCofres.push_back(spawnExtra.pos);
+    // --- FIN DE NUEVO CONTENIDO ---
+    SpawnCofre spawnAlcove = getSpawnCofrePegadoAPared(zonaAlcoveOeste);
+    gestor.registrarConsumible(new Cofre(spawnAlcove.pos, GetRandomValue(1, 4), spawnAlcove.orient));
+    spawnsCofres.push_back(spawnAlcove.pos);
     // --- FIN DE NUEVO CONTENIDO ---
 
 
