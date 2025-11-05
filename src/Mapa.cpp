@@ -16,7 +16,7 @@
 #include "Fantasma.h"
 #include "IndicadorPuerta.h"
 #include "Cofre.h"
-#include "Nota.h" // <-- ¢B¢BNUEVO!!
+#include "Nota.h" // <-- ¡NUEVO!!
 
 Mapa::Mapa()
     : mundoRect({ -1500, -1500, 3000, 3000 }),
@@ -49,7 +49,7 @@ void Mapa::dibujar()
     }
 }
 
-// --- ¢B¢BGetters Actualizados!! ---
+// --- ¡Getters Actualizados!! ---
 const std::vector<Rectangle>& Mapa::getMuros() const {
     return muros;
 }
@@ -90,7 +90,7 @@ void Mapa::dibujarPiso()
 
 void Mapa::cargarMapa()
 {
-    // --- ¢B¢BREFACTOR DE MUROS Y CAJAS!! ---
+    // --- ¡REFACTOR DE MUROS Y CAJAS!! ---
     muros.clear();
     cajas.clear();
 
@@ -174,31 +174,62 @@ void Mapa::cargarMapa()
     muros.push_back({ (bossW/2), salaY-pasilloW, salaX - (bossW/2), pasilloW });
 
     // --- Cajas (Obstaculos bajos) ---
-    // Sala NO (Almacen) - (Converti las lineas largas en MUROS)
-    muros.push_back({ -1300, -1200, 400, 40 }); // Era caja, ahora muro
-    muros.push_back({ -1300, -1000, 400, 40 }); // Era caja, ahora muro
-    muros.push_back({ -1000, -1300, 40, 200 }); // Era caja, ahora muro
-    cajas.push_back({ -1400, -1400, 40, 40}); // Caja nueva
-    cajas.push_back({ -1100, -1100, 60, 60}); // Caja nueva
+    // Sala NO (Almacen - "Camara del Oxido")
+    muros.push_back({ -1480, -1200, 380, 40 }); // Estanteria (¡CORREGIDO! (Foto 2) Acortada y pegada a la pared oeste)
+    muros.push_back({ -1480, -1000, 380, 40 }); // Estanteria (¡CORREGIDO! (Foto 2) Acortada y pegada a la pared oeste)
+    // ¡CORREGIDO! (Foto 2) Se eliminó el muro problemático que estaba en: { -1000, -1480, 40, 160 }
+    cajas.push_back({ -1400, -1400, 40, 40}); // Caja
+    cajas.push_back({ -1100, -1100, 60, 60}); // Caja grande
+    // --- INICIO DE NUEVO CONTENIDO ---
+    cajas.push_back({ -1450, -1400, 40, 150 }); // Estanteria vertical (¡CORREGIDO! Movida al pasillo norte)
+    cajas.push_back({ -1300, -1400, 40, 150 }); // Estanteria vertical (¡CORREGIDO! Movida al pasillo norte, 110px de espacio)
+    cajas.push_back({ -1150, -1450, 80, 40 });  // Cajas apiladas
+    cajas.push_back({ -1150, -1400, 80, 40 });  // Cajas apiladas
+    cajas.push_back({ -1050, -950, 40, 40});    // Caja suelta
+    // --- FIN DE NUEVO CONTENIDO ---
 
-    // Sala NE (Electrica)
-    cajas.push_back({ 1100, -1200, 100, 100 });
-    cajas.push_back({ 1200, -1000, 100, 100 });
-    cajas.push_back({ 950, -950, 40, 40 });
+    // Sala NE (Electrica - "Camara de la Memoria")
+    cajas.push_back({ 1100, -1250, 100, 100 }); // Maquinaria (¡CORREGIDO! (Foto 3) Movido 50px al sur)
+    cajas.push_back({ 1250, -1100, 100, 100 }); // Maquinaria (¡CORREGIDO! (Foto 4) Movido 50px al este)
+    cajas.push_back({ 950, -1000, 40, 40 }); // (¡CORREGIDO! Movido 50px al norte para mejor flujo)
     cajas.push_back({ 950, -1350, 40, 40 });
+    // --- INICIO DE NUEVO CONTENIDO ---
+    cajas.push_back({ 1000, -1100, 20, 80 }); // Fila de servidores/paneles
+    cajas.push_back({ 1030, -1100, 20, 80 }); // Fila de servidores/paneles
+    cajas.push_back({ 1060, -1100, 20, 80 }); // Fila de servidores/paneles
+    cajas.push_back({ 1300, -1300, 150, 40 }); // Maquinaria horizontal
+    muros.push_back({ 1300, -1400, 20, 150 }); // Panel electrico solido
+    // --- FIN DE NUEVO CONTENIDO ---
 
-    // Sala SO (Oficinas) - (Converti las lineas largas en MUROS)
-    muros.push_back({ -1200, 1000, 300, 20 }); // Era caja, ahora muro
-    muros.push_back({ -1200, 1150, 300, 20 }); // Era caja, ahora muro
-    muros.push_back({ -1200, 1300, 300, 20 }); // Era caja, ahora muro
-    cajas.push_back({ -1400, 1400, 50, 50}); // Caja nueva
-    cajas.push_back({ -1100, 1220, 50, 50}); // Caja nueva
+    // Sala SO (Oficinas - "Camara del Remanente")
+    muros.push_back({ -1200, 1000, 300, 20 }); // Cubiculo
+    muros.push_back({ -1200, 1150, 300, 20 }); // Cubiculo
+    muros.push_back({ -1200, 1300, 300, 20 }); // Cubiculo
+    cajas.push_back({ -1400, 1400, 50, 50}); // Caja
+    cajas.push_back({ -1100, 1220, 50, 50}); // Caja
+    // --- INICIO DE NUEVO CONTENIDO ---
+    cajas.push_back({ -1450, 1050, 80, 40 }); // Escritorio
+    cajas.push_back({ -1450, 1200, 80, 40 }); // Escritorio
+    cajas.push_back({ -1450, 1350, 80, 40 }); // Escritorio
+    cajas.push_back({ -1300, 950, 40, 40 });  // Silla/Papelera
+    cajas.push_back({ -1300, 1100, 40, 40 }); // Silla/Papelera
+    cajas.push_back({ -1300, 1250, 40, 40 }); // Silla/Papelera
+    // --- FIN DE NUEVO CONTENIDO ---
 
-    // Sala SE (Dormis)
-    cajas.push_back({ 1000, 1000, 150, 60 });
-    cajas.push_back({ 1000, 1200, 150, 60 });
-    cajas.push_back({ 1200, 1000, 150, 60 });
-    cajas.push_back({ 1200, 1200, 150, 60 });
+    // Sala SE (Dormis - "Camara del Canto")
+    cajas.push_back({ 1000, 1000, 150, 60 }); // Cama
+    cajas.push_back({ 1000, 1200, 150, 60 }); // Cama
+    cajas.push_back({ 1200, 1000, 150, 60 }); // Cama
+    cajas.push_back({ 1200, 1200, 150, 60 }); // Cama
+    // --- INICIO DE NUEVO CONTENIDO ---
+    muros.push_back({ 1400, 1000, 30, 150 }); // Lockers
+    muros.push_back({ 1440, 1000, 30, 150 }); // Lockers
+    muros.push_back({ 1400, 1200, 30, 150 }); // Lockers
+    muros.push_back({ 1440, 1200, 30, 150 }); // Lockers
+    cajas.push_back({ 1000, 1400, 60, 60 });  // Mesa
+    cajas.push_back({ 1200, 1400, 60, 60 });  // Mesa
+    // --- FIN DE NUEVO CONTENIDO ---
+
 
     // Pasillos
     cajas.push_back({ -200, 450, 40, 40 });
@@ -286,6 +317,14 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
         }
     }
 
+    // --- INICIO DE NUEVO CONTENIDO ---
+    // Añadimos un cofre extra en el pasillo sur, como pediste.
+    SpawnCofre spawnExtra = getSpawnCofrePegadoAPared(pasilloSur);
+    gestor.registrarConsumible(new Cofre(spawnExtra.pos, GetRandomValue(1, 4), spawnExtra.orient));
+    spawnsCofres.push_back(spawnExtra.pos);
+    // --- FIN DE NUEVO CONTENIDO ---
+
+
     // --- Picaportes ---
     float handleSize = 10;
     float posYPicaportes = (puertaJefe.y + puertaJefe.height) + (handleSize / 2);
@@ -294,8 +333,8 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarConsumible(Spawner<IndicadorPuerta>::Spawn(posPicaporteIzq));
     gestor.registrarConsumible(Spawner<IndicadorPuerta>::Spawn(posPicaporteDer));
 
-    // --- ¢B¢BNUEVO!! Spawn de la Nota "Hola Mundo" ---
-    // ¢B¢BCORREGIDO!! Buscamos una caja especifica que sabemos que existe
+    // --- ¡NUEVO!! Spawn de la Nota "Hola Mundo" ---
+    // ¡CORREGIDO!! Buscamos una caja especifica que sabemos que existe
     // (La primera caja en Sala NO)
     Rectangle cajaParaNota = { -1400, -1400, 40, 40};
     gestor.registrarConsumible(new Nota(getPosicionSpawnNota(cajaParaNota), 1)); // ID 1 = "Hola mundo"
@@ -319,7 +358,7 @@ bool Mapa::esAreaValida(Vector2 pos)
     return true;
 }
 
-// --- ¢B¢BNUEVA!! Sobrecarga para Cofres ---
+// --- ¡NUEVA!! Sobrecarga para Cofres ---
 bool Mapa::esAreaValida(Vector2 pos, CofreOrientacion orient)
 {
     Rectangle areaCheck;
@@ -339,7 +378,7 @@ bool Mapa::esAreaValida(Vector2 pos, CofreOrientacion orient)
         if (CheckCollisionRecs(areaCheck, puertaJefe)) return false;
     }
 
-    // ¢B¢BRELAJADO!! Un cofre SI PUEDE estar superpuesto con una 'caja'
+    // ¡RELAJADO!! Un cofre SI PUEDE estar superpuesto con una 'caja'
     // (porque se spawnea 'pegado' a la pared, que tambien es un muro)
 
     return true;
@@ -363,7 +402,7 @@ Vector2 Mapa::getPosicionSpawnValida(Rectangle zona)
     return pos;
 }
 
-// --- ¢B¢BNUEVA FUNCION!! ---
+// --- ¡NUEVA FUNCION!! ---
 SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
 {
     SpawnCofre spawn;
@@ -406,7 +445,7 @@ SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
             return spawn;
         }
 
-        // --- ¢B¢BNUEVO CHEQUEO DE DISTANCIA!! ---
+        // --- ¡NUEVO CHEQUEO DE DISTANCIA!! ---
         bool estaMuyCerca = false;
         for (const auto& p : spawnsCofres) {
             if (Vector2Distance(spawn.pos, p) < 150.0f) { // 150px de separacion minima
@@ -422,10 +461,10 @@ SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
     return spawn;
 }
 
-// --- ¢B¢BNUEVA FUNCION!! ---
+// --- ¡NUEVA FUNCION!! ---
 Vector2 Mapa::getPosicionSpawnNota(const Rectangle& caja)
 {
-    // ¢B¢BCORREGIDO!! Devuelve el centro de la caja.
+    // ¡CORREGIDO!! Devuelve el centro de la caja.
     // La nota se dibujara "encima" (visualmente)
     return { caja.x + caja.width / 2, caja.y + caja.height / 2 };
 }
