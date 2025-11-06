@@ -40,4 +40,8 @@ public:
                            const std::vector<Rectangle>& muros,
                            const std::vector<Rectangle>& cajas,
                            const Rectangle& puerta, bool puertaEstaAbierta);
+
+    // --- ¡¡NUEVA FUNCION!! ---
+    // Resuelve las colisiones entre entidades dinamicas (Jugador vs Enemigos)
+    static void resolverColisionesDinamicas(Protagonista& jugador, std::vector<Enemigo*>& enemigos);
 };

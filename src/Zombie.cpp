@@ -50,7 +50,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
             if (jugadorDetectado && distancia <= this->rangoAtaque && temporizadorAtaque <= 0.0f) {
                 estadoActual = EstadoIA::ATACANDO;
                 // --- ¡¡VALOR MODIFICADO!! ---
-                temporizadorPausaAtaque = 0.2f; // Pausa unificada y rapida (Antes 0.3f)
+                temporizadorPausaAtaque = 0.2f; // Pausa unificada y rapida
                 this->direccion = {0, 0}; // ¡Se frena!
             }
             // Transicion a PATRULLAR

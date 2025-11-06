@@ -57,16 +57,15 @@ public:
     // --- MÉTODOS RESTAURADOS ---
     virtual void actualizarIA(Vector2 posJugador, const Mapa& mapa) = 0;
     virtual void dibujar() = 0;
-    virtual void atacar(Protagonista& jugador) = 0; // ¡¡MODIFICADO!! Ahora esta funcion resetea la IA
+    virtual void atacar(Protagonista& jugador) = 0;
 
     virtual void recibirDanio(int cantidad);
     void setPosicion(Vector2 nuevaPos);
     void setDireccion(Vector2 nuevaDir);
 
     // --- ¡¡NUEVO!! ---
-    // Llamado por MotorColisiones para saber si debe ejecutar el ataque
     bool estaListoParaAtacar() const;
-    EstadoIA getEstadoIA() const; // Para el dibujado
+    EstadoIA getEstadoIA() const;
     // -----------------
 
     // Getters
@@ -77,6 +76,7 @@ public:
     int getVida() const;
     float getVelocidad() const;
     Vector2 getDireccion() const;
+    float getRadio() const; // <-- ¡¡AÑADIDO PARA ARREGLAR EL ERROR!!
 
     virtual bool estaMuerto() const;
     virtual bool estaConsumido() const;

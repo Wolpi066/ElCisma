@@ -143,8 +143,6 @@ void Juego::actualizarJugando()
 
         for (Consumible* item : gestor.getConsumibles())
         {
-            // Ahora, CUALQUIER item que queramos recoger con 'E' (Llave, Nota, Botiquin...)
-            // debe tener esInteraccionPorTecla() == true
             if (item->esInteraccionPorTecla() && !item->estaConsumido())
             {
                 Rectangle itemRect = item->getRect();
@@ -185,7 +183,7 @@ void Juego::actualizarJugando()
                     case 2: gestor.registrarConsumible(Spawner<Bateria>::Spawn(posDrop)); break;
                     case 3: gestor.registrarConsumible(Spawner<CajaDeMuniciones>::Spawn(posDrop)); break;
                     case 4: gestor.registrarConsumible(Spawner<Armadura>::Spawn(posDrop)); break;
-                    case 99: gestor.registrarConsumible(Spawner<Llave>::Spawn(posDrop)); break; // ¡¡CORREGIDO!! La llave spawnea, no se da directo
+                    case 99: gestor.registrarConsumible(Spawner<Llave>::Spawn(posDrop)); break; // ¡¡CORREGIDO!! La llave spawnea
                     default: break;
                 }
             }
@@ -197,7 +195,6 @@ void Juego::actualizarJugando()
             }
             // --- ¡¡LÓGICA ACTUALIZADA!! ---
             // Opcion 4: Es un item de recoleccion (Llave, Botiquin, Bateria, etc.)
-            // Todos estos items ahora usan 'esInteraccionPorTecla()'
             else if (
                 dynamic_cast<Llave*>(itemMasCercano) ||
                 dynamic_cast<Botiquin*>(itemMasCercano) ||
@@ -213,42 +210,32 @@ void Juego::actualizarJugando()
     // --- FIN DE LA LOGICA DE INTERACCION ---
 
 
-    // 5. EJECUTAR FISICA
+    // 5. EJECUTAR FISICA (contra muros/cajas)
     MotorFisica::moverJugador(jugador, direccionMovimiento, miMapa.getMuros(), miMapa.getCajas(), miMapa.getPuertaJefe(), miMapa.estaPuertaAbierta());
     MotorFisica::moverEnemigos(gestor.getEnemigos(), miMapa.getMuros(), miMapa.getCajas(), miMapa.getPuertaJefe(), miMapa.estaPuertaAbierta());
     MotorFisica::moverJefes(gestor.getJefes(), miMapa.getMuros(), miMapa.getCajas(), miMapa.getPuertaJefe(), miMapa.estaPuertaAbierta());
     MotorFisica::moverBalas(gestor.getBalas(), miMapa.getMuros(), miMapa.getCajas(), miMapa.getPuertaJefe(), miMapa.estaPuertaAbierta());
 
+    // --- ¡¡NUEVO!! 5b. RESOLVER COLISIONES DINAMICAS ---
+    // (Empuja a los enemigos fuera del jugador)
+    MotorFisica::resolverColisionesDinamicas(jugador, gestor.getEnemigos());
+    // --------------------------------------------------
+
     // 6. Disparos
     if (jugador.intentarDisparar(quiereDisparar)) {
 
-        // --- ¡¡NUEVA LÓGICA DE PRECISIÓN!! ---
-        Vector2 dirDisparo = jugador.getDireccionVista(); // Empezamos con la direccion precisa
-
-        // Comprobamos si el jugador se esta moviendo (con Sqr para eficiencia)
+        Vector2 dirDisparo = jugador.getDireccionVista();
         bool estaMoviendo = (Vector2LengthSqr(direccionMovimiento) > 0.0f);
 
         if (estaMoviendo)
         {
-            // Si se mueve, aplicamos imprecision
-            // 1. Obtenemos el angulo preciso (en radianes)
             float anguloPreciso = atan2f(dirDisparo.y, dirDisparo.x);
-
-            // 2. Definimos la desviacion maxima (ej. 20 grados)
-            // Usamos GetRandomValue con decimales
-            float desviacionGrados = (float)GetRandomValue(-200, 200) / 10.0f; // Rango de -20.0 a +20.0
+            float desviacionGrados = (float)GetRandomValue(-200, 200) / 10.0f; // -20.0 a +20.0
             float desviacionRadianes = desviacionGrados * DEG2RAD;
-
-            // 3. Calculamos el nuevo angulo impreciso
             float anguloImpreciso = anguloPreciso + desviacionRadianes;
-
-            // 4. Convertimos el angulo de vuelta a un vector de direccion
             dirDisparo = { cosf(anguloImpreciso), sinf(anguloImpreciso) };
         }
-
-        // 5. Registramos la bala con la direccion (sea precisa o imprecisa)
         gestor.registrarBala(new BalaDeRifle(jugador.getPosicion(), dirDisparo));
-        // --- FIN DE LA LÓGICA DE PRECISIÓN ---
     }
 
     for (Jefe* jefe : gestor.getJefes()) {
@@ -258,8 +245,7 @@ void Juego::actualizarJugando()
         }
     }
 
-    // 7. Colisiones
-    // ¡¡MODIFICADO!! Ahora no necesita la lista de consumibles
+    // 7. Colisiones (Balas, Ataques de IA)
     MotorColisiones::procesar(jugador, gestor);
 
     // 8. Recoleccion de basura
@@ -286,7 +272,6 @@ void Juego::actualizarJugando()
             if (temporizadorSustoFantasma > proximoSustoFantasma) {
                 Fantasma::estaAsustando = true;
                 Fantasma::temporizadorSusto = 0.75f;
-
                 Enemigo* fantasmaPtr = nullptr;
                 for (Enemigo* e : gestor.getEnemigos()) {
                     if (dynamic_cast<Fantasma*>(e)) {
@@ -294,14 +279,12 @@ void Juego::actualizarJugando()
                         break;
                     }
                 }
-
                 if (fantasmaPtr) {
                     Camera2D cam = renderizador.getCamera();
                     float screenLeft = cam.target.x - cam.offset.x / cam.zoom;
                     float screenRight = cam.target.x + cam.offset.x / cam.zoom;
                     float screenTop = cam.target.y - cam.offset.y / cam.zoom;
                     float screenBottom = cam.target.y + cam.offset.y / cam.zoom;
-
                     if (GetRandomValue(0, 1) == 0) {
                         Fantasma::posSustoInicio = { screenLeft - 50, (float)GetRandomValue((int)screenTop, (int)screenBottom) };
                         Fantasma::posSustoFin = { screenRight + 50, (float)GetRandomValue((int)screenTop, (int)screenBottom) };
@@ -316,7 +299,6 @@ void Juego::actualizarJugando()
         }
 
         bool despertarFantasma = false;
-
         if (jugador.getBateria() <= 0) {
             despertarFantasma = true;
             Fantasma::modoFuria = true;
@@ -331,7 +313,6 @@ void Juego::actualizarJugando()
             Fantasma::estaDespertando = true;
             Fantasma::temporizadorDespertar = 3.0f;
             Fantasma::estaAsustando = false;
-
             Enemigo* fantasmaPtr = nullptr;
             for (Enemigo* e : gestor.getEnemigos()) {
                 if (dynamic_cast<Fantasma*>(e)) {
@@ -339,21 +320,18 @@ void Juego::actualizarJugando()
                     break;
                 }
             }
-
             if (fantasmaPtr) {
                 Camera2D cam = renderizador.getCamera();
                 float screenLeft = cam.target.x - cam.offset.x / cam.zoom;
                 float screenRight = cam.target.x + cam.offset.x / cam.zoom;
                 float screenTop = cam.target.y - cam.offset.y / cam.zoom;
                 float screenBottom = cam.target.y + cam.offset.y / cam.zoom;
-
                 int borde = GetRandomValue(0, 3);
                 Vector2 posInicio = {0,0};
                 if (borde == 0) posInicio = { screenLeft - 50, (float)GetRandomValue((int)screenTop, (int)screenBottom) };
                 else if (borde == 1) posInicio = { screenRight + 50, (float)GetRandomValue((int)screenTop, (int)screenBottom) };
                 else if (borde == 2) posInicio = { (float)GetRandomValue((int)screenLeft, (int)screenRight), screenTop - 50 };
                 else posInicio = { (float)GetRandomValue((int)screenLeft, (int)screenRight), screenBottom + 50 };
-
                 fantasmaPtr->setPosicion(posInicio);
             }
         }

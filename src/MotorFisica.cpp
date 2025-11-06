@@ -155,9 +155,8 @@ void MotorFisica::moverEnemigos(
         float pesoEvitacion = 0.0f;
 
         // 2. DEFINIR EL SENSOR DE EVASIÓN
-        // Usaremos un rectángulo (el del enemigo) proyectado hacia adelante
         Rectangle rectEnemigo = enemigo->getRect();
-        float distSensor = rectEnemigo.width; // Miramos un "radio" hacia adelante
+        float distSensor = rectEnemigo.width;
 
         // Posicionamos el sensor
         Vector2 posSensor = Vector2Add(enemigo->getPosicion(), Vector2Scale(dirDeseada, distSensor));
@@ -171,18 +170,14 @@ void MotorFisica::moverEnemigos(
         for (const auto& lista : listasObstaculos) {
             for (const auto& obs : *lista) {
                 if (CheckCollisionRecs(rectSensor, obs)) {
-                    // ¡Obstáculo detectado!
-                    // Calculamos un vector que "empuja" desde el centro del obstáculo
                     Vector2 centroObstaculo = { obs.x + obs.width / 2, obs.y + obs.height / 2 };
                     Vector2 vectorAlejamiento = Vector2Normalize(Vector2Subtract(posSensor, centroObstaculo));
-
                     vectorEvitacion = Vector2Add(vectorEvitacion, vectorAlejamiento);
                     pesoEvitacion += 1.0f;
                 }
             }
         }
 
-        // Comprobar la puerta (si está cerrada)
         if (!puertaEstaAbierta && CheckCollisionRecs(rectSensor, puerta)) {
              Vector2 centroObstaculo = { puerta.x + puerta.width / 2, puerta.y + puerta.height / 2 };
              Vector2 vectorAlejamiento = Vector2Normalize(Vector2Subtract(posSensor, centroObstaculo));
@@ -194,33 +189,22 @@ void MotorFisica::moverEnemigos(
 
         // 4. COMBINAR VECTORES (Steering)
         if (pesoEvitacion > 0.0f) {
-            // Si detectamos obstáculos, combinamos las "fuerzas"
             vectorEvitacion = Vector2Normalize(vectorEvitacion);
-
-            // Ponderamos: Damos más peso a la evasión (1.5) que al deseo (1.0)
             Vector2 fuerzaDeseo = Vector2Scale(dirDeseada, 1.0f);
             Vector2 fuerzaEvitacion = Vector2Scale(vectorEvitacion, 1.5f);
-
             dirFinal = Vector2Normalize(Vector2Add(fuerzaDeseo, fuerzaEvitacion));
         } else {
-            // Si no hay nada que evitar, usamos la dirección deseada
             dirFinal = dirDeseada;
         }
 
         // 5. CALCULAR VELOCIDAD FINAL Y MOVER
-        // Usamos la 'dirFinal' (inteligente) en lugar de la 'dirDeseada' (tonta)
         Vector2 velocidad = Vector2Scale(dirFinal, enemigo->getVelocidad());
-
-        // --- ¡¡NUEVA LÍNEA!! ---
-        // Actualizamos la "cara" del enemigo para que coincida con el movimiento real
         enemigo->setDireccion(dirFinal);
-        // -------------------------
 
         // 6. DELEGAR AL CÁLCULO DE MOVIMIENTO VÁLIDO
-        // (El motor AABB existente se encarga de la colisión final)
         Vector2 nuevaPos = calcularMovimientoValido(
             enemigo->getPosicion(),
-            velocidad, // <-- ¡Velocidad "inteligente"!
+            velocidad,
             rectEnemigo,
             muros,
             cajas,
@@ -249,9 +233,6 @@ void MotorFisica::moverJefes(
         Vector2 velocidad = jefe->getVelocidadActual();
         Rectangle rectJefe = jefe->getRect();
 
-        // --- LLAMADA ACTUALIZADA ---
-        // NOTA: El Jefe aún no usa el steering, se mueve como antes.
-        // Podríamos implementarlo para él también si se atasca.
         Vector2 nuevaPos = calcularMovimientoValido(
             jefe->getPosicion(),
             velocidad,
@@ -286,14 +267,12 @@ void MotorFisica::moverBalas(
         rectBala.y = nuevaPos.y - rectBala.height / 2;
 
         bool choca = false;
-        // Chequeo contra muros
         for (const auto& obs : muros) {
             if (CheckCollisionRecs(rectBala, obs)) {
                 choca = true;
                 break;
             }
         }
-        // Chequeo contra cajas
         if (!choca) {
             for (const auto& obs : cajas) {
                 if (CheckCollisionRecs(rectBala, obs)) {
@@ -303,7 +282,6 @@ void MotorFisica::moverBalas(
             }
         }
 
-        // Chequeo contra puerta
         if (!puertaEstaAbierta && !choca) {
             if (CheckCollisionRecs(rectBala, puerta)) {
                 choca = true;
@@ -314,6 +292,52 @@ void MotorFisica::moverBalas(
             bala->desactivar();
         } else {
             bala->setPosicion(nuevaPos);
+        }
+    }
+}
+
+// --- ¡¡NUEVA FUNCION DE SEPARACION!! ---
+void MotorFisica::resolverColisionesDinamicas(Protagonista& jugador, std::vector<Enemigo*>& enemigos)
+{
+    if (!jugador.estaVivo()) return;
+
+    Rectangle rectJugador = jugador.getRect();
+    Vector2 posJugador = jugador.getPosicion();
+
+    for (Enemigo* enemigo : enemigos)
+    {
+        if (!enemigo->estaVivo()) continue;
+
+        // El Fantasma no colisiona
+        if (dynamic_cast<Fantasma*>(enemigo)) {
+            continue;
+        }
+
+        Rectangle rectEnemigo = enemigo->getRect();
+
+        // 1. Comprobar si hay colision
+        if (CheckCollisionRecs(rectJugador, rectEnemigo))
+        {
+            // 2. Calcular superposicion (usando radios para colision circular)
+            Vector2 posEnemigo = enemigo->getPosicion();
+            float radioTotal = jugador.getRadio() + enemigo->getRadio();
+            float dist = Vector2Distance(posJugador, posEnemigo);
+
+            float overlap = radioTotal - dist;
+
+            // 3. Calcular vector de separacion (de jugador a enemigo)
+            Vector2 vectorSep = Vector2Subtract(posEnemigo, posJugador);
+
+            // Fallback por si estan perfectamente en el mismo pixel
+            if (Vector2LengthSqr(vectorSep) == 0.0f) {
+                vectorSep = {1.0f, 0.0f};
+            }
+            vectorSep = Vector2Normalize(vectorSep);
+
+            // 4. Mover *solo* al enemigo
+            // Lo empujamos hacia atras la distancia total de la superposicion
+            Vector2 moverEnemigo = Vector2Scale(vectorSep, overlap);
+            enemigo->setPosicion(Vector2Add(posEnemigo, moverEnemigo));
         }
     }
 }

@@ -177,31 +177,25 @@ void Mapa::cargarMapa()
     // --- Relleno de Salas Interiores (Original + Refinamiento) ---
 
     // --- ¡REDISEÑO! Sala NO (Almacen - "Camara del Oxido") ---
-    // (Limpiado el caos y superposiciones)
     muros.push_back({ -1480, -1400, 20, 400 }); // Estantería Larga Oeste 1
     muros.push_back({ -1430, -1400, 20, 400 }); // Estantería Larga Oeste 2
-
     muros.push_back({ -1250, -1300, 20, 300 }); // Estantería Central 1
     muros.push_back({ -1100, -1300, 20, 300 }); // Estantería Central 2
-
     cajas.push_back({ -1350, -1450, 80, 80 });  // Pila de cajas grande
     cajas.push_back({ -1150, -1050, 40, 40 });  // Caja suelta
     cajas.push_back({ -1050, -1450, 40, 40 });  // Caja suelta (la de la nota)
 
     // --- ¡REDISEÑO! Sala NE (Electrica - "Camara de la Memoria") ---
-    // (Limpiado el caos y superposiciones)
     muros.push_back({ 1000, -1400, 20, 150 }); // Panel eléctrico
     muros.push_back({ 1000, -1200, 20, 150 }); // Panel eléctrico
-
     cajas.push_back({ 1050, -1350, 100, 100 }); // Maquinaria central
     cajas.push_back({ 1200, -1100, 150, 40 });  // Fila de servidores (caja)
     cajas.push_back({ 1200, -1150, 150, 40 });  // Fila de servidores (caja)
-
     muros.push_back({ 1350, -1450, 100, 20 });  // Maquinaria (muro)
     muros.push_back({ 1350, -1300, 100, 20 });  // Maquinaria (muro)
     cajas.push_back({ 1430, -1350, 40, 40 });    // Caja suelta
 
-    // Sala SO (Oficinas - "Camara del Remanente") - (Diseño anterior OK)
+    // Sala SO (Oficinas - "Camara del Remanente")
     muros.push_back({ -1200, 1000, 300, 20 }); // Cubiculo
     muros.push_back({ -1200, 1150, 300, 20 }); // Cubiculo
     muros.push_back({ -1200, 1300, 300, 20 }); // Cubiculo
@@ -213,12 +207,11 @@ void Mapa::cargarMapa()
     cajas.push_back({ -1300, 950, 40, 40 });  // Silla/Papelera
     cajas.push_back({ -1300, 1100, 40, 40 }); // Silla/Papelera
     cajas.push_back({ -1300, 1250, 40, 40 }); // Silla/Papelera
-    // Relleno extra (OK)
     muros.push_back({ -1480, 1150, 100, 20 }); // Pared cubículo rota
     cajas.push_back({ -1300, 1050, 80, 40 }); // Otro escritorio
     cajas.push_back({ -1150, 1400, 40, 80 }); // Archivador volcado
 
-    // Sala SE (Dormis - "Camara del Canto") - (Diseño anterior OK)
+    // Sala SE (Dormis - "Camara del Canto")
     cajas.push_back({ 1000, 1000, 150, 60 }); // Cama
     cajas.push_back({ 1000, 1200, 150, 60 }); // Cama
     cajas.push_back({ 1200, 1000, 150, 60 }); // Cama
@@ -229,110 +222,77 @@ void Mapa::cargarMapa()
     muros.push_back({ 1440, 1200, 30, 150 }); // Lockers
     cajas.push_back({ 1000, 1400, 60, 60 });  // Mesa
     cajas.push_back({ 1200, 1400, 60, 60 });  // Mesa
-    // Relleno extra (OK)
     cajas.push_back({ 1150, 1100, 100, 60 }); // Mesa central
     cajas.push_back({ 1130, 1090, 40, 40 });  // Silla volcada
     cajas.push_back({ 1270, 1110, 40, 40 });  // Silla volcada
 
-
     // --- RELLENO DE PASILLOS INTERIORES (CON PROPÓSITO) ---
-    // (Limpiados de desorden aleatorio)
-
     // Pasillo Interior Oeste (Alcove de Descanso)
     muros.push_back({ -850, -100, 100, 20 }); // Muro superior del alcove
     muros.push_back({ -850, 100, 100, 20 });  // Muro inferior del alcove
     muros.push_back({ -850, -100, 20, 220 }); // Muro trasero del alcove
     cajas.push_back({ -830, -10, 60, 20 });   // Mesa dentro del alcove
-
     // Pasillo Interior Este (Puesto de Seguridad)
     muros.push_back({ 850, -75, 20, 150 });   // Pared trasera
     muros.push_back({ 830, -75, 20, 20 });    // Pared superior
     muros.push_back({ 830, 55, 20, 20 });     // Pared inferior
     cajas.push_back({ 830, -55, 20, 110 });   // Escritorio/Consola
-
     // Pasillo Interior Sur (Bancos)
     cajas.push_back({ -150, 580, 100, 20 });  // Banco (pegado a pared de sala jefe)
     cajas.push_back({ 50, 580, 100, 20 });    // Banco (pegado a pared de sala jefe)
-
     // Pasillo Interior Norte (Restos del colapso)
     muros.push_back({ -200, -750, 400, 20 }); // Muro horizontal largo (Original)
     cajas.push_back({ -220, -780, 40, 40 });  // Escombro (Original)
     cajas.push_back({ 220, -720, 40, 40 });   // Escombro (Original)
 
-
     // --- ¡¡NUEVO!! RELLENO TEMÁTICO DE ZONAS EXTERNAS (BORDES) ---
-
     // --- Zona Borde Norte (Caseta de Seguridad de Logística) ---
-    // (X: -900 a 900, Y: -1500 a -900)
-    // Habitacion (más grande y asimétrica, movida al Oeste)
     muros.push_back({ -700, -1300, 20, 300 }); // Pared Oeste (X: -700)
     muros.push_back({ -400, -1300, 20, 300 }); // Pared Este (X: -400)
     muros.push_back({ -700, -1400, 320, 20 }); // Pared Norte (Fondo)
     muros.push_back({ -700, -1300, 100, 20 }); // Pared Sur (Izquierda de la puerta)
     muros.push_back({ -480, -1300, 80, 20 });  // Pared Sur (Derecha de la puerta)
-    // Contenido
     cajas.push_back({ -680, -1380, 100, 40 }); // Escritorio
     muros.push_back({ -420, -1380, 20, 60 });  // Taquilla
     cajas.push_back({ 500, -1100, 150, 150 }); // Pila de cajas (punto de interés suelto)
-
     // --- Zona Borde Sur (Estación de Triaje / Barricada) ---
-    // (X: -900 a 900, Y: 900 a 1500)
-    // Barricada (diagonal, asimétrica)
     muros.push_back({ -250, 1200, 500, 20 }); // Barricada principal
-    // ¡CORREGIDO! Cajas movidas 10px arriba para no superponer
     cajas.push_back({ -200, 1160, 40, 40 });  // Cobertura (delante)
     cajas.push_back({ 100, 1160, 40, 40 });   // Cobertura (delante)
-    // Zona de triaje (detrás de la barricada)
     cajas.push_back({ -150, 1240, 100, 40 }); // Cama 1
     cajas.push_back({ 50, 1240, 100, 40 });   // Cama 2
     cajas.push_back({ -50, 1300, 40, 40 });   // Suministros (detrás)
-
     // --- Zona Borde Oeste (Colapso Estructural) ---
-    // (X: -1500 a -900, Y: -900 a 900)
-    // Sin habitación, solo escombros (como pediste)
     muros.push_back({ -1200, -300, 150, 40 }); // Losa de pared caída
     muros.push_back({ -1400, 100, 40, 200 });  // Pilar caído
     cajas.push_back({ -1180, -280, 40, 40 });  // Escombro
     cajas.push_back({ -1380, 300, 60, 60 });   // Escombro grande
     cajas.push_back({ -1100, 400, 80, 40 });   // Mueble de oficina
-
     // --- Zona Borde Este (Laboratorio de Observación Psiónica) ---
-    // (X: 900 a 1500, Y: -900 a 900)
-    // Habitacion (más grande, entrada rota)
     muros.push_back({ 1100, -200, 20, 400 }); // Pared Oeste (Fondo)
     muros.push_back({ 1300, -200, 20, 150 }); // Pared Este (Norte, rota)
     muros.push_back({ 1300, 50, 20, 150 });   // Pared Este (Sur, rota)
     muros.push_back({ 1100, -200, 200, 20 }); // Pared Norte
     muros.push_back({ 1100, 200, 200, 20 });  // Pared Sur
-    // Contenido (explosionado)
     muros.push_back({ 1120, -100, 20, 200 }); // Panel de servidor
     cajas.push_back({ 1150, 0, 80, 80 });     // Equipo central
-    // ¡CORREGIDO! Escombros caóticos en el pasillo eliminados
-
-    // --- FIN DE NUEVO RELLENO ---
 }
 
 void Mapa::poblarMundo(GestorEntidades& gestor)
 {
     spawnsCofres.clear();
 
-    // --- ¡NUEVO! Helper para registrar cofres con colisión ---
+    // Helper para registrar cofres con colisión
     auto registrarCofreConColision = [&](GestorEntidades& gestor, const SpawnCofre& spawn, int lootID) {
-        // 1. Registrar el consumible
         gestor.registrarConsumible(new Cofre(spawn.pos, lootID, spawn.orient));
-
-        // 2. Crear su rect de colision
         Rectangle cofreRect;
         if (spawn.orient == CofreOrientacion::HORIZONTAL) {
             cofreRect = { spawn.pos.x - 12.5f, spawn.pos.y - 7.5f, 25, 15 };
         } else {
             cofreRect = { spawn.pos.x - 7.5f, spawn.pos.y - 12.5f, 15, 25 };
         }
-
-        // 3. Añadirlo a la lista de 'cajas' para que colisione
         this->cajas.push_back(cofreRect);
     };
-    // --- Fin del Helper ---
 
     // --- Definición de Zonas de Spawn ---
     Rectangle zonaAlmacen = { -1480, -1480, 580, 580 };
@@ -342,32 +302,24 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     Rectangle pasilloOeste = { -800, -300, 100, 600 };
     Rectangle pasilloEste = { 700, -300, 100, 600 };
     Rectangle pasilloSur = { -300, 650, 600, 150 };
-    Rectangle pasilloNorte = { -50, -800, 100, 150 };
+    // --- WARNING CORREGIDO: Variable comentada porque no se usa ---
+    // Rectangle pasilloNorte = { -50, -800, 100, 150 };
     Rectangle anilloNorte = { -300, -550, 600, 100 };
     Rectangle anilloSur = { -300, 450, 600, 100 };
-
-    // --- ¡NUEVO! Zonas de los Bordes Exteriores (Corredores) ---
     Rectangle corredorBordeN = { -900, -1500, 1800, 600 };
     Rectangle corredorBordeS = { -900, 900, 1800, 600 };
     Rectangle corredorBordeO = { -1500, -900, 600, 1800 };
     Rectangle corredorBordeE = { 900, -900, 600, 1800 };
-
-    // --- ¡NUEVO! Zonas de las Mini-Habitaciones ---
-    Rectangle habSeguridadN = { -680, -1380, 260, 80 }; // (Interior Caseta Seg.)
-    Rectangle zonaBarricadaS = { -200, 1220, 300, 100 }; // (Detrás de la barricada)
-    Rectangle zonaColapsoO = { -1400, -300, 200, 600 }; // (Zona de escombros)
-    Rectangle habObservacionE = { 1120, -180, 160, 360 }; // (Interior Lab.)
-
-    // --- ¡NUEVO! Zonas de Puestos Interiores ---
-    Rectangle zonaAlcoveOeste = { -830, -80, 60, 160 }; // El interior del alcove
-    Rectangle puestoSeguridadE = { 830, -55, 20, 110 }; // (Interior Puesto Seg.)
+    Rectangle habSeguridadN = { -680, -1380, 260, 80 };
+    Rectangle zonaBarricadaS = { -200, 1220, 300, 100 };
+    Rectangle zonaColapsoO = { -1400, -300, 200, 600 };
+    Rectangle habObservacionE = { 1120, -180, 160, 360 };
+    Rectangle zonaAlcoveOeste = { -830, -80, 60, 160 };
+    Rectangle puestoSeguridadE = { 830, -55, 20, 110 };
 
     std::vector<Rectangle> zonasHabitaciones = { zonaAlmacen, zonaElectrica, zonaOficinas, zonaDormis };
 
     // --- Generacion de Enemigos ---
-    // (Total: 30 enemigos + Jefe + Fantasma)
-
-    // Habitaciones (10)
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(zonaAlmacen)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(zonaAlmacen)));
     gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaElectrica)));
@@ -378,41 +330,28 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(zonaDormis)));
     gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaDormis)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(zonaDormis)));
-
-    // Pasillos Interiores (6)
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(pasilloOeste)));
     gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(pasilloOeste)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(pasilloEste)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(pasilloEste)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(pasilloSur)));
     gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(pasilloSur)));
-
-    // Anillo Interior (2)
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(anilloNorte)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(anilloSur)));
-
-    // Jefe y Fantasma
     gestor.registrarJefe(new Jefe({0.0f, 0.0f}));
     gestor.registrarEnemigo(Spawner<Fantasma>::Spawn({-9999, -9999}));
-
-    // --- ¡NUEVO! Spawns en Zonas de Bordes Exteriores (Lore-driven) ---
-    // (12 Enemigos)
-    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeN))); // Patrulla
-    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(habSeguridadN))); // Guardia
-    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(habSeguridadN))); // Guardia
-
-    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeE))); // Patrulla
-    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(habObservacionE))); // Experimento?
-    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(habObservacionE))); // Científico
-
-    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeS))); // Vagando
-    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaBarricadaS))); // Rompió la barricada
-    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(zonaBarricadaS))); // Refugiado
-
-    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaColapsoO))); // Entre escombros
-    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaColapsoO))); // Entre escombros
-    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeO))); // Patrulla
-
+    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeN)));
+    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(habSeguridadN)));
+    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(habSeguridadN)));
+    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeE)));
+    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(habObservacionE)));
+    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(habObservacionE)));
+    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeS)));
+    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaBarricadaS)));
+    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(zonaBarricadaS)));
+    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaColapsoO)));
+    gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaColapsoO)));
+    gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeO)));
 
     // --- Generacion de Consumibles Fijos (de piso) ---
     gestor.registrarConsumible(Spawner<Bateria>::Spawn(getPosicionSpawnValida(zonaElectrica)));
@@ -424,8 +363,6 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarConsumible(Spawner<Armadura>::Spawn(getPosicionSpawnValida(pasilloOeste)));
     gestor.registrarConsumible(Spawner<Armadura>::Spawn(getPosicionSpawnValida(pasilloEste)));
     gestor.registrarConsumible(Spawner<Botiquin>::Spawn(getPosicionSpawnValida(anilloSur)));
-
-    // --- ¡NUEVO! Consumibles en Zonas de Bordes Exteriores (Lore-driven) ---
     gestor.registrarConsumible(Spawner<CajaDeMuniciones>::Spawn(getPosicionSpawnValida(habSeguridadN)));
     gestor.registrarConsumible(Spawner<Armadura>::Spawn(getPosicionSpawnValida(habSeguridadN)));
     gestor.registrarConsumible(Spawner<Bateria>::Spawn(getPosicionSpawnValida(habObservacionE)));
@@ -433,56 +370,47 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarConsumible(Spawner<Botiquin>::Spawn(getPosicionSpawnValida(zonaBarricadaS)));
     gestor.registrarConsumible(Spawner<Bateria>::Spawn(getPosicionSpawnValida(zonaColapsoO)));
 
-
     // --- Logica de Cofres y Llave ---
     int zonaLlaveIdx = GetRandomValue(0, zonasHabitaciones.size() - 1);
     SpawnCofre spawnLlave = getSpawnCofrePegadoAPared(zonasHabitaciones[zonaLlaveIdx]);
-    // --- MODIFICADO ---
     registrarCofreConColision(gestor, spawnLlave, 99);
     spawnsCofres.push_back(spawnLlave.pos);
 
-    for (int i = 0; i < zonasHabitaciones.size(); i++)
+    // --- WARNING CORREGIDO: Cast a size_t (o tipo unsigned) ---
+    for (size_t i = 0; i < zonasHabitaciones.size(); i++)
     {
         int cofresPorHabitacion = GetRandomValue(1, 2);
         for (int j = 0; j < cofresPorHabitacion; j++)
         {
             int lootID = GetRandomValue(1, 4);
             SpawnCofre spawnCofre = getSpawnCofrePegadoAPared(zonasHabitaciones[i]);
-            // --- MODIFICADO ---
             registrarCofreConColision(gestor, spawnCofre, lootID);
             spawnsCofres.push_back(spawnCofre.pos);
         }
     }
 
-    // --- ¡NUEVO! Cofres en Puntos de Interés Interiores ---
     SpawnCofre spawnAlcove = getSpawnCofrePegadoAPared(zonaAlcoveOeste);
-    // --- MODIFICADO ---
     registrarCofreConColision(gestor, spawnAlcove, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnAlcove.pos);
 
     SpawnCofre spawnSeguridadE = getSpawnCofrePegadoAPared(puestoSeguridadE);
-    // --- MODIFICADO ---
     registrarCofreConColision(gestor, spawnSeguridadE, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnSeguridadE.pos);
 
-    // --- ¡NUEVO! Cofres en Mini-Habitaciones Exteriores (Lore-driven, 1 por hab) ---
     SpawnCofre spawnCofreBN = getSpawnCofrePegadoAPared(habSeguridadN);
-    // --- MODIFICADO ---
+    // --- ERROR CORREGIDO: Eliminado el 4to argumento ---
     registrarCofreConColision(gestor, spawnCofreBN, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnCofreBN.pos);
 
     SpawnCofre spawnCofreBS = getSpawnCofrePegadoAPared(zonaBarricadaS);
-    // --- MODIFICADO ---
     registrarCofreConColision(gestor, spawnCofreBS, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnCofreBS.pos);
 
     SpawnCofre spawnCofreBE = getSpawnCofrePegadoAPared(habObservacionE);
-    // --- MODIFICADO ---
     registrarCofreConColision(gestor, spawnCofreBE, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnCofreBE.pos);
 
     SpawnCofre spawnCofreBO = getSpawnCofrePegadoAPared(zonaColapsoO);
-    // --- MODIFICADO ---
     registrarCofreConColision(gestor, spawnCofreBO, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnCofreBO.pos);
 
@@ -496,35 +424,26 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarConsumible(Spawner<IndicadorPuerta>::Spawn(posPicaporteDer));
 
     // --- ¡NUEVO!! Spawn de la Nota "Hola Mundo" ---
-    // ¡CORREGIDO!! Buscamos una caja especifica que sabemos que existe
-    // (La primera caja en Sala NO)
-    Rectangle cajaParaNota = { -1050, -1450, 40, 40}; // ¡Actualizado a la nueva pos de la caja!
+    Rectangle cajaParaNota = { -1050, -1450, 40, 40};
     gestor.registrarConsumible(new Nota(getPosicionSpawnNota(cajaParaNota), 1)); // ID 1 = "Hola mundo"
 }
 
 // --- Metodos de Ayuda para Spawn Valido ---
 bool Mapa::esAreaValida(Vector2 pos)
 {
-    // Chequeo simple para items de piso
-    // --- ¡¡CORREGIDO!! ---
-    // Usamos un área de 64x64 (radio 32) para asegurar que quepan
-    // los enemigos y no solo los items.
     Rectangle areaCheck = { pos.x - 32, pos.y - 32, 64, 64 };
-
-    for (const auto& muro : muros) { // Chequea muros
+    for (const auto& muro : muros) {
         if (CheckCollisionRecs(areaCheck, muro)) return false;
     }
-    for (const auto& caja : cajas) { // Chequea cajas
+    for (const auto& caja : cajas) {
         if (CheckCollisionRecs(areaCheck, caja)) return false;
     }
-
     if (!puertaAbierta) {
         if (CheckCollisionRecs(areaCheck, puertaJefe)) return false;
     }
     return true;
 }
 
-// --- ¡NUEVA!! Sobrecarga para Cofres ---
 bool Mapa::esAreaValida(Vector2 pos, CofreOrientacion orient)
 {
     Rectangle areaCheck;
@@ -533,20 +452,12 @@ bool Mapa::esAreaValida(Vector2 pos, CofreOrientacion orient)
     } else {
         areaCheck = { pos.x - 7.5f, pos.y - 12.5f, 15, 25 };
     }
-
-    // Un cofre no puede estar en un muro
     for (const auto& muro : muros) {
         if (CheckCollisionRecs(areaCheck, muro)) return false;
     }
-
-    // Un cofre no puede estar en la puerta
     if (!puertaAbierta) {
         if (CheckCollisionRecs(areaCheck, puertaJefe)) return false;
     }
-
-    // ¡RELAJADO!! Un cofre SI PUEDE estar superpuesto con una 'caja'
-    // (porque se spawnea 'pegado' a la pared, que tambien es un muro)
-
     return true;
 }
 
@@ -563,12 +474,11 @@ Vector2 Mapa::getPosicionSpawnValida(Rectangle zona)
             TraceLog(LOG_WARNING, "No se pudo encontrar un spawn valido en la zona, spawneando en la esquina.");
             return {zona.x, zona.y};
         }
-    } while (!esAreaValida(pos)); // Usa la sobrecarga simple
+    } while (!esAreaValida(pos));
 
     return pos;
 }
 
-// --- ¡NUEVA FUNCION!! ---
 SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
 {
     SpawnCofre spawn;
@@ -611,7 +521,6 @@ SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
             return spawn;
         }
 
-        // --- ¡NUEVO CHEQUEO DE DISTANCIA!! ---
         bool estaMuyCerca = false;
         for (const auto& p : spawnsCofres) {
             if (Vector2Distance(spawn.pos, p) < 150.0f) { // 150px de separacion minima
@@ -622,15 +531,12 @@ SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
 
         if (estaMuyCerca) continue;
 
-    } while (!esAreaValida(spawn.pos, spawn.orient)); // Usa la sobrecarga de cofre
+    } while (!esAreaValida(spawn.pos, spawn.orient));
 
     return spawn;
 }
 
-// --- ¡NUEVA FUNCION!! ---
 Vector2 Mapa::getPosicionSpawnNota(const Rectangle& caja)
 {
-    // ¡CORREGIDO!! Devuelve el centro de la caja.
-    // La nota se dibujara "encima" (visualmente)
     return { caja.x + caja.width / 2, caja.y + caja.height / 2 };
 }
