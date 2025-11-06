@@ -9,7 +9,7 @@ Protagonista::Protagonista(Vector2 pos) :
     municion(Constantes::MUNICION_MAX),
     bateria(Constantes::BATERIA_MAX),
     tieneArmadura(false),
-    direccionVista({ 1.0f, 0.0f }),
+    direccionVista({ 1.0f, 0.0f }), // Inicia mirando a la derecha
     anguloVista(0.0f),
     temporizadorDisparo(0.0f),
     tiempoInmune(0.0f),
@@ -43,10 +43,24 @@ void Protagonista::actualizarInterno(Camera2D camera) {
         temporizadorDisparo -= GetFrameTime();
     }
 
-    // --- Rotacion ---
+    // --- ¡¡BLOQUE DE ROTACION MODIFICADO CON DELAY!! ---
+    // 1. Obtener la posicion del mouse en el mundo
     Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), camera);
-    direccionVista = Vector2Normalize(Vector2Subtract(mousePos, posicion));
+    // 2. Calcular la direccion "objetivo" (hacia donde apunta el mouse)
+    Vector2 dirObjetivo = Vector2Normalize(Vector2Subtract(mousePos, posicion));
+
+    // 3. Interpolar suavemente la direccion de vista actual hacia la objetivo
+    // Un factor de suavizado mas bajo (ej. 5.0f) lo hace mas "pesado"
+    // Un factor mas alto (ej. 20.0f) lo hace mas rapido y reactivo
+    float factorSuavizado = 10.0f;
+    direccionVista = Vector2Lerp(direccionVista, dirObjetivo, factorSuavizado * GetFrameTime());
+
+    // 4. Es VITAL re-normalizar el vector resultante del Lerp
+    direccionVista = Vector2Normalize(direccionVista);
+
+    // 5. El angulo se calcula en base a la direccion de vista SUAVIZADA
     anguloVista = atan2f(direccionVista.y, direccionVista.x) * RAD2DEG;
+    // --- FIN DEL BLOQUE MODIFICADO ---
 
 
     // --- NUEVO: Logica de Flicker (Parpadeo) ---

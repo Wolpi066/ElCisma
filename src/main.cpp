@@ -13,6 +13,7 @@ int main() {
     // CORRECCIÓN: Usamos el scope 'Constantes::' para acceder a las variables
     InitWindow(Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, "Noche Movidita");
     SetTargetFPS(60); // Buena práctica
+    HideCursor();     // <-- ¡AÑADIDO! Oculta el cursor del sistema.
 
     // 2. Crear la instancia del juego
     // Esto llamará al constructor de Juego, que prepara el mapa, gestor, etc.
@@ -33,5 +34,3 @@ int main() {
     CloseWindow();
     return 0;
 }
-
-

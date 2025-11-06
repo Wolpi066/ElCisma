@@ -127,6 +127,9 @@ void Juego::actualizarJugando()
     gestor.actualizarIAEntidades(jugador, miMapa);
 
 
+    // --- (SE ELIMINÓ EL BLOQUEO DE MOVIMIENTO DE AQUÍ) ---
+
+
     // --- 4. LOGICA DE INTERACCION (TECLA 'E')!! ---
     if (quiereInteractuar)
     {
@@ -206,8 +209,36 @@ void Juego::actualizarJugando()
 
     // 6. Disparos
     if (jugador.intentarDisparar(quiereDisparar)) {
-        gestor.registrarBala(new BalaDeRifle(jugador.getPosicion(), jugador.getDireccionVista()));
+
+        // --- ¡¡NUEVA LÓGICA DE PRECISIÓN!! ---
+        Vector2 dirDisparo = jugador.getDireccionVista(); // Empezamos con la direccion precisa
+
+        // Comprobamos si el jugador se esta moviendo (con Sqr para eficiencia)
+        bool estaMoviendo = (Vector2LengthSqr(direccionMovimiento) > 0.0f);
+
+        if (estaMoviendo)
+        {
+            // Si se mueve, aplicamos imprecision
+            // 1. Obtenemos el angulo preciso (en radianes)
+            float anguloPreciso = atan2f(dirDisparo.y, dirDisparo.x);
+
+            // 2. Definimos la desviacion maxima (ej. 20 grados)
+            // Usamos GetRandomValue con decimales
+            float desviacionGrados = (float)GetRandomValue(-200, 200) / 10.0f; // Rango de -20.0 a +20.0
+            float desviacionRadianes = desviacionGrados * DEG2RAD;
+
+            // 3. Calculamos el nuevo angulo impreciso
+            float anguloImpreciso = anguloPreciso + desviacionRadianes;
+
+            // 4. Convertimos el angulo de vuelta a un vector de direccion
+            dirDisparo = { cosf(anguloImpreciso), sinf(anguloImpreciso) };
+        }
+
+        // 5. Registramos la bala con la direccion (sea precisa o imprecisa)
+        gestor.registrarBala(new BalaDeRifle(jugador.getPosicion(), dirDisparo));
+        // --- FIN DE LA LÓGICA DE PRECISIÓN ---
     }
+
     for (Jefe* jefe : gestor.getJefes()) {
         if (jefe->quiereDisparar()) {
             Vector2 dir = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), jefe->getPosicion()));
@@ -455,7 +486,7 @@ void Juego::dibujarFinJuego()
                  Constantes::ANCHO_PANTALLA / 2 - MeasureText("Has escapado del Nexo... o quizas solo has encontrado la paz.", 20) / 2,
                  Constantes::ALTO_PANTALLA / 2 + 30, 20, WHITE);
     }
-    else // FIN_JUEGO_MUERTO
+    else // FIN_Juego_MUERTO
     {
         DrawText("GAME OVER",
                  Constantes::ANCHO_PANTALLA / 2 - MeasureText("GAME OVER", 60) / 2,

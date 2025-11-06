@@ -7,7 +7,7 @@ namespace Constantes {
     const int ALTO_PANTALLA = 768;
 
     // --- Parametros de Jugador/Entidad ---
-    const float VELOCIDAD_JUGADOR = 3.5f;
+    const float VELOCIDAD_JUGADOR = 2.5f; // <-- MODIFICADO (Antes 3.5f)
     const int VIDA_MAX_JUGADOR = 10;
     const int MUNICION_MAX = 20;
     const int BATERIA_MAX = 100;
