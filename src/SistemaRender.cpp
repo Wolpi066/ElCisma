@@ -170,66 +170,26 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     EndBlendMode();
     // ------------------------------------
 
-    // --- 　NUEVO!! EFECTOS DE POCA VIDA (VENAS Y GLITCH) ---
+    // --- 　NUEVO!! EFECTO "ETER" POR POCA VIDA ---
     int vidaActual = jugador.getVida();
-    if (vidaActual <= 5 && jugador.estaVivo())
+    if (vidaActual <= 5 && jugador.estaVivo()) // Se activa con 3 de vida o menos
     {
-        // --- 1. EFECTO "VENAS VIOLETAS" (Lore) ---
-        // Intensidad: 0.0 (5 vida) a 1.0 (0 vida).
-        // 　CORREGIDO!! El maximo de vida es 10. El umbral es 5.
-        // Queremos que con 5 de vida la intensidad sea baja, y con 1 sea alta.
-        float intensidad = 1.0f - ((float)(vidaActual - 1) / 4.0f); // 0.0 (con 5 vida) a 1.0 (con 1 vida)
-        if (intensidad < 0.0f) intensidad = 0.0f;
-        if (intensidad > 1.0f) intensidad = 1.0f;
+        // 1.0 (muerto) a 0.0 (con 3 de vida).
+        float intensidad = 1.0f - ((float)vidaActual / 3.0f);
 
-        float grosor = 1.0f + (intensidad * 4.0f); // Grosor de 1 a 5
-        float alfa = 0.2f + (intensidad * 0.5f); // Alfa de 20% a 70%
-        Color colorVenas = Fade(DARKPURPLE, alfa);
+        // Offset que vibra. La vibracion se hace mas rapida y amplia con menos vida.
+        float freq = 10.0f + (intensidad * 20.0f); // Frecuencia de 10hz a 30hz
+        float amp = 1.0f + (intensidad * 4.0f);    // Amplitud de 1px a 5px
+        float offset = sin(GetTime() * freq) * amp;
 
-        Vector2 centro = { Constantes::ANCHO_PANTALLA / 2, Constantes::ALTO_PANTALLA / 2 };
-        float t = GetTime() * 0.5f; // Tiempo para la animacion de "pulso"
+        // Dibujamos 2 "fantasmas" de la pantalla con BLEND_ADDITIVE
+        BeginBlendMode(BLEND_ADDITIVE);
+        // Canal Rojo/Magenta
+        DrawRectangle(offset, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade((Color){255, 0, 100, 255}, 0.05f + (intensidad * 0.1f)));
+        // Canal Azul/Cian
+        DrawRectangle(-offset, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade((Color){0, 255, 200, 255}, 0.05f + (intensidad * 0.1f)));
+        EndBlendMode();
 
-        // Dibujamos 8 venas (Bezier Cuadraticas) desde las esquinas/lados
-        Vector2 anclas[8] = {
-            {0, 0}, {Constantes::ANCHO_PANTALLA / 2, 0}, {Constantes::ANCHO_PANTALLA, 0},
-            {Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA / 2},
-            {Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA},
-            {Constantes::ANCHO_PANTALLA / 2, Constantes::ALTO_PANTALLA},
-            {0, Constantes::ALTO_PANTALLA},
-            {0, Constantes::ALTO_PANTALLA / 2}
-        };
-
-        // Puntos de control (para la curva) que "vibran"
-        Vector2 control[8] = {
-            {150 + sin(t*1.1f)*50, 150 + cos(t*1.2f)*50}, {centro.x + sin(t)*100, 200 + cos(t)*100}, {1024-150 - sin(t*1.3f)*50, 150 + cos(t*1.1f)*50},
-            {1024-200 - sin(t)*100, centro.y + cos(t)*100}, {1024-150 - sin(t*1.2f)*50, 768-150 - cos(t*1.3f)*50},
-            {centro.x - sin(t)*100, 768-200 - cos(t)*100}, {150 + sin(t*1.1f)*50, 768-150 - cos(t*1.2f)*50},
-            {200 + sin(t)*100, centro.y - cos(t)*100}
-        };
-
-        // --- 　ERROR CORREGIDO!! Bucle manual para Bezier (no usa DrawLineBezierQuad) ---
-        for (int i = 0; i < 8; i++)
-        {
-            Vector2 ancla = anclas[i];
-            Vector2 ctrl = control[i];
-            Vector2 p_anterior = ancla;
-
-            for (int j = 1; j <= 10; j++) // 10 segmentos por vena
-            {
-                float t_step = (float)j / 10.0f;
-
-                // Formula de Bezier Cuadratica usando Lerp (Vector2Lerp anidado)
-                Vector2 p_lerp_1 = Vector2Lerp(ancla, ctrl, t_step);
-                Vector2 p_lerp_2 = Vector2Lerp(ctrl, centro, t_step);
-                Vector2 p_actual = Vector2Lerp(p_lerp_1, p_lerp_2, t_step);
-
-                DrawLineEx(p_anterior, p_actual, grosor, colorVenas);
-                p_anterior = p_actual; // La siguiente linea empieza donde termino esta
-            }
-        }
-        // --- FIN DE LA CORRECCION ---
-
-        // --- 2. EFECTO "GLITCH" (a 2 de vida o menos) ---
         if (vidaActual <= 2)
         {
             // 10% de probabilidad cada frame de mostrar un glitch
@@ -248,7 +208,7 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
             }
         }
     }
-    // --- FIN DE EFECTOS POCA VIDA ---
+    // -----------------------------------------
 
 
     // --- DIBUJO DE FANTASMAS (Susto y Despertando) ---
