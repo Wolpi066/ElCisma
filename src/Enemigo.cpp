@@ -15,11 +15,14 @@ Enemigo::Enemigo(Vector2 pos, int v, int d, float vel, float rad,
     rangoVision(rangoV),
     anguloVision(anguloV),
     rangoEscucha(rangoE),
-    // haDetectadoAlJugador(false), // <-- ELIMINADO
-    // --- ¡NUEVO! Inicialización de IA ---
     estadoActual(EstadoIA::PATRULLANDO),
     destinoPatrulla(pos),
-    temporizadorPatrulla(0.0f) // 0.0f para que elija destino en el primer frame
+    temporizadorPatrulla(0.0f),
+    // --- ¡¡NUEVO!! Inicializar Ataque ---
+    rangoAtaque(50.0f), // Distancia para iniciar el "lunge"
+    rangoDmg(60.0f),    // Distancia a la que el "lunge" golpea
+    temporizadorAtaque(0.0f), // Puede atacar de inmediato
+    temporizadorPausaAtaque(0.0f) // No está en pausa
 {
 }
 
@@ -65,11 +68,9 @@ void Enemigo::elegirNuevoDestinoPatrulla(const Mapa& mapa)
     destinoPatrulla.y = posicion.y + sin(anguloPatrulla) * radioPatrulla;
 
     // Validamos que no esté en un muro o caja
-    // (Simplificado: creamos un rect del enemigo en el destino)
     Rectangle rectDestino = { destinoPatrulla.x - radio, destinoPatrulla.y - radio, radio * 2, radio * 2 };
     bool colision = false;
 
-    // getMuros() y getCajas() deben ser const en Mapa.h (¡importante!)
     for (const auto& muro : mapa.getMuros()) {
         if (CheckCollisionRecs(rectDestino, muro)) {
             colision = true;
@@ -106,7 +107,6 @@ void Enemigo::recibirDanio(int cantidad) {
     }
     // ¡MODIFICADO! Al recibir daño, siempre te detecta
     this->estadoActual = EstadoIA::PERSIGUIENDO;
-    // this->haDetectadoAlJugador = true; // <-- ELIMINADO
 }
 
 void Enemigo::setPosicion(Vector2 nuevaPos) {
@@ -116,13 +116,26 @@ void Enemigo::setPosicion(Vector2 nuevaPos) {
 // --- ¡¡NUEVA FUNCION!! ---
 void Enemigo::setDireccion(Vector2 nuevaDir) {
     // Solo actualizamos si es un vector válido (evita NaN)
-    // Usamos un umbral pequeño (en lugar de 0.0f) para estabilidad
     if (Vector2LengthSqr(nuevaDir) > 0.001f) {
         this->direccion = Vector2Normalize(nuevaDir);
     }
 }
 // -------------------------
 
+// --- ¡¡NUEVAS FUNCIONES!! ---
+bool Enemigo::estaListoParaAtacar() const {
+    // Esta es la señal para que MotorColisiones llame a atacar()
+    // (Estado ATACANDO y pausa terminada)
+    return (estadoActual == EstadoIA::ATACANDO && temporizadorPausaAtaque <= 0.0f);
+}
+
+EstadoIA Enemigo::getEstadoIA() const {
+    return estadoActual;
+}
+// ----------------------------
+
+
+// Getters
 bool Enemigo::estaVivo() const {
     return this->vida > 0;
 }

@@ -29,11 +29,17 @@ protected:
     float rangoEscucha;
 
     // --- ¡MODIFICADO! Reemplazamos el bool por la FSM ---
-    // bool haDetectadoAlJugador; // <-- ELIMINADO
     EstadoIA estadoActual;
     Vector2 destinoPatrulla;
     float temporizadorPatrulla;
     // --------------------------------------------------
+
+    // --- ¡¡NUEVO!! Estado de Ataque ---
+    float rangoAtaque; // Distancia a la que empieza a atacar
+    float rangoDmg;    // Distancia a la que HACE daño
+    float temporizadorAtaque; // Cooldown entre ataques
+    float temporizadorPausaAtaque; // Duracion de la pausa antes de atacar
+    // --------------------------------
 
     bool puedeVearAlJugador(Vector2 posJugador);
     bool puedeEscucharAlJugador(Vector2 posJugador);
@@ -49,18 +55,18 @@ public:
     virtual ~Enemigo() {}
 
     // --- MÉTODOS RESTAURADOS ---
-    // ¡MODIFICADO! Ahora recibe el Mapa
     virtual void actualizarIA(Vector2 posJugador, const Mapa& mapa) = 0;
     virtual void dibujar() = 0;
-    virtual void atacar(Protagonista& jugador) = 0;
+    virtual void atacar(Protagonista& jugador) = 0; // ¡¡MODIFICADO!! Ahora esta funcion resetea la IA
 
-    // --- CORREGIDO: Nombre y tipo ---
     virtual void recibirDanio(int cantidad);
     void setPosicion(Vector2 nuevaPos);
+    void setDireccion(Vector2 nuevaDir);
 
     // --- ¡¡NUEVO!! ---
-    // Setter para que la física actualice la "cara"
-    void setDireccion(Vector2 nuevaDir);
+    // Llamado por MotorColisiones para saber si debe ejecutar el ataque
+    bool estaListoParaAtacar() const;
+    EstadoIA getEstadoIA() const; // Para el dibujado
     // -----------------
 
     // Getters

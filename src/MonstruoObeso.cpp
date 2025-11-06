@@ -15,40 +15,61 @@ MonstruoObeso::MonstruoObeso(Vector2 pos)
               Constantes::ANGULO_CONO_ZOMBIE * 0.8f,  // Cono mas estrecho
               Constantes::RANGO_AUDIO_ZOMBIE * 1.2f)  // Escucha un poco mas
 {
+    // --- ¡¡VALORES MODIFICADOS!! ---
+    this->rangoAtaque = 60.0f;
+    this->rangoDmg = 85.0f;  // Alcance aumentado (antes 75.0f)
 }
 
-// --- CORREGIDO: Nombre de la funcion ---
-// --- ¡¡LÓGICA DE IA COMPLETAMENTE REEMPLAZADA POR FSM!! ---
+// --- ¡¡LÓGICA DE IA CON FSM DE 3 ESTADOS!! ---
 void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
+
+    // --- 0. ACTUALIZAR TIMERS ---
+    if (temporizadorAtaque > 0.0f) {
+        temporizadorAtaque -= GetFrameTime();
+    }
+    if (temporizadorPausaAtaque > 0.0f) {
+        temporizadorPausaAtaque -= GetFrameTime();
+    }
 
     // --- 1. TRANSICIONES DE ESTADO ---
     bool jugadorDetectado = puedeVearAlJugador(posJugador) || puedeEscucharAlJugador(posJugador);
+    float distancia = Vector2Distance(posicion, posJugador);
 
-    if (estadoActual == EstadoIA::PATRULLANDO) {
-        if (jugadorDetectado) {
-            estadoActual = EstadoIA::PERSIGUIENDO;
+    switch (estadoActual)
+    {
+        case EstadoIA::PATRULLANDO:
+        {
+            if (jugadorDetectado) {
+                estadoActual = EstadoIA::PERSIGUIENDO;
+            }
+            break;
         }
-    }
-    else if (estadoActual == EstadoIA::PERSIGUIENDO) {
-        if (!jugadorDetectado) {
-            float distancia = Vector2Distance(posicion, posJugador);
-            // Lo perdemos si está 1.5x su rango de visión
-            if (distancia > rangoVision * 1.5f) {
+        case EstadoIA::PERSIGUIENDO:
+        {
+            // Transicion a ATACAR
+            if (jugadorDetectado && distancia <= this->rangoAtaque && temporizadorAtaque <= 0.0f) {
+                estadoActual = EstadoIA::ATACANDO;
+                // --- ¡¡VALOR MODIFICADO!! ---
+                temporizadorPausaAtaque = 0.2f; // Pausa unificada y rapida (Antes 0.6f)
+                this->direccion = {0, 0}; // ¡Se frena!
+            }
+            // Transicion a PATRULLAR
+            else if (!jugadorDetectado && distancia > rangoVision * 1.5f) {
                 estadoActual = EstadoIA::PATRULLANDO;
                 temporizadorPatrulla = 0.0f;
             }
+            break;
         }
-        // TODO: Si el Obeso disparara, aquí iría la transición a ATACANDO
-        // if (jugadorDetectado && distancia < RANGO_ATAQUE_OBESO) {
-        //     estadoActual = EstadoIA::ATACANDO;
-        // }
+        case EstadoIA::ATACANDO:
+        {
+            // La transicion de salida (ATACANDO -> PERSIGUIENDO)
+            // ocurre en el metodo atacar()
+            break;
+        }
     }
-    // else if (estadoActual == EstadoIA::ATACANDO) {
-        // ...lógica de ataque...
-    // }
 
     // --- 2. ACCIONES DE ESTADO ---
-    Vector2 objetivo;
+    Vector2 objetivo = posicion; // Por defecto, quedarse quieto
 
     switch (estadoActual)
     {
@@ -68,11 +89,7 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
         }
         case EstadoIA::ATACANDO:
         {
-            // TODO: Si disparase, aquí se quedaría quieto
-            // objetivo = posicion;
-
-            // Como ataca por colisión (por ahora), simplemente persigue
-            objetivo = posJugador;
+            // Se queda quieto
             break;
         }
     }
@@ -80,20 +97,56 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
     // --- 3. ACTUALIZAR DIRECCIÓN (para MotorFisica) ---
     Vector2 vectorHaciaObjetivo = Vector2Subtract(objetivo, this->posicion);
 
-    if (Vector2LengthSqr(vectorHaciaObjetivo) > 10.0f) {
+    if (estadoActual == EstadoIA::ATACANDO) {
+        this->direccion = {0, 0}; // Forzar freno
+    } else if (Vector2LengthSqr(vectorHaciaObjetivo) > 10.0f) {
         this->direccion = Vector2Normalize(vectorHaciaObjetivo);
     }
 }
 
 void MonstruoObeso::dibujar() {
-    DrawCircleV(this->posicion, this->radio, DARKGREEN);
+    Color color = DARKGREEN;
+    if (getEstadoIA() == EstadoIA::ATACANDO) {
+        // Parpadeo rojo (mas lento)
+        color = (Color){ 255, 0, 0, (unsigned char)(fabs(sin(GetTime() * 15.0f)) * 255) };
+    }
+    DrawCircleV(this->posicion, this->radio, color);
 
     Vector2 posCara = Vector2Add(this->posicion, Vector2Scale(this->direccion, this->radio));
     DrawRectangle(posCara.x - 5, posCara.y - 5, 10, 10, GREEN);
 }
 
-// --- ¡¡LOGICA DE DAÑO AÑADIDA!! ---
+// --- ¡¡LÓGICA DE DAÑO "LUNGE"!! ---
 void MonstruoObeso::atacar(Protagonista& jugador) {
-    // Ahora el MonstruoObeso es responsable de su propio daño
-    jugador.recibirDanio(this->danio);
+    // Esta funcion es llamada por MotorColisiones cuando
+    // estaListoParaAtacar() devuelve true.
+
+    float distancia = Vector2Distance(this->posicion, jugador.getPosicion());
+
+    // Si el jugador esta dentro del rango de golpeo
+    if (distancia <= this->rangoDmg)
+    {
+        float tiempoInmuneAntes = jugador.getTiempoInmune();
+
+        jugador.recibirDanio(this->danio); // ¡Golpe!
+
+        float tiempoInmuneDespues = jugador.getTiempoInmune();
+
+        // Si el golpe fue exitoso (no estaba inmune), aplicar knockback
+        if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
+        {
+            Vector2 dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), this->posicion));
+            if (Vector2LengthSqr(dirKnockback) == 0.0f) {
+                dirKnockback = {1.0f, 0.0f};
+            }
+            // Valores ajustados (lento y fluido)
+            float fuerza = 3.0f;
+            float duracion = 0.2f;
+            jugador.aplicarKnockback(dirKnockback, fuerza, duracion);
+        }
+    }
+
+    // --- IMPORTANTE: Resetear la IA ---
+    this->temporizadorAtaque = 2.5f; // Cooldown mas largo
+    this->estadoActual = EstadoIA::PERSIGUIENDO;
 }

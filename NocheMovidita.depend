@@ -380,13 +380,13 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.cpp
 	"Consumible.h"
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.cpp
+1762444558 source:c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.cpp
 	"Enemigo.h"
 	"Protagonista.h"
 	"raymath.h"
 	"Mapa.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.h
+1762444553 c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.h
 	"raylib.h"
 	<vector>
 	"raymath.h"
@@ -484,7 +484,7 @@
 	"Mapa.h"
 	"GestorEntidades.h"
 
-1762443492 c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.h
+1762444592 c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.h
 	"Protagonista.h"
 	"GestorEntidades.h"
 
@@ -545,10 +545,10 @@
 	"Cofre.h"
 	"Nota.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.h
+1762445336 c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.h
 	"Enemigo.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
+1762445349 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
 	"Enemigo.h"
 
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.cpp
@@ -558,7 +558,7 @@
 	"Protagonista.h"
 	"Mapa.h"
 
-1762442272 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.cpp
+1762444602 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.cpp
 	"MotorColisiones.h"
 	"Spawner.h"
 	"Botiquin.h"
@@ -566,6 +566,7 @@
 	"Armadura.h"
 	"Fantasma.h"
 	"IndicadorPuerta.h"
+	"raymath.h"
 
 1762442955 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
 	"MotorFisica.h"
@@ -595,7 +596,7 @@
 	"Fantasma.h"
 	"raymath.h"
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
+1762444890 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
 	"Zombie.h"
 	"Constantes.h"
 	"raymath.h"
