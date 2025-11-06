@@ -18,13 +18,24 @@ Enemigo::Enemigo(Vector2 pos, int v, int d, float vel, float rad,
     estadoActual(EstadoIA::PATRULLANDO),
     destinoPatrulla(pos),
     temporizadorPatrulla(0.0f),
-    // --- ¡¡NUEVO!! Inicializar Ataque ---
     rangoAtaque(50.0f),
     rangoDmg(60.0f),
     temporizadorAtaque(0.0f),
-    temporizadorPausaAtaque(0.0f)
+    temporizadorPausaAtaque(0.0f),
+    temporizadorDanio(0.0f) // <-- ¡¡NUEVO!!
 {
 }
+
+// --- ¡¡NUEVA FUNCION BASE!! ---
+// Se llama siempre, antes que actualizarIA
+void Enemigo::actualizarBase()
+{
+    // Actualizar timers que deben correr siempre
+    if (temporizadorDanio > 0.0f) {
+        temporizadorDanio -= GetFrameTime();
+    }
+}
+// -----------------------------
 
 // --- Métodos de IA ---
 
@@ -91,6 +102,7 @@ void Enemigo::recibirDanio(int cantidad) {
         this->vida = 0;
     }
     this->estadoActual = EstadoIA::PERSIGUIENDO;
+    this->temporizadorDanio = 0.2f; // <-- ¡¡NUEVO!! Activa el flash por 0.2s
 }
 
 void Enemigo::setPosicion(Vector2 nuevaPos) {
@@ -105,8 +117,6 @@ void Enemigo::setDireccion(Vector2 nuevaDir) {
 
 // --- ¡¡NUEVAS FUNCIONES!! ---
 bool Enemigo::estaListoParaAtacar() const {
-    // Esta es la señal para que MotorColisiones llame a atacar()
-    // (Estado ATACANDO y pausa terminada)
     return (estadoActual == EstadoIA::ATACANDO && temporizadorPausaAtaque <= 0.0f);
 }
 
@@ -138,11 +148,9 @@ float Enemigo::getVelocidad() const {
 Vector2 Enemigo::getDireccion() const {
     return this->direccion;
 }
-// --- ¡¡IMPLEMENTACION AÑADIDA!! ---
 float Enemigo::getRadio() const {
     return this->radio;
 }
-// ---------------------------------
 bool Enemigo::estaMuerto() const {
     return !estaVivo();
 }

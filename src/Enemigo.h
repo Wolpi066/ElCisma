@@ -35,10 +35,13 @@ protected:
     // --------------------------------------------------
 
     // --- ¡¡NUEVO!! Estado de Ataque ---
-    float rangoAtaque; // Distancia a la que empieza a atacar
-    float rangoDmg;    // Distancia a la que HACE daño
-    float temporizadorAtaque; // Cooldown entre ataques
-    float temporizadorPausaAtaque; // Duracion de la pausa antes de atacar
+    float rangoAtaque;
+    float rangoDmg;
+    float temporizadorAtaque;
+    float temporizadorPausaAtaque;
+
+    // --- ¡¡NUEVO!! Estado de Daño ---
+    float temporizadorDanio; // Para el flash
     // --------------------------------
 
     bool puedeVearAlJugador(Vector2 posJugador);
@@ -55,6 +58,7 @@ public:
     virtual ~Enemigo() {}
 
     // --- MÉTODOS RESTAURADOS ---
+    virtual void actualizarBase(); // <-- ¡¡NUEVO!! Para timers
     virtual void actualizarIA(Vector2 posJugador, const Mapa& mapa) = 0;
     virtual void dibujar() = 0;
     virtual void atacar(Protagonista& jugador) = 0;
@@ -76,7 +80,7 @@ public:
     int getVida() const;
     float getVelocidad() const;
     Vector2 getDireccion() const;
-    float getRadio() const; // <-- ¡¡AÑADIDO PARA ARREGLAR EL ERROR!!
+    float getRadio() const;
 
     virtual bool estaMuerto() const;
     virtual bool estaConsumido() const;

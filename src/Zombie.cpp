@@ -17,13 +17,14 @@ Zombie::Zombie(Vector2 pos)
 {
     // --- ¡¡VALORES MODIFICADOS!! ---
     this->rangoAtaque = 40.0f;
-    this->rangoDmg = 60.0f;  // Alcance aumentado (antes 50.0f)
+    this->rangoDmg = 60.0f;  // Alcance aumentado
 }
 
 // --- ¡¡LÓGICA DE IA CON FSM DE 3 ESTADOS!! ---
 void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
 
     // --- 0. ACTUALIZAR TIMERS ---
+    // (el temporizadorDanio se actualiza en actualizarBase())
     if (temporizadorAtaque > 0.0f) {
         temporizadorAtaque -= GetFrameTime();
     }
@@ -49,7 +50,6 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
             // Transicion a ATACAR
             if (jugadorDetectado && distancia <= this->rangoAtaque && temporizadorAtaque <= 0.0f) {
                 estadoActual = EstadoIA::ATACANDO;
-                // --- ¡¡VALOR MODIFICADO!! ---
                 temporizadorPausaAtaque = 0.2f; // Pausa unificada y rapida
                 this->direccion = {0, 0}; // ¡Se frena!
             }
@@ -105,11 +105,18 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
 }
 
 void Zombie::dibujar() {
+    // --- ¡¡LÓGICA DE DIBUJO MODIFICADA!! ---
     Color color = GREEN;
-    if (getEstadoIA() == EstadoIA::ATACANDO) {
-        // Parpadeo rojo brillante durante la pausa
-        color = (Color){ 255, 0, 0, (unsigned char)(fabs(sin(GetTime() * 20.0f)) * 255) };
+
+    // ¡NUEVO! Parpadea en ROJO al recibir daño
+    if (this->temporizadorDanio > 0.0f) {
+        // Hacemos que parpadee rojo/verde en lugar de ser un color solido
+        if ( (int)(this->temporizadorDanio * 20) % 2 == 0) {
+             color = RED;
+        }
     }
+    // ----------------------------------------
+
     DrawCircleV(this->posicion, this->radio, color);
 
     Vector2 posCara = Vector2Add(this->posicion, Vector2Scale(this->direccion, this->radio));

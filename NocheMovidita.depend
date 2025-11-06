@@ -324,7 +324,7 @@
 	"raylib.h"
 	"Constantes.h"
 
-1762437654 c:\users\volpi\onedrive\escritorio\elcisma\src\constantes.h
+1762460721 c:\users\volpi\onedrive\escritorio\elcisma\src\constantes.h
 
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bala.cpp
 	"Bala.h"
@@ -380,13 +380,13 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.cpp
 	"Consumible.h"
 
-1762447066 source:c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.cpp
+1762459936 source:c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.cpp
 	"Enemigo.h"
 	"Protagonista.h"
 	"raymath.h"
 	"Mapa.h"
 
-1762447048 c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.h
+1762459928 c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.h
 	"raylib.h"
 	<vector>
 	"raymath.h"
@@ -401,12 +401,11 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
 	"Enemigo.h"
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
+1762459949 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
 	"GestorEntidades.h"
-	"Fantasma.h"
 	"Mapa.h"
 
-1762446601 c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.h
+1762459943 c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.h
 	<vector>
 	<list>
 	"Protagonista.h"
@@ -442,7 +441,7 @@
 	"Protagonista.h"
 	"Constantes.h"
 
-1762455582 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1762458157 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raymath.h"
@@ -505,7 +504,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\llave.h
 	"Consumible.h"
 
-1762455595 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
+1762458169 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
 	"Consumible.h"
 
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\spawner.h
@@ -526,7 +525,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.h
 	<string>
 
-1762455551 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
+1762458142 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
 	"Mapa.h"
 	"Constantes.h"
 	"raymath.h"
@@ -555,7 +554,7 @@
 1762445349 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
 	"Enemigo.h"
 
-1762447087 source:c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.cpp
+1762459983 source:c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.cpp
 	"MonstruoObeso.h"
 	"Constantes.h"
 	"raymath.h"
@@ -577,8 +576,9 @@
 	"raymath.h"
 	"Constantes.h"
 
-1762455600 source:c:\users\volpi\onedrive\escritorio\elcisma\src\nota.cpp
+1762458175 source:c:\users\volpi\onedrive\escritorio\elcisma\src\nota.cpp
 	"Nota.h"
+	"raymath.h"
 
 1762443020 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
 	"Protagonista.h"
@@ -600,7 +600,7 @@
 	"Fantasma.h"
 	"raymath.h"
 
-1762447074 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
+1762459956 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
 	"Zombie.h"
 	"Constantes.h"
 	"raymath.h"

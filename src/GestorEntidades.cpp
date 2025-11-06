@@ -1,6 +1,5 @@
 #include "GestorEntidades.h"
-#include "Fantasma.h" // <-- ¡Añadido! Necesario para la comprobacion
-#include "Mapa.h"     // <-- ¡AÑADIDO!
+#include "Mapa.h" // <-- ¡AÑADIDO!
 
 GestorEntidades::GestorEntidades()
 {
@@ -8,49 +7,59 @@ GestorEntidades::GestorEntidades()
 
 GestorEntidades::~GestorEntidades()
 {
-    // El destructor de Juego llamara a limpiarTodo()
 }
 
-// Actualiza la IA (intencion de movimiento) de las entidades
 // ¡MODIFICADO!
 void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& mapa)
 {
+    // ¡¡MODIFICADO!! Ahora recibe el Mapa
     Vector2 posJugador = jugador.getPosicion();
 
     for (Enemigo* enemigo : enemigos) {
-        enemigo->actualizarIA(posJugador, mapa); // <-- CORREGIDO Y MODIFICADO
+        if (enemigo->estaVivo()) {
+            enemigo->actualizarBase(); // <-- ¡¡NUEVA LLAMADA!! Actualiza timers
+            enemigo->actualizarIA(posJugador, mapa);
+        }
     }
 
     for (Jefe* jefe : jefes) {
-        jefe->actualizar(jugador);
+        if (jefe->estaVivo()) {
+            // --- ¡¡ERROR CORREGIDO!! ---
+            // La firma de Jefe::actualizar pide Protagonista&
+            jefe->actualizar(jugador);
+        }
     }
 
-    for (Bala* bala : balas) {
-        bala->actualizarVidaUtil(posJugador); // <-- CORREGIDO
-    }
+    // --- ¡¡BUCLE ELIMINADO!! ---
+    // La clase Bala no tiene metodo actualizar().
+    // Se mueve desde MotorFisica::moverBalas()
 }
+
 
 void GestorEntidades::dibujarEntidades()
 {
-    for (Consumible* item : consumibles) {
-        item->dibujar();
-    }
-    for (Enemigo* enemigo : enemigos) {
-        // --- ¡MODIFICACION! ---
-        // Si el enemigo es el fantasma y esta en modo "susto",
-        // no lo dibujamos aqui (se dibujara en SistemaRender)
-        if (dynamic_cast<Fantasma*>(enemigo) && Fantasma::estaAsustando && !Fantasma::despertado)
-        {
-            continue; // Saltar este dibujo
+    for (Consumible* consumible : consumibles) {
+        if (!consumible->estaConsumido()) {
+            consumible->dibujar();
         }
-        // ---------------------
-        enemigo->dibujar();
     }
+
+    for (Enemigo* enemigo : enemigos) {
+        if (enemigo->estaVivo()) {
+            enemigo->dibujar();
+        }
+    }
+
     for (Jefe* jefe : jefes) {
-        jefe->dibujar();
+        if (jefe->estaVivo()) {
+            jefe->dibujar();
+        }
     }
+
     for (Bala* bala : balas) {
-        bala->dibujar();
+        if (bala->estaActiva()) {
+            bala->dibujar();
+        }
     }
 }
 
@@ -64,18 +73,21 @@ void GestorEntidades::recolectarBasura()
 
 void GestorEntidades::limpiarTodo()
 {
-    for (Enemigo* enemigo : enemigos) delete enemigo;
-    for (Bala* bala : balas) delete bala;
-    for (Consumible* item : consumibles) delete item;
-    for (Jefe* jefe : jefes) delete jefe;
-
+    for (Enemigo* e : enemigos) delete e;
     enemigos.clear();
+
+    for (Bala* b : balas) delete b;
     balas.clear();
+
+    for (Consumible* c : consumibles) delete c;
     consumibles.clear();
+
+    for (Jefe* j : jefes) delete j;
     jefes.clear();
 }
 
-// --- CORREGIDO: Nombres de metodos ---
+
+// --- CORREGIDO: Nombres de métodos ---
 void GestorEntidades::registrarEnemigo(Enemigo* enemigo) {
     enemigos.push_back(enemigo);
 }
@@ -89,7 +101,8 @@ void GestorEntidades::registrarJefe(Jefe* jefe) {
     jefes.push_back(jefe);
 }
 
-// --- Getters ---
+
+// Getters
 std::vector<Enemigo*>& GestorEntidades::getEnemigos() {
     return enemigos;
 }

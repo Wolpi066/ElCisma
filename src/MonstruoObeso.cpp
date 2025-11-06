@@ -11,19 +11,20 @@ MonstruoObeso::MonstruoObeso(Vector2 pos)
               Constantes::DANIO_OBESO,
               Constantes::VELOCIDAD_OBESO,
               Constantes::RADIO_OBESO,
-              Constantes::RANGO_VISUAL_ZOMBIE * 0.8f, // Ve un poco menos
-              Constantes::ANGULO_CONO_ZOMBIE * 0.8f,  // Cono mas estrecho
-              Constantes::RANGO_AUDIO_ZOMBIE * 1.2f)  // Escucha un poco mas
+              Constantes::RANGO_VISUAL_ZOMBIE * 0.8f,
+              Constantes::ANGULO_CONO_ZOMBIE * 0.8f,
+              Constantes::RANGO_AUDIO_ZOMBIE * 1.2f)
 {
     // --- ¡¡VALORES MODIFICADOS!! ---
     this->rangoAtaque = 60.0f;
-    this->rangoDmg = 85.0f;  // Alcance aumentado (antes 75.0f)
+    this->rangoDmg = 85.0f;  // Alcance aumentado
 }
 
 // --- ¡¡LÓGICA DE IA CON FSM DE 3 ESTADOS!! ---
 void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
 
     // --- 0. ACTUALIZAR TIMERS ---
+    // (el temporizadorDanio se actualiza en actualizarBase())
     if (temporizadorAtaque > 0.0f) {
         temporizadorAtaque -= GetFrameTime();
     }
@@ -49,7 +50,6 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
             // Transicion a ATACAR
             if (jugadorDetectado && distancia <= this->rangoAtaque && temporizadorAtaque <= 0.0f) {
                 estadoActual = EstadoIA::ATACANDO;
-                // --- ¡¡VALOR MODIFICADO!! ---
                 temporizadorPausaAtaque = 0.2f; // Pausa unificada y rapida
                 this->direccion = {0, 0}; // ¡Se frena!
             }
@@ -105,11 +105,18 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
 }
 
 void MonstruoObeso::dibujar() {
+    // --- ¡¡LÓGICA DE DIBUJO MODIFICADA!! ---
     Color color = DARKGREEN;
-    if (getEstadoIA() == EstadoIA::ATACANDO) {
-        // Parpadeo rojo (mas lento)
-        color = (Color){ 255, 0, 0, (unsigned char)(fabs(sin(GetTime() * 15.0f)) * 255) };
+
+    // ¡NUEVO! Parpadea en ROJO al recibir daño
+    if (this->temporizadorDanio > 0.0f) {
+        // Hacemos que parpadee rojo/verde oscuro en lugar de ser un color solido
+        if ( (int)(this->temporizadorDanio * 20) % 2 == 0) {
+             color = RED;
+        }
     }
+    // ----------------------------------------
+
     DrawCircleV(this->posicion, this->radio, color);
 
     Vector2 posCara = Vector2Add(this->posicion, Vector2Scale(this->direccion, this->radio));
