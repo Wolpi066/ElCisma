@@ -25,17 +25,20 @@ SistemaRender::SistemaRender() : camera({0})
     };
 
     // Creamos el lienzo del minimapa (un poco mas grande que el mapa para los bordes)
+    // --- ¡¡MODIFICADO!! Creamos AMBAS texturas ---
     minimapaTextura = LoadRenderTexture( (int)(3200 * minimapaZoom), (int)(3200 * minimapaZoom) );
+    nieblaMinimapa = LoadRenderTexture( (int)(3200 * minimapaZoom), (int)(3200 * minimapaZoom) );
     // ------------------------------------
 }
 
 SistemaRender::~SistemaRender()
 {
     UnloadRenderTexture(linterna.mask);
-    UnloadRenderTexture(minimapaTextura); // ¡¡NUEVO!!
+    UnloadRenderTexture(minimapaTextura); // ¡¡MODIFICADO!!
+    UnloadRenderTexture(nieblaMinimapa);  // ¡¡AÑADIDO!!
 }
 
-// --- ¡¡NUEVA FUNCION!! ---
+// --- ¡¡FUNCION MODIFICADA!! ---
 void SistemaRender::inicializarMinimapa(Mapa& mapa)
 {
     // Creamos una camara especial solo para el minimapa
@@ -45,7 +48,7 @@ void SistemaRender::inicializarMinimapa(Mapa& mapa)
     minimapaCamera.offset = { (3200 * minimapaZoom) / 2, (3200 * minimapaZoom) / 2 }; // Centramos la textura
     minimapaCamera.zoom = minimapaZoom;
 
-    // Dibujamos el mapa COMPLETO una sola vez en nuestra textura
+    // --- 1. Dibujamos el mapa ESTATICO ---
     BeginTextureMode(minimapaTextura);
         ClearBackground(Fade(BLACK, 0.5f)); // Fondo semitransparente
         BeginMode2D(minimapaCamera);
@@ -71,8 +74,60 @@ void SistemaRender::inicializarMinimapa(Mapa& mapa)
 
         EndMode2D();
     EndTextureMode();
+
+    // --- ¡¡AÑADIDO!! 2. Inicializamos la NIEBLA ---
+    // La empezamos completamente en NEGRO (oculto)
+    BeginTextureMode(nieblaMinimapa);
+        ClearBackground(BLACK);
+    EndTextureMode();
+    // ---------------------------------------------
 }
 // -----------------------------
+
+// --- ¡¡NUEVA FUNCION!! ---
+void SistemaRender::actualizarNieblaMinimapa(const Protagonista& jugador)
+{
+    // 1. Recrear la camara del minimapa (centrada en 0,0)
+    // Es vital que sea identica a la de inicializarMinimapa
+    Camera2D minimapaCamera = { 0 };
+    minimapaCamera.target = { 0, 0 };
+    minimapaCamera.offset = { (3200 * minimapaZoom) / 2, (3200 * minimapaZoom) / 2 };
+    minimapaCamera.zoom = minimapaZoom;
+
+    // 2. Dibujar sobre la textura de la niebla SIN borrar
+    // Esto hace que la revelacion sea permanente y acumulativa
+    BeginTextureMode(nieblaMinimapa);
+        BeginMode2D(minimapaCamera);
+
+            // 3. Dibujar el "aura" de proximidad del jugador
+            // Usamos un color blanco muy tenue. Se acumulara
+            // con el tiempo, creando el efecto "fade-in".
+            float radioProximidad = 100.0f; // 100 unidades del mundo
+            DrawCircleV(jugador.getPosicion(), radioProximidad, Fade(WHITE, 0.05f)); // 5% alpha
+
+            // 4. Dibujar el cono de la linterna
+            float alcance = jugador.getAlcanceLinterna();
+            if (alcance > 0.0f)
+            {
+                float angulo = jugador.getAnguloCono(); // El angulo *mitad*
+                float anguloVista = jugador.getAnguloVista(); // Angulo en grados
+
+                // Dibujamos un "anillo" (un cono)
+                DrawRing(
+                    jugador.getPosicion(),       // center
+                    radioProximidad * 0.8f,      // innerRadius (mas chico que el aura)
+                    alcance,                     // outerRadius
+                    anguloVista - angulo,        // startAngle
+                    anguloVista + angulo,        // endAngle
+                    16,                          // segments
+                    Fade(WHITE, 0.05f)           // color (tambien 5% alpha)
+                );
+            }
+
+        EndMode2D();
+    EndTextureMode();
+}
+// --------------------------
 
 
 Camera2D SistemaRender::getCamera() const
@@ -136,8 +191,7 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     // --- FIN DEL BLOQUE ---
 
 
-    // --- ¡¡NUEVO!! DIBUJAR MINIMAPA Y JUGADOR ---
-    // (Dibujamos fuera de cualquier modo de camara, en pixeles de pantalla)
+    // --- ¡¡BLOQUE DE MINIMAPA MODIFICADO!! ---
 
     // 1. Dibujar el mapa (la textura que ya creamos)
     DrawTextureRec(
@@ -146,19 +200,34 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
         minimapaOffset, // Posicion en pantalla
         WHITE
     );
+
+    // 2. ¡¡NUEVO!! Aplicar la niebla de guerra
+    // Usamos BLEND_MULTIPLY: Mapa * Niebla.
+    // Si Niebla es NEGRO (0), el resultado es NEGRO.
+    // Si Niebla es BLANCO (1), el resultado es Mapa.
+    BeginBlendMode(BLEND_MULTIPLIED);
+    DrawTextureRec(
+        nieblaMinimapa.texture,
+        (Rectangle){ 0, 0, (float)nieblaMinimapa.texture.width, (float)-nieblaMinimapa.texture.height }, // Invertir Y
+        minimapaOffset, // Posicion en pantalla
+        WHITE           // La textura ya tiene el color (negro -> blanco)
+    );
+    EndBlendMode();
+
+    // 3. Dibujar el borde (despues de la niebla)
     DrawRectangleLinesEx(
         (Rectangle){minimapaOffset.x, minimapaOffset.y, (float)minimapaTextura.texture.width, (float)minimapaTextura.texture.height},
         1.0f,
         GRAY
     ); // Borde
 
-    // 2. Calcular la posicion del jugador en el minimapa
+    // 4. Calcular la posicion del jugador en el minimapa
     // (Posicion_Mundo * zoom) + (Centro_Mundo * zoom) + Offset_Pantalla
     Vector2 posJugadorEnMapa = Vector2Scale(jugador.getPosicion(), minimapaZoom);
     Vector2 centroMinimapa = { (3200 * minimapaZoom) / 2, (3200 * minimapaZoom) / 2 };
     Vector2 posFinalJugador = Vector2Add(Vector2Add(posJugadorEnMapa, centroMinimapa), minimapaOffset);
 
-    // 3. Dibujar al jugador (punto rojo)
+    // 5. Dibujar al jugador (punto rojo)
     DrawCircleV(posFinalJugador, 3.0f, RED);
 
     // ------------------------------------------

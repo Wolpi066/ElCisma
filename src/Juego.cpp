@@ -126,8 +126,9 @@ void Juego::actualizarJugando()
     // ¡¡MODIFICACIÓN!! Pasamos el mapa
     gestor.actualizarIAEntidades(jugador, miMapa);
 
-
-    // --- (SE ELIMINÓ EL BLOQUEO DE MOVIMIENTO DE AQUÍ) ---
+    // --- ¡¡AÑADIDO!! Actualizar la niebla de guerra ---
+    renderizador.actualizarNieblaMinimapa(jugador);
+    // ----------------------------------------------
 
 
     // --- 4. LOGICA DE INTERACCION (TECLA 'E')!! ---
@@ -486,7 +487,7 @@ void Juego::dibujarFinJuego()
                  Constantes::ANCHO_PANTALLA / 2 - MeasureText("Has escapado del Nexo... o quizas solo has encontrado la paz.", 20) / 2,
                  Constantes::ALTO_PANTALLA / 2 + 30, 20, WHITE);
     }
-    else // FIN_Juego_MUERTO
+    else // FIN_JUEGO_MUERTO
     {
         DrawText("GAME OVER",
                  Constantes::ANCHO_PANTALLA / 2 - MeasureText("GAME OVER", 60) / 2,

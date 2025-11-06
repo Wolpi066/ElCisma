@@ -12,7 +12,8 @@ private:
     LightInfo linterna;
 
     // --- ¡¡NUEVO!! Minimapa ---
-    RenderTexture2D minimapaTextura;
+    RenderTexture2D minimapaTextura; // El mapa estatico (muros, cajas)
+    RenderTexture2D nieblaMinimapa;  // La mascara de "niebla de guerra"
     float minimapaZoom;
     Vector2 minimapaOffset;
     // -------------------------
@@ -24,9 +25,12 @@ public:
     SistemaRender();
     ~SistemaRender();
 
-    // --- ¡¡NUEVO!! ---
+    // --- ¡¡MODIFICADO!! ---
     // Se llama una vez desde Juego::Juego() para crear el mapa
     void inicializarMinimapa(Mapa& mapa);
+
+    // Se llama CADA FRAME desde Juego::actualizarJugando()
+    void actualizarNieblaMinimapa(const Protagonista& jugador);
     // -----------------
 
     void dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidades& gestor);

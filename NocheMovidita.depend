@@ -442,7 +442,7 @@
 	"Protagonista.h"
 	"Constantes.h"
 
-1762437713 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1762438858 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raymath.h"
@@ -460,7 +460,7 @@
 	"BalaMonstruosa.h"
 	"Spawner.h"
 
-1762437701 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
+1762438848 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
 	"raylib.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -477,7 +477,7 @@
 	<list>
 	"Cofre.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
+1762438785 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
 	"raylib.h"
 	"Iluminacion.h"
 	"Protagonista.h"
@@ -589,7 +589,7 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.cpp
 	"SistemaInput.h"
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
+1762438887 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
 	"SistemaRender.h"
 	"Constantes.h"
 	"Fantasma.h"
