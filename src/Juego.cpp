@@ -424,8 +424,8 @@ void Juego::dibujarLeyendoNota()
         Constantes::ALTO_PANTALLA * 0.7f   // Alto 70%
     };
 
-    // Fondo de la terminal (oscuro)
-    DrawRectangleRec(frame, Fade((Color){10, 20, 30, 255}, 0.95f));
+    // --- ¡¡MODIFICADO!! Fondo de la terminal (ahora 80% opaco) ---
+    DrawRectangleRec(frame, Fade((Color){10, 20, 30, 255}, 0.80f));
     // Borde tematico (verde cyber)
     DrawRectangleLinesEx(frame, 2.0f, Fade((Color){0, 255, 128, 100}, 0.5f));
 
@@ -440,48 +440,53 @@ void Juego::dibujarLeyendoNota()
     const char* textoTitulo = "REGISTRO CORRUPTO";
     const char* textoNota = "DATOS NO ENCONTRADOS.\n\n[ERROR: 0x3F_Desync_Eter]\nLA FUENTE SOLICITADA NO EXISTE.";
 
-    // --- ¡¡NUEVO LORE!! ---
+    // --- ¡¡NUEVO LORE REVISADO!! ---
     switch (notaActualID)
     {
+        case 0: // La nueva nota inicial de Elara
+            textoTitulo = "MENSAJE DE ETER (¿Elara?)";
+            textoNota = "¿Quien eres? ¿Otro eco, como yo?\n\nNo... tu... tu eres real. Estas vivo.\n\nDebes... debes calmarlo. El ancla. El Dr. Aris.\nEsta en el centro. El Cisma lo consumio, y su dolor\nnos mantiene atrapados a todos aqui.\n\nPor favor... liberalo. Liberalo y podremos... descansar.";
+            break;
         case 1:
-            textoTitulo = "REGISTRO #734-A (Fragmento)";
+            textoTitulo = "LOG CIENTIFICO: 734-A";
             textoNota = "No es un lugar. Es... una costura. Un pliegue entre\nlo que *es* y lo que *piensa*.\n\nNo debimos tirar del hilo.";
             break;
         case 2:
-            textoTitulo = "DIARIO DE PERSONAL (Manchado)";
-            textoNota = "Lo llaman 'El Cisma'. El evento. Pero yo lo vi.\nNo fue un evento.\n\nFue una *llegada*. O un *retorno*.";
+            textoTitulo = "MEMO DE SEGURIDAD: INCIDENTE";
+            textoNota = "Protocolo Cisma activado. El Dr. Aris es... el ancla.\nLa estructura del Nexo se esta colapsando sobre su\nconciencia. No podemos sellar la brecha mientras el...\nbueno, mientras *el* siga ahi.";
             break;
         case 3:
-            textoTitulo = "LOG DE FISICA: ETER-MATERIA";
-            textoNota = "La Materia solo obedece. El Eter... *recuerda*.\n\nEl eco de un grito puede derribar un muro aqui.\nEl eco de un susurro... puede crear un monstruo.";
+            textoTitulo = "NOTA DE DIARIO: DIA ???";
+            textoNota = "¿Cuanto tiempo llevo aqui? La luz de la linterna parpadea,\npero nunca se apaga. Vi a... algo... hoy. No tenia\nforma fisica. Era solo... un grito con sombra.\n\nCreo que era Elara, de observacion psionica.";
             break;
         case 4:
-            textoTitulo = "PROTOCOLO: SUJETO CERO";
-            textoNota = "...sujeto cero. El Dr. Aris. El fue el ancla.\nCuando el Desdoblamiento ocurrio, el estaba en\nel epicentro. No creo que quede mucho de *el*.\n\nAhora es solo... la herida.";
+            textoTitulo = "INFORME DE CONTENCION";
+            textoNota = "Los cadaveres reanimados son un problema\nmenor. Son ecos fisicos. Predecibles. Lentos.\nDisparad a la cabeza y seguid moviendoos.\n\nEl verdadero peligro es el Eter.";
             break;
         case 5:
-            textoTitulo = "OBSERVACION DE CAMPO #44B";
-            textoNota = "Vi a Elara hoy. O algo que *cree* que es Elara.\nEsta atrapada en un bucle de sus ultimos segundos.\nEl terror la mantiene aqui. Es Eter puro.\n\nIgnora las paredes. Ignora la logica. Solo... siente.";
+            // --- ¡¡LA NOTA DEL FANTASMA!! ---
+            textoTitulo = "FRAGMENTO DE ETER (¿Elara?)";
+            textoNota = "...frio... no puedo... no puedo parar.\nEl me ve. El ancla. Me atrae.\n\nNo quiero hacerles dano. No puedo parar.\n\n...Aris... por favor... para... duele...";
             break;
         case 6:
-            textoTitulo = "INFORME DE CONTENCION (Fallido)";
-            textoNota = "...la corrupcion de la Materia es mas simple. La carne\nsolo sabe pudrirse y obedecer. Ecos de hambre. Ecos de\ndolor. Son... estaticos.\n\nEl verdadero horror es el Eter.";
+            textoTitulo = "LOG DE MANTENIMIENTO: CAMARAS";
+            textoNota = "Fallo catastrofico en las camaras de contencion\nemocional. El 'Canto' y el 'Oxido' se desbordaron.\nEstan... filtrandose. La arquitectura esta\n*sintiendo*.\n\nNo dejen que el miedo los controle. El Nexo se alimenta.";
             break;
         case 7:
-            textoTitulo = "PLANO DEL NEXO (Boceto)";
-            textoNota = "'Camara del Oxido'. 'Camara del Canto'.\n\n...intentaban darle forma al Eter usando emociones\nhumanas concentradas. Ira. Miedo. Dicha.\n\nCrearon baterias de almas.";
+            textoTitulo = "ORDEN DE EVACUACION (Parcial)";
+            textoNota = "...energia al minimo. La bateria de la\nlinterna es vuestra vida. Usadla con cuidado.\nEl Eter reacciona a la luz. Atraera a los ecos.\n\nSi os quedais a oscuras... rezad para que solo\nla Materia os encuentre.";
             break;
         case 8:
-            textoTitulo = "NOTA: [ILEGIBLE]";
-            textoNota = "La puerta principal esta sellada por energia psionica.\nUna paradoja. Solo se abrira si el... 'ancla'...\ndel Nexo se estabiliza.\n\n¿Matarlo? ¿O... calmarlo?";
+            textoTitulo = "MEMO DE SEGURIDAD: PUERTA DEL NEXO";
+            textoNota = "La puerta principal esta bajo sello psionico.\nEs una medida de seguridad de Aris. Solo se abrira\nsi el 'ancla' del Cisma se calma.\n\nBuena suerte con eso. La llave esta en la Camara\nde la Memoria. O estaba.";
             break;
         case 9:
-            textoTitulo = "NOTA DE VOZ (Transcripcion)";
-            textoNota = "¿Cuanto tiempo llevo aqui? ¿Por que mi linterna\nsigue funcionando? Cada vez que 'muero'...\nvuelvo a despertar en el pasillo.\n\nEsto no es real. Soy un eco mas.";
+            textoTitulo = "PENSAMIENTO TRANSCRITO (¿MIO?)";
+            textoNota = "No estoy aqui. Soy un eco. Morí en el pasillo.\nSenti el... Cisma. Me desgarro.\n\nPero sigo caminando. Sigo respirando.\nEsto es un suenno. Tengo que despertar.\nTengo que despertar.";
             break;
         case 10:
-            textoTitulo = "ADVERTENCIA (Pintada en pared)";
-            textoNota = "NO TE FIES DE LA LUZ.\n\nEl Eter reacciona a la observacion.\nCuanto mas iluminas la oscuridad,\nmas *te ve* ella a ti.";
+            textoTitulo = "REGISTRO DE SEGURIDAD #119";
+            textoNota = "Los Cofres estan asegurados. Los suministros deberian\ndurar. Pero estas... *cosas*... no necesitan comer.\nSolo odian.\n\nVi a uno gordo. Carne podrida. Se movia tan...\n...lento. Pero no se detuvo. Nunca se detuvo.";
             break;
         default:
             // Se queda como "REGISTRO CORRUPTO"

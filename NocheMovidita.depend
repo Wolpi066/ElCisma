@@ -442,7 +442,7 @@
 	"Protagonista.h"
 	"Constantes.h"
 
-1762446618 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1762455582 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raymath.h"
@@ -460,7 +460,7 @@
 	"BalaMonstruosa.h"
 	"Spawner.h"
 
-1762454096 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
+1762458152 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
 	"raylib.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -471,7 +471,7 @@
 	"SistemaInput.h"
 	"Constantes.h"
 
-1762454075 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
+1762458136 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
 	"raylib.h"
 	<vector>
 	<list>
@@ -505,7 +505,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\llave.h
 	"Consumible.h"
 
-1762451308 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
+1762455595 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
 	"Consumible.h"
 
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\spawner.h
@@ -526,10 +526,14 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.h
 	<string>
 
-1762447098 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
+1762455551 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
 	"Mapa.h"
 	"Constantes.h"
 	"raymath.h"
+	<algorithm>
+	<random>
+	<chrono>
+	<numeric>
 	"GestorEntidades.h"
 	"Spawner.h"
 	"Zombie.h"
@@ -573,7 +577,7 @@
 	"raymath.h"
 	"Constantes.h"
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\nota.cpp
+1762455600 source:c:\users\volpi\onedrive\escritorio\elcisma\src\nota.cpp
 	"Nota.h"
 
 1762443020 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp

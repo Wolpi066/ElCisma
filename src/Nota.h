@@ -3,7 +3,8 @@
 
 class Nota : public Consumible {
 private:
-    int notaID; // 1 = "Hola mundo"
+    int notaID;
+    bool leida; // ¡¡NUEVO!! Para saber si debe desaparecer
 
 public:
     Nota(Vector2 pos, int id);
@@ -12,5 +13,5 @@ public:
     virtual void dibujar() override;
 
     virtual bool esInteraccionPorTecla() const override;
-    virtual bool estaConsumido() const override; // Nunca desaparece
+    virtual bool estaConsumido() const override; // ¡¡MODIFICADO!!
 };

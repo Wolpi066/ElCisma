@@ -190,7 +190,7 @@ void Mapa::cargarMapa()
     muros.push_back({ -1100, -1300, 20, 300 }); // Estantería Central 2
     cajas.push_back({ -1350, -1450, 80, 80 });  // Pila de cajas grande
     cajas.push_back({ -1150, -1050, 40, 40 });  // Caja suelta
-    cajas.push_back({ -1050, -1450, 40, 40 });  // Caja suelta (la de la nota)
+    cajas.push_back({ -1050, -1450, 40, 40 });  // Caja suelta
 
     // --- ¡REDISEÑO! Sala NE (Electrica - "Camara de la Memoria") ---
     muros.push_back({ 1000, -1400, 20, 150 }); // Panel eléctrico
@@ -298,7 +298,7 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
         } else {
             cofreRect = { spawn.pos.x - 7.5f, spawn.pos.y - 12.5f, 15, 25 };
         }
-        this->cajas.push_back(cofreRect);
+        this->cajas.push_back(cofreRect); // Añadir cofre a las 'cajas' para colisionar
     };
 
     // --- Definición de Zonas de Spawn ---
@@ -309,8 +309,7 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     Rectangle pasilloOeste = { -800, -300, 100, 600 };
     Rectangle pasilloEste = { 700, -300, 100, 600 };
     Rectangle pasilloSur = { -300, 650, 600, 150 };
-    // --- WARNING CORREGIDO: Variable comentada porque no se usa ---
-    // Rectangle pasilloNorte = { -50, -800, 100, 150 };
+    // Rectangle pasilloNorte = { -50, -800, 100, 150 }; // Variable no usada
     Rectangle anilloNorte = { -300, -550, 600, 100 };
     Rectangle anilloSur = { -300, 450, 600, 100 };
     Rectangle corredorBordeN = { -900, -1500, 1800, 600 };
@@ -325,6 +324,55 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     Rectangle puestoSeguridadE = { 830, -55, 20, 110 };
 
     std::vector<Rectangle> zonasHabitaciones = { zonaAlmacen, zonaElectrica, zonaOficinas, zonaDormis };
+
+    // --- ¡¡ORDEN CORREGIDO!! ---
+    // 1. Spawneo de Cofres (para que existan en la lista 'cajas')
+
+    // --- Logica de Cofres y Llave ---
+    int zonaLlaveIdx = GetRandomValue(0, zonasHabitaciones.size() - 1);
+    SpawnCofre spawnLlave = getSpawnCofrePegadoAPared(zonasHabitaciones[zonaLlaveIdx]);
+    registrarCofreConColision(gestor, spawnLlave, 99);
+    spawnsCofres.push_back(spawnLlave.pos);
+
+    // Cast a size_t para evitar warning
+    for (size_t i = 0; i < zonasHabitaciones.size(); i++)
+    {
+        int cofresPorHabitacion = GetRandomValue(1, 2);
+        for (int j = 0; j < cofresPorHabitacion; j++)
+        {
+            int lootID = GetRandomValue(1, 4);
+            SpawnCofre spawnCofre = getSpawnCofrePegadoAPared(zonasHabitaciones[i]);
+            registrarCofreConColision(gestor, spawnCofre, lootID);
+            spawnsCofres.push_back(spawnCofre.pos);
+        }
+    }
+
+    SpawnCofre spawnAlcove = getSpawnCofrePegadoAPared(zonaAlcoveOeste);
+    registrarCofreConColision(gestor, spawnAlcove, GetRandomValue(1, 4));
+    spawnsCofres.push_back(spawnAlcove.pos);
+
+    SpawnCofre spawnSeguridadE = getSpawnCofrePegadoAPared(puestoSeguridadE);
+    registrarCofreConColision(gestor, spawnSeguridadE, GetRandomValue(1, 4));
+    spawnsCofres.push_back(spawnSeguridadE.pos);
+
+    SpawnCofre spawnCofreBN = getSpawnCofrePegadoAPared(habSeguridadN);
+    registrarCofreConColision(gestor, spawnCofreBN, GetRandomValue(1, 4));
+    spawnsCofres.push_back(spawnCofreBN.pos);
+
+    SpawnCofre spawnCofreBS = getSpawnCofrePegadoAPared(zonaBarricadaS);
+    registrarCofreConColision(gestor, spawnCofreBS, GetRandomValue(1, 4));
+    spawnsCofres.push_back(spawnCofreBS.pos);
+
+    SpawnCofre spawnCofreBE = getSpawnCofrePegadoAPared(habObservacionE);
+    registrarCofreConColision(gestor, spawnCofreBE, GetRandomValue(1, 4));
+    spawnsCofres.push_back(spawnCofreBE.pos);
+
+    SpawnCofre spawnCofreBO = getSpawnCofrePegadoAPared(zonaColapsoO);
+    registrarCofreConColision(gestor, spawnCofreBO, GetRandomValue(1, 4));
+    spawnsCofres.push_back(spawnCofreBO.pos);
+
+    // --- ¡¡ORDEN CORREGIDO!! ---
+    // 2. Spawneo de Enemigos (ahora evitaran los cofres)
 
     // --- Generacion de Enemigos ---
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(zonaAlmacen)));
@@ -360,7 +408,7 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(zonaColapsoO)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeO)));
 
-    // --- Generacion de Consumibles Fijos (de piso) ---
+    // 3. Generacion de Consumibles Fijos (de piso)
     gestor.registrarConsumible(Spawner<Bateria>::Spawn(getPosicionSpawnValida(zonaElectrica)));
     gestor.registrarConsumible(Spawner<Bateria>::Spawn(getPosicionSpawnValida(zonaElectrica)));
     gestor.registrarConsumible(Spawner<CajaDeMuniciones>::Spawn(getPosicionSpawnValida(zonaAlmacen)));
@@ -377,52 +425,8 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarConsumible(Spawner<Botiquin>::Spawn(getPosicionSpawnValida(zonaBarricadaS)));
     gestor.registrarConsumible(Spawner<Bateria>::Spawn(getPosicionSpawnValida(zonaColapsoO)));
 
-    // --- Logica de Cofres y Llave ---
-    int zonaLlaveIdx = GetRandomValue(0, zonasHabitaciones.size() - 1);
-    SpawnCofre spawnLlave = getSpawnCofrePegadoAPared(zonasHabitaciones[zonaLlaveIdx]);
-    registrarCofreConColision(gestor, spawnLlave, 99);
-    spawnsCofres.push_back(spawnLlave.pos);
 
-    // --- WARNING CORREGIDO: Cast a size_t (o tipo unsigned) ---
-    for (size_t i = 0; i < zonasHabitaciones.size(); i++)
-    {
-        int cofresPorHabitacion = GetRandomValue(1, 2);
-        for (int j = 0; j < cofresPorHabitacion; j++)
-        {
-            int lootID = GetRandomValue(1, 4);
-            SpawnCofre spawnCofre = getSpawnCofrePegadoAPared(zonasHabitaciones[i]);
-            registrarCofreConColision(gestor, spawnCofre, lootID);
-            spawnsCofres.push_back(spawnCofre.pos);
-        }
-    }
-
-    SpawnCofre spawnAlcove = getSpawnCofrePegadoAPared(zonaAlcoveOeste);
-    registrarCofreConColision(gestor, spawnAlcove, GetRandomValue(1, 4));
-    spawnsCofres.push_back(spawnAlcove.pos);
-
-    SpawnCofre spawnSeguridadE = getSpawnCofrePegadoAPared(puestoSeguridadE);
-    registrarCofreConColision(gestor, spawnSeguridadE, GetRandomValue(1, 4));
-    spawnsCofres.push_back(spawnSeguridadE.pos);
-
-    SpawnCofre spawnCofreBN = getSpawnCofrePegadoAPared(habSeguridadN);
-    // --- ERROR CORREGIDO: Eliminado el 4to argumento ---
-    registrarCofreConColision(gestor, spawnCofreBN, GetRandomValue(1, 4));
-    spawnsCofres.push_back(spawnCofreBN.pos);
-
-    SpawnCofre spawnCofreBS = getSpawnCofrePegadoAPared(zonaBarricadaS);
-    registrarCofreConColision(gestor, spawnCofreBS, GetRandomValue(1, 4));
-    spawnsCofres.push_back(spawnCofreBS.pos);
-
-    SpawnCofre spawnCofreBE = getSpawnCofrePegadoAPared(habObservacionE);
-    registrarCofreConColision(gestor, spawnCofreBE, GetRandomValue(1, 4));
-    spawnsCofres.push_back(spawnCofreBE.pos);
-
-    SpawnCofre spawnCofreBO = getSpawnCofrePegadoAPared(zonaColapsoO);
-    registrarCofreConColision(gestor, spawnCofreBO, GetRandomValue(1, 4));
-    spawnsCofres.push_back(spawnCofreBO.pos);
-
-
-    // --- Picaportes ---
+    // 4. Picaportes
     float handleSize = 10;
     float posYPicaportes = (puertaJefe.y + puertaJefe.height) + (handleSize / 2);
     Vector2 posPicaporteIzq = { puertaJefe.x + (puertaJefe.width/2) - handleSize - 5, posYPicaportes };
@@ -430,34 +434,39 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarConsumible(Spawner<IndicadorPuerta>::Spawn(posPicaporteIzq));
     gestor.registrarConsumible(Spawner<IndicadorPuerta>::Spawn(posPicaporteDer));
 
-    // --- ¡¡BLOQUE DE NOTAS COMPLETAMENTE MODIFICADO!! ---
+    // 5. Spawn de Notas
 
-    // 1. Crear la lista de IDs de notas (del 1 al 10)
+    // --- ¡¡NUEVO!! Spawnea la nota inicial (ID 0) frente al jugador
+    // El spawn del jugador es {0, 500}
+    gestor.registrarConsumible(new Nota({0, 550}, 0));
+
+    // --- Lógica de notas aleatorias (IDs 1-10) ---
+
+    // Crear la lista de IDs de notas (del 1 al 10)
     std::vector<int> idsDeNotas(10);
     std::iota(idsDeNotas.begin(), idsDeNotas.end(), 1); // Rellena con 1, 2, 3... 10
 
-    // 2. Barajar los IDs de notas
+    // Barajar los IDs de notas
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     std::shuffle(idsDeNotas.begin(), idsDeNotas.end(), std::default_random_engine(seed));
 
-    // 3. Obtener y barajar las posiciones de las cajas
-    // (Creamos una copia para no alterar el vector original de 'cajas')
+    // Obtener y barajar las posiciones de las cajas
     std::vector<Rectangle> cajasAleatorias = this->cajas;
     std::shuffle(cajasAleatorias.begin(), cajasAleatorias.end(), std::default_random_engine(seed));
 
-    // 4. Decidir cuantas notas spawnear (3 a 5)
+    // Decidir cuantas notas spawnear (3 a 5)
     int numNotas = GetRandomValue(3, 5);
 
-    // 5. Asegurarnos de no intentar spawnear mas notas que cajas disponibles
+    // Asegurarnos de no intentar spawnear mas notas que cajas disponibles
     if (numNotas > (int)cajasAleatorias.size()) {
         numNotas = cajasAleatorias.size();
     }
 
-    // 6. Spawnear las notas
+    // Spawnear las notas
     for (int i = 0; i < numNotas; i++)
     {
         Rectangle cajaSpawn = cajasAleatorias[i];
-        int notaID = idsDeNotas[i];
+        int notaID = idsDeNotas[i]; // Toma los primeros N IDs de la lista barajada
         gestor.registrarConsumible(new Nota(getPosicionSpawnNota(cajaSpawn), notaID));
     }
     // --- FIN DEL BLOQUE DE NOTAS ---
@@ -466,13 +475,16 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
 // --- Metodos de Ayuda para Spawn Valido ---
 bool Mapa::esAreaValida(Vector2 pos)
 {
+    // Chequeo para items de piso y enemigos
     Rectangle areaCheck = { pos.x - 32, pos.y - 32, 64, 64 };
-    for (const auto& muro : muros) {
+
+    for (const auto& muro : muros) { // Chequea muros
         if (CheckCollisionRecs(areaCheck, muro)) return false;
     }
-    for (const auto& caja : cajas) {
+    for (const auto& caja : cajas) { // Chequea cajas (¡Y AHORA COFRES!)
         if (CheckCollisionRecs(areaCheck, caja)) return false;
     }
+
     if (!puertaAbierta) {
         if (CheckCollisionRecs(areaCheck, puertaJefe)) return false;
     }
@@ -500,7 +512,7 @@ bool Mapa::esAreaValida(Vector2 pos, CofreOrientacion orient)
     }
 
     // 3. ¡¡NUEVO!! DEBE estar tocando un muro
-    // (Creamos un rect 2px mas grande)
+    // (Creamos un rect 2px mas grande para chequear adyacencia)
     Rectangle areaInflada = {
         areaCheck.x - 1,
         areaCheck.y - 1,
@@ -509,6 +521,7 @@ bool Mapa::esAreaValida(Vector2 pos, CofreOrientacion orient)
     };
     bool tocandoMuro = false;
     for (const auto& muro : muros) {
+        // Usamos GetCollisionRec para ver si se tocan (no si uno esta dentro de otro)
         if (CheckCollisionRecs(areaInflada, muro)) {
             tocandoMuro = true;
             break;
@@ -573,7 +586,7 @@ SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
         }
 
         intentos++;
-        if (intentos > 100) {
+        if (intentos > 200) { // Aumentado a 200 intentos por la nueva restriccion
             TraceLog(LOG_WARNING, "No se pudo encontrar un spawn en pared, usando spawn aleatorio.");
             spawn.pos = getPosicionSpawnValida(zona); // Fallback
             spawn.orient = CofreOrientacion::HORIZONTAL;
