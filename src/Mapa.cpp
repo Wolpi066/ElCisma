@@ -199,7 +199,7 @@ void Mapa::cargarMapa()
 
     muros.push_back({ 1350, -1450, 100, 20 });  // Maquinaria (muro)
     muros.push_back({ 1350, -1300, 100, 20 });  // Maquinaria (muro)
-    cajas.push_back({ 1430, -1350, 40, 40 });   // Caja suelta
+    cajas.push_back({ 1430, -1350, 40, 40 });    // Caja suelta
 
     // Sala SO (Oficinas - "Camara del Remanente") - (Diseño anterior OK)
     muros.push_back({ -1200, 1000, 300, 20 }); // Cubiculo
@@ -252,7 +252,7 @@ void Mapa::cargarMapa()
 
     // Pasillo Interior Sur (Bancos)
     cajas.push_back({ -150, 580, 100, 20 });  // Banco (pegado a pared de sala jefe)
-    cajas.push_back({ 50, 580, 100, 20 });   // Banco (pegado a pared de sala jefe)
+    cajas.push_back({ 50, 580, 100, 20 });    // Banco (pegado a pared de sala jefe)
 
     // Pasillo Interior Norte (Restos del colapso)
     muros.push_back({ -200, -750, 400, 20 }); // Muro horizontal largo (Original)
@@ -315,6 +315,24 @@ void Mapa::cargarMapa()
 void Mapa::poblarMundo(GestorEntidades& gestor)
 {
     spawnsCofres.clear();
+
+    // --- ¡NUEVO! Helper para registrar cofres con colisión ---
+    auto registrarCofreConColision = [&](GestorEntidades& gestor, const SpawnCofre& spawn, int lootID) {
+        // 1. Registrar el consumible
+        gestor.registrarConsumible(new Cofre(spawn.pos, lootID, spawn.orient));
+
+        // 2. Crear su rect de colision
+        Rectangle cofreRect;
+        if (spawn.orient == CofreOrientacion::HORIZONTAL) {
+            cofreRect = { spawn.pos.x - 12.5f, spawn.pos.y - 7.5f, 25, 15 };
+        } else {
+            cofreRect = { spawn.pos.x - 7.5f, spawn.pos.y - 12.5f, 15, 25 };
+        }
+
+        // 3. Añadirlo a la lista de 'cajas' para que colisione
+        this->cajas.push_back(cofreRect);
+    };
+    // --- Fin del Helper ---
 
     // --- Definición de Zonas de Spawn ---
     Rectangle zonaAlmacen = { -1480, -1480, 580, 580 };
@@ -419,7 +437,8 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     // --- Logica de Cofres y Llave ---
     int zonaLlaveIdx = GetRandomValue(0, zonasHabitaciones.size() - 1);
     SpawnCofre spawnLlave = getSpawnCofrePegadoAPared(zonasHabitaciones[zonaLlaveIdx]);
-    gestor.registrarConsumible(new Cofre(spawnLlave.pos, 99, spawnLlave.orient));
+    // --- MODIFICADO ---
+    registrarCofreConColision(gestor, spawnLlave, 99);
     spawnsCofres.push_back(spawnLlave.pos);
 
     for (int i = 0; i < zonasHabitaciones.size(); i++)
@@ -429,35 +448,42 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
         {
             int lootID = GetRandomValue(1, 4);
             SpawnCofre spawnCofre = getSpawnCofrePegadoAPared(zonasHabitaciones[i]);
-            gestor.registrarConsumible(new Cofre(spawnCofre.pos, lootID, spawnCofre.orient));
+            // --- MODIFICADO ---
+            registrarCofreConColision(gestor, spawnCofre, lootID);
             spawnsCofres.push_back(spawnCofre.pos);
         }
     }
 
     // --- ¡NUEVO! Cofres en Puntos de Interés Interiores ---
     SpawnCofre spawnAlcove = getSpawnCofrePegadoAPared(zonaAlcoveOeste);
-    gestor.registrarConsumible(new Cofre(spawnAlcove.pos, GetRandomValue(1, 4), spawnAlcove.orient));
+    // --- MODIFICADO ---
+    registrarCofreConColision(gestor, spawnAlcove, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnAlcove.pos);
 
     SpawnCofre spawnSeguridadE = getSpawnCofrePegadoAPared(puestoSeguridadE);
-    gestor.registrarConsumible(new Cofre(spawnSeguridadE.pos, GetRandomValue(1, 4), spawnSeguridadE.orient));
+    // --- MODIFICADO ---
+    registrarCofreConColision(gestor, spawnSeguridadE, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnSeguridadE.pos);
 
     // --- ¡NUEVO! Cofres en Mini-Habitaciones Exteriores (Lore-driven, 1 por hab) ---
     SpawnCofre spawnCofreBN = getSpawnCofrePegadoAPared(habSeguridadN);
-    gestor.registrarConsumible(new Cofre(spawnCofreBN.pos, GetRandomValue(1, 4), spawnCofreBN.orient));
+    // --- MODIFICADO ---
+    registrarCofreConColision(gestor, spawnCofreBN, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnCofreBN.pos);
 
     SpawnCofre spawnCofreBS = getSpawnCofrePegadoAPared(zonaBarricadaS);
-    gestor.registrarConsumible(new Cofre(spawnCofreBS.pos, GetRandomValue(1, 4), spawnCofreBS.orient));
+    // --- MODIFICADO ---
+    registrarCofreConColision(gestor, spawnCofreBS, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnCofreBS.pos);
 
     SpawnCofre spawnCofreBE = getSpawnCofrePegadoAPared(habObservacionE);
-    gestor.registrarConsumible(new Cofre(spawnCofreBE.pos, GetRandomValue(1, 4), spawnCofreBE.orient));
+    // --- MODIFICADO ---
+    registrarCofreConColision(gestor, spawnCofreBE, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnCofreBE.pos);
 
     SpawnCofre spawnCofreBO = getSpawnCofrePegadoAPared(zonaColapsoO);
-    gestor.registrarConsumible(new Cofre(spawnCofreBO.pos, GetRandomValue(1, 4), spawnCofreBO.orient));
+    // --- MODIFICADO ---
+    registrarCofreConColision(gestor, spawnCofreBO, GetRandomValue(1, 4));
     spawnsCofres.push_back(spawnCofreBO.pos);
 
 
