@@ -460,7 +460,7 @@
 	"BalaMonstruosa.h"
 	"Spawner.h"
 
-1762446609 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
+1762454096 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
 	"raylib.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -471,7 +471,7 @@
 	"SistemaInput.h"
 	"Constantes.h"
 
-1762440078 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
+1762454075 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
 	"raylib.h"
 	<vector>
 	<list>
@@ -505,7 +505,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\llave.h
 	"Consumible.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
+1762451308 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
 	"Consumible.h"
 
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\spawner.h

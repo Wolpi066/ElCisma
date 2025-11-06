@@ -2,6 +2,13 @@
 #include "Constantes.h"
 #include "raymath.h"
 
+// --- ¡¡AÑADIDO!! ---
+#include <algorithm> // Para std::shuffle
+#include <random>    // Para std::default_random_engine
+#include <chrono>    // Para la semilla (seed)
+#include <numeric>   // Para std::iota
+// -------------------
+
 // Incluimos las clases necesarias para poblar el mundo
 #include "GestorEntidades.h"
 #include "Spawner.h"
@@ -423,9 +430,37 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarConsumible(Spawner<IndicadorPuerta>::Spawn(posPicaporteIzq));
     gestor.registrarConsumible(Spawner<IndicadorPuerta>::Spawn(posPicaporteDer));
 
-    // --- ¡NUEVO!! Spawn de la Nota "Hola Mundo" ---
-    Rectangle cajaParaNota = { -1050, -1450, 40, 40};
-    gestor.registrarConsumible(new Nota(getPosicionSpawnNota(cajaParaNota), 1)); // ID 1 = "Hola mundo"
+    // --- ¡¡BLOQUE DE NOTAS COMPLETAMENTE MODIFICADO!! ---
+
+    // 1. Crear la lista de IDs de notas (del 1 al 10)
+    std::vector<int> idsDeNotas(10);
+    std::iota(idsDeNotas.begin(), idsDeNotas.end(), 1); // Rellena con 1, 2, 3... 10
+
+    // 2. Barajar los IDs de notas
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle(idsDeNotas.begin(), idsDeNotas.end(), std::default_random_engine(seed));
+
+    // 3. Obtener y barajar las posiciones de las cajas
+    // (Creamos una copia para no alterar el vector original de 'cajas')
+    std::vector<Rectangle> cajasAleatorias = this->cajas;
+    std::shuffle(cajasAleatorias.begin(), cajasAleatorias.end(), std::default_random_engine(seed));
+
+    // 4. Decidir cuantas notas spawnear (3 a 5)
+    int numNotas = GetRandomValue(3, 5);
+
+    // 5. Asegurarnos de no intentar spawnear mas notas que cajas disponibles
+    if (numNotas > (int)cajasAleatorias.size()) {
+        numNotas = cajasAleatorias.size();
+    }
+
+    // 6. Spawnear las notas
+    for (int i = 0; i < numNotas; i++)
+    {
+        Rectangle cajaSpawn = cajasAleatorias[i];
+        int notaID = idsDeNotas[i];
+        gestor.registrarConsumible(new Nota(getPosicionSpawnNota(cajaSpawn), notaID));
+    }
+    // --- FIN DEL BLOQUE DE NOTAS ---
 }
 
 // --- Metodos de Ayuda para Spawn Valido ---
@@ -444,6 +479,7 @@ bool Mapa::esAreaValida(Vector2 pos)
     return true;
 }
 
+// --- ¡¡FUNCION DE COFRES CORREGIDA!! ---
 bool Mapa::esAreaValida(Vector2 pos, CofreOrientacion orient)
 {
     Rectangle areaCheck;
@@ -452,13 +488,37 @@ bool Mapa::esAreaValida(Vector2 pos, CofreOrientacion orient)
     } else {
         areaCheck = { pos.x - 7.5f, pos.y - 12.5f, 15, 25 };
     }
+
+    // 1. No puede estar DENTRO de un muro
     for (const auto& muro : muros) {
         if (CheckCollisionRecs(areaCheck, muro)) return false;
     }
+
+    // 2. No puede estar en la puerta
     if (!puertaAbierta) {
         if (CheckCollisionRecs(areaCheck, puertaJefe)) return false;
     }
-    return true;
+
+    // 3. ¡¡NUEVO!! DEBE estar tocando un muro
+    // (Creamos un rect 2px mas grande)
+    Rectangle areaInflada = {
+        areaCheck.x - 1,
+        areaCheck.y - 1,
+        areaCheck.width + 2,
+        areaCheck.height + 2
+    };
+    bool tocandoMuro = false;
+    for (const auto& muro : muros) {
+        if (CheckCollisionRecs(areaInflada, muro)) {
+            tocandoMuro = true;
+            break;
+        }
+    }
+
+    // Si no esta tocando un muro, NO es un spawn valido
+    if (!tocandoMuro) return false;
+
+    return true; // Paso todas las pruebas
 }
 
 
@@ -531,6 +591,7 @@ SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
 
         if (estaMuyCerca) continue;
 
+    // ¡¡MODIFICADO!! Ahora esta validacion es la que hace el trabajo
     } while (!esAreaValida(spawn.pos, spawn.orient));
 
     return spawn;
@@ -538,5 +599,6 @@ SpawnCofre Mapa::getSpawnCofrePegadoAPared(Rectangle zona)
 
 Vector2 Mapa::getPosicionSpawnNota(const Rectangle& caja)
 {
+    // Devuelve el centro de la caja para que la nota aparezca "encima"
     return { caja.x + caja.width / 2, caja.y + caja.height / 2 };
 }

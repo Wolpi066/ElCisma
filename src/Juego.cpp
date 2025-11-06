@@ -19,6 +19,23 @@
 #include "BalaMonstruosa.h"
 #include "Spawner.h"
 
+// --- ¡¡NUEVO!! Helper para el texto glitch ---
+// Dibuja texto con un efecto de "aberracion cromatica" o glitch
+void DibujarTextoGlitch(const char* texto, int posX, int posY, int fontSize, Color colorPrincipal)
+{
+    // 1. Canales de color desfasados (el "glitch")
+    // (Usamos el tiempo para que el offset sea dinamico y "vibre")
+    float offset = sin(GetTime() * 15.0f) * 1.0f; // Vibracion sutil
+    float offset2 = cos(GetTime() * 10.0f) * 1.0f;
+    DrawText(texto, posX + (int)offset, posY + (int)offset2, fontSize, Fade((Color){255, 0, 100, 255}, 0.2f));
+    DrawText(texto, posX - (int)offset, posY - (int)offset2, fontSize, Fade((Color){0, 255, 200, 255}, 0.2f));
+
+    // 2. Texto principal
+    DrawText(texto, posX, posY, fontSize, colorPrincipal);
+}
+// ------------------------------------------
+
+
 // --- CONSTRUCTOR ---
 Juego::Juego()
     : jugador({0, 500}),
@@ -390,65 +407,110 @@ void Juego::dibujarJugando()
     renderizador.dibujarTodo(jugador, miMapa, gestor);
 }
 
-// --- ¢B¢BNUEVA FUNCION CON HUD PROFESIONAL!! ---
+// --- ¡¡FUNCION COMPLETAMENTE REDISEÑADA!! ---
 void Juego::dibujarLeyendoNota()
 {
     // 1. Dibujamos el juego pausado detras
-    // --- ¢B¢BBUG CORREGIDO!! ---
-    // Llamamos a renderizador.dibujarTodo() directamente
-    // para que se dibuje *antes* del EndDrawing()
     renderizador.dibujarTodo(jugador, miMapa, gestor);
 
     // 2. Dibujamos el velo oscuro
     DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.85f));
 
-    // 3. Definimos el area de la nota (un HUD profesional)
+    // 3. Definimos el area de la nota (terminal)
     Rectangle frame = {
-        Constantes::ANCHO_PANTALLA * 0.15f, // Margen 15%
-        Constantes::ALTO_PANTALLA * 0.2f,  // Margen 20%
-        Constantes::ANCHO_PANTALLA * 0.7f,  // Ancho 70%
-        Constantes::ALTO_PANTALLA * 0.6f   // Alto 60%
+        Constantes::ANCHO_PANTALLA * 0.1f,  // Margen 10%
+        Constantes::ALTO_PANTALLA * 0.15f, // Margen 15%
+        Constantes::ANCHO_PANTALLA * 0.8f,  // Ancho 80%
+        Constantes::ALTO_PANTALLA * 0.7f   // Alto 70%
     };
-    // Fondo de "papel"
-    DrawRectangleRec(frame, (Color){ 245, 245, 245, 255 }); // Blanco hueso
-    DrawRectangleLinesEx(frame, 3.0f, BLACK); // Borde grueso
 
-    // 4. Dibujamos el texto de la nota
-    const char* textoTitulo = "";
-    const char* textoNota = "";
+    // Fondo de la terminal (oscuro)
+    DrawRectangleRec(frame, Fade((Color){10, 20, 30, 255}, 0.95f));
+    // Borde tematico (verde cyber)
+    DrawRectangleLinesEx(frame, 2.0f, Fade((Color){0, 255, 128, 100}, 0.5f));
+
+    // --- Scanlines (para el efecto CRT) ---
+    for (int y = (int)frame.y; y < (int)(frame.y + frame.height); y += 3)
+    {
+        DrawLine(frame.x, y, frame.x + frame.width, y, Fade(BLACK, 0.5f));
+    }
+    // ---------------------------------------
+
+    // 4. Dibujamos el texto de la nota (¡con el lore!)
+    const char* textoTitulo = "REGISTRO CORRUPTO";
+    const char* textoNota = "DATOS NO ENCONTRADOS.\n\n[ERROR: 0x3F_Desync_Eter]\nLA FUENTE SOLICITADA NO EXISTE.";
+
+    // --- ¡¡NUEVO LORE!! ---
     switch (notaActualID)
     {
         case 1:
-            textoTitulo = "Nota #1: Entrada de Laboratorio";
-            textoNota = "Hola mundo";
+            textoTitulo = "REGISTRO #734-A (Fragmento)";
+            textoNota = "No es un lugar. Es... una costura. Un pliegue entre\nlo que *es* y lo que *piensa*.\n\nNo debimos tirar del hilo.";
             break;
-        // ... mas notas ...
+        case 2:
+            textoTitulo = "DIARIO DE PERSONAL (Manchado)";
+            textoNota = "Lo llaman 'El Cisma'. El evento. Pero yo lo vi.\nNo fue un evento.\n\nFue una *llegada*. O un *retorno*.";
+            break;
+        case 3:
+            textoTitulo = "LOG DE FISICA: ETER-MATERIA";
+            textoNota = "La Materia solo obedece. El Eter... *recuerda*.\n\nEl eco de un grito puede derribar un muro aqui.\nEl eco de un susurro... puede crear un monstruo.";
+            break;
+        case 4:
+            textoTitulo = "PROTOCOLO: SUJETO CERO";
+            textoNota = "...sujeto cero. El Dr. Aris. El fue el ancla.\nCuando el Desdoblamiento ocurrio, el estaba en\nel epicentro. No creo que quede mucho de *el*.\n\nAhora es solo... la herida.";
+            break;
+        case 5:
+            textoTitulo = "OBSERVACION DE CAMPO #44B";
+            textoNota = "Vi a Elara hoy. O algo que *cree* que es Elara.\nEsta atrapada en un bucle de sus ultimos segundos.\nEl terror la mantiene aqui. Es Eter puro.\n\nIgnora las paredes. Ignora la logica. Solo... siente.";
+            break;
+        case 6:
+            textoTitulo = "INFORME DE CONTENCION (Fallido)";
+            textoNota = "...la corrupcion de la Materia es mas simple. La carne\nsolo sabe pudrirse y obedecer. Ecos de hambre. Ecos de\ndolor. Son... estaticos.\n\nEl verdadero horror es el Eter.";
+            break;
+        case 7:
+            textoTitulo = "PLANO DEL NEXO (Boceto)";
+            textoNota = "'Camara del Oxido'. 'Camara del Canto'.\n\n...intentaban darle forma al Eter usando emociones\nhumanas concentradas. Ira. Miedo. Dicha.\n\nCrearon baterias de almas.";
+            break;
+        case 8:
+            textoTitulo = "NOTA: [ILEGIBLE]";
+            textoNota = "La puerta principal esta sellada por energia psionica.\nUna paradoja. Solo se abrira si el... 'ancla'...\ndel Nexo se estabiliza.\n\n¿Matarlo? ¿O... calmarlo?";
+            break;
+        case 9:
+            textoTitulo = "NOTA DE VOZ (Transcripcion)";
+            textoNota = "¿Cuanto tiempo llevo aqui? ¿Por que mi linterna\nsigue funcionando? Cada vez que 'muero'...\nvuelvo a despertar en el pasillo.\n\nEsto no es real. Soy un eco mas.";
+            break;
+        case 10:
+            textoTitulo = "ADVERTENCIA (Pintada en pared)";
+            textoNota = "NO TE FIES DE LA LUZ.\n\nEl Eter reacciona a la observacion.\nCuanto mas iluminas la oscuridad,\nmas *te ve* ella a ti.";
+            break;
         default:
-            textoTitulo = "ERROR";
-            textoNota = "NOTA CORRUPTA";
+            // Se queda como "REGISTRO CORRUPTO"
             break;
     }
+    // --- FIN DEL LORE ---
 
-    // Dibujar Titulo
-    DrawText(textoTitulo,
+    // Dibujar Titulo (con efecto glitch)
+    DibujarTextoGlitch(textoTitulo,
              (int)(frame.x + 20),
              (int)(frame.y + 20),
-             20, GRAY); // Fuente 20, gris
+             20, (Color){0, 255, 128, 255}); // Verde terminal
 
-    DrawLine((int)(frame.x + 20), (int)(frame.y + 45), (int)(frame.x + frame.width - 20), (int)(frame.y + 45), LIGHTGRAY);
+    DrawLine((int)(frame.x + 20), (int)(frame.y + 45), (int)(frame.x + frame.width - 20), (int)(frame.y + 45), Fade(GREEN, 0.2f));
 
-    // Dibujar Texto Principal
-    DrawText(textoNota,
+    // Dibujar Texto Principal (con efecto glitch)
+    DibujarTextoGlitch(textoNota,
              (int)(frame.x + 20),
              (int)(frame.y + 70),
-             30, BLACK); // Fuente 30, negro
+             20, (Color){200, 255, 220, 255}); // Fuente 20 (verde-blanco)
 
     // 5. Instruccion de salida
     const char* textoCerrar = "Presiona 'E' para cerrar";
+    // Parpadeo suave para la instruccion
+    float alphaCerrar = (sin(GetTime() * 2.0f) + 1.0f) / 2.0f; // 0.0 a 1.0
     DrawText(textoCerrar,
              (int)(frame.x + frame.width - MeasureText(textoCerrar, 20) - 20),
              (int)(frame.y + frame.height - 40),
-             20, DARKGRAY);
+             20, Fade(GREEN, 0.5f + alphaCerrar * 0.5f));
 }
 
 void Juego::dibujarDialogo()
