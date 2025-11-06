@@ -21,7 +21,7 @@ Protagonista::Protagonista(Vector2 pos) :
     // --- NUEVO: Inicializar linterna ---
     linternaEncendida(true),
     temporizadorFlicker(0.0f),
-    // --- ¡¡NUEVO!! Inicializar Knockback ---
+    // --- ¢B¢BNUEVO!! Inicializar Knockback ---
     knockbackVelocidad({0, 0}),
     knockbackTimer(0.0f)
     // ---------------------------------
@@ -45,21 +45,19 @@ void Protagonista::actualizarInterno(Camera2D camera) {
     if (temporizadorDisparo > 0) {
         temporizadorDisparo -= GetFrameTime();
     }
-    // --- ¡¡NUEVO!! Timer de Knockback ---
+    // --- ¢B¢BNUEVO!! Timer de Knockback ---
     if (knockbackTimer > 0) {
         knockbackTimer -= GetFrameTime();
     }
     // -----------------------------------
 
-    // --- ¡¡BLOQUE DE ROTACION MODIFICADO CON DELAY!! ---
+    // --- ¢B¢BBLOQUE DE ROTACION MODIFICADO CON DELAY!! ---
     // 1. Obtener la posicion del mouse en el mundo
     Vector2 mousePos = GetScreenToWorld2D(GetMousePosition(), camera);
     // 2. Calcular la direccion "objetivo" (hacia donde apunta el mouse)
     Vector2 dirObjetivo = Vector2Normalize(Vector2Subtract(mousePos, posicion));
 
     // 3. Interpolar suavemente la direccion de vista actual hacia la objetivo
-    // Un factor de suavizado mas bajo (ej. 5.0f) lo hace mas "pesado"
-    // Un factor mas alto (ej. 20.0f) lo hace mas rapido y reactivo
     float factorSuavizado = 10.0f;
     direccionVista = Vector2Lerp(direccionVista, dirObjetivo, factorSuavizado * GetFrameTime());
 
@@ -135,7 +133,7 @@ void Protagonista::recibirDanio(int cantidad) {
     tiempoInmune = 1.0f;
 }
 
-// --- ¡¡NUEVO!! ---
+// --- ¢B¢BNUEVO!! ---
 void Protagonista::matar()
 {
     // Muerte instantanea, ignora armadura e inmunidad
@@ -143,7 +141,7 @@ void Protagonista::matar()
 }
 // ------------------
 
-// --- ¡¡NUEVA FUNCION!! ---
+// --- ¢B¢BNUEVA FUNCION!! ---
 void Protagonista::aplicarKnockback(Vector2 direccion, float fuerza, float duracion)
 {
     // Solo aplica un nuevo knockback si no esta ya en uno
@@ -206,7 +204,7 @@ float Protagonista::getAnguloVista() const {
 float Protagonista::getRadio() const {
     return radio;
 }
-// --- ¡¡NUEVOS GETTERS!! ---
+// --- ¢B¢BNUEVOS GETTERS!! ---
 float Protagonista::getTiempoInmune() const {
     return tiempoInmune;
 }
@@ -219,7 +217,7 @@ Vector2 Protagonista::getVelocidadKnockback() const {
 // ---------------------------
 
 
-// --- ¡¡GETTERS DINAMICOS ACTUALIZADOS!! ---
+// --- ¢B¢BGETTERS DINAMICOS ACTUALIZADOS!! ---
 
 float Protagonista::getAnguloCono() const {
     // Si no hay bateria o esta parpadeando apagada, no hay cono

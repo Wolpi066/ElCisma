@@ -320,7 +320,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.h
 	"raylib.h"
 
-1762442906 c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.h
+1762462129 c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.h
 	"raylib.h"
 	"Constantes.h"
 
@@ -380,13 +380,13 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.cpp
 	"Consumible.h"
 
-1762459936 source:c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.cpp
+1762461299 source:c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.cpp
 	"Enemigo.h"
 	"Protagonista.h"
 	"raymath.h"
 	"Mapa.h"
 
-1762459928 c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.h
+1762461291 c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.h
 	"raylib.h"
 	<vector>
 	"raymath.h"
@@ -401,11 +401,11 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
 	"Enemigo.h"
 
-1762459949 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
+1762461319 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
 	"GestorEntidades.h"
 	"Mapa.h"
 
-1762459943 c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.h
+1762461309 c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.h
 	<vector>
 	<list>
 	"Protagonista.h"
@@ -476,7 +476,7 @@
 	<list>
 	"Cofre.h"
 
-1762438785 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
+1762462113 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
 	"raylib.h"
 	"Iluminacion.h"
 	"Protagonista.h"
@@ -554,7 +554,7 @@
 1762445349 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
 	"Enemigo.h"
 
-1762459983 source:c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.cpp
+1762461337 source:c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.cpp
 	"MonstruoObeso.h"
 	"Constantes.h"
 	"raymath.h"
@@ -580,7 +580,7 @@
 	"Nota.h"
 	"raymath.h"
 
-1762443020 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
+1762462135 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
 	"Protagonista.h"
 	"raymath.h"
 	"Consumible.h"
@@ -600,7 +600,7 @@
 	"Fantasma.h"
 	"raymath.h"
 
-1762459956 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
+1762461327 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
 	"Zombie.h"
 	"Constantes.h"
 	"raymath.h"

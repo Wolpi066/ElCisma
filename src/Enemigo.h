@@ -41,7 +41,7 @@ protected:
     float temporizadorPausaAtaque;
 
     // --- ¡¡NUEVO!! Estado de Daño ---
-    float temporizadorDanio; // Para el flash
+    float temporizadorDanio; // Para el flash rojo
     // --------------------------------
 
     bool puedeVearAlJugador(Vector2 posJugador);

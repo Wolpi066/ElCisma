@@ -26,7 +26,7 @@ private:
     bool linternaEncendida;
     float temporizadorFlicker;
 
-    // --- ¡¡NUEVO!! Estado de Knockback ---
+    // --- ¢B¢BNUEVO!! Estado de Knockback ---
     Vector2 knockbackVelocidad;
     float knockbackTimer;
     // ------------------------------------
@@ -41,11 +41,11 @@ public:
     void dibujar();
     void recibirDanio(int cantidad);
 
-    // --- ¡¡NUEVO!! ---
+    // --- ¢B¢BNUEVO!! ---
     void matar(); // Muerte instantanea
     // ------------------
 
-    // --- ¡¡NUEVO!! Knockback ---
+    // --- ¢B¢BNUEVO!! Knockback ---
     void aplicarKnockback(Vector2 direccion, float fuerza, float duracion);
     // -------------------------
 
@@ -67,9 +67,9 @@ public:
     bool getTieneLlave() const;
     float getRadio() const;
     float getAnguloVista() const;
-    float getTiempoInmune() const; // <-- ¡¡NUEVO GETTER!!
-    float getKnockbackTimer() const; // <-- ¡¡NUEVO GETTER!!
-    Vector2 getVelocidadKnockback() const; // <-- ¡¡NUEVO GETTER!!
+    float getTiempoInmune() const; // <-- ¢B¢BNUEVO GETTER!!
+    float getKnockbackTimer() const; // <-- ¢B¢BNUEVO GETTER!!
+    Vector2 getVelocidadKnockback() const; // <-- ¢B¢BNUEVO GETTER!!
 
     // --- GETTERS ACTUALIZADOS (Ahora son dinamicos) ---
     float getAnguloCono() const;

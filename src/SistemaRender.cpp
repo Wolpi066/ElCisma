@@ -170,6 +170,86 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     EndBlendMode();
     // ------------------------------------
 
+    // --- ¡¡NUEVO!! EFECTOS DE POCA VIDA (VENAS Y GLITCH) ---
+    int vidaActual = jugador.getVida();
+    if (vidaActual <= 5 && jugador.estaVivo())
+    {
+        // --- 1. EFECTO "VENAS VIOLETAS" (Lore) ---
+        // Intensidad: 0.0 (5 vida) a 1.0 (0 vida).
+        // ¡¡CORREGIDO!! El maximo de vida es 10. El umbral es 5.
+        // Queremos que con 5 de vida la intensidad sea baja, y con 1 sea alta.
+        float intensidad = 1.0f - ((float)(vidaActual - 1) / 4.0f); // 0.0 (con 5 vida) a 1.0 (con 1 vida)
+        if (intensidad < 0.0f) intensidad = 0.0f;
+        if (intensidad > 1.0f) intensidad = 1.0f;
+
+        float grosor = 1.0f + (intensidad * 4.0f); // Grosor de 1 a 5
+        float alfa = 0.2f + (intensidad * 0.5f); // Alfa de 20% a 70%
+        Color colorVenas = Fade(DARKPURPLE, alfa);
+
+        Vector2 centro = { Constantes::ANCHO_PANTALLA / 2, Constantes::ALTO_PANTALLA / 2 };
+        float t = GetTime() * 0.5f; // Tiempo para la animacion de "pulso"
+
+        // Dibujamos 8 venas (Bezier Cuadraticas) desde las esquinas/lados
+        Vector2 anclas[8] = {
+            {0, 0}, {Constantes::ANCHO_PANTALLA / 2, 0}, {Constantes::ANCHO_PANTALLA, 0},
+            {Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA / 2},
+            {Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA},
+            {Constantes::ANCHO_PANTALLA / 2, Constantes::ALTO_PANTALLA},
+            {0, Constantes::ALTO_PANTALLA},
+            {0, Constantes::ALTO_PANTALLA / 2}
+        };
+
+        // Puntos de control (para la curva) que "vibran"
+        Vector2 control[8] = {
+            {150 + sin(t*1.1f)*50, 150 + cos(t*1.2f)*50}, {centro.x + sin(t)*100, 200 + cos(t)*100}, {1024-150 - sin(t*1.3f)*50, 150 + cos(t*1.1f)*50},
+            {1024-200 - sin(t)*100, centro.y + cos(t)*100}, {1024-150 - sin(t*1.2f)*50, 768-150 - cos(t*1.3f)*50},
+            {centro.x - sin(t)*100, 768-200 - cos(t)*100}, {150 + sin(t*1.1f)*50, 768-150 - cos(t*1.2f)*50},
+            {200 + sin(t)*100, centro.y - cos(t)*100}
+        };
+
+        // --- ¡¡ERROR CORREGIDO!! Bucle manual para Bezier (no usa DrawLineBezierQuad) ---
+        for (int i = 0; i < 8; i++)
+        {
+            Vector2 ancla = anclas[i];
+            Vector2 ctrl = control[i];
+            Vector2 p_anterior = ancla;
+
+            for (int j = 1; j <= 10; j++) // 10 segmentos por vena
+            {
+                float t_step = (float)j / 10.0f;
+
+                // Formula de Bezier Cuadratica usando Lerp (Vector2Lerp anidado)
+                Vector2 p_lerp_1 = Vector2Lerp(ancla, ctrl, t_step);
+                Vector2 p_lerp_2 = Vector2Lerp(ctrl, centro, t_step);
+                Vector2 p_actual = Vector2Lerp(p_lerp_1, p_lerp_2, t_step);
+
+                DrawLineEx(p_anterior, p_actual, grosor, colorVenas);
+                p_anterior = p_actual; // La siguiente linea empieza donde termino esta
+            }
+        }
+        // --- FIN DE LA CORRECCION ---
+
+        // --- 2. EFECTO "GLITCH" (a 2 de vida o menos) ---
+        if (vidaActual <= 2)
+        {
+            // 10% de probabilidad cada frame de mostrar un glitch
+            if (GetRandomValue(0, 100) > 90)
+            {
+                int numGlitches = GetRandomValue(1, 4);
+                for (int i = 0; i < numGlitches; i++)
+                {
+                    int x = GetRandomValue(0, Constantes::ANCHO_PANTALLA);
+                    int y = GetRandomValue(0, Constantes::ALTO_PANTALLA);
+                    int w = GetRandomValue(20, 100);
+                    int h = GetRandomValue(5, 30);
+                    Color c = (GetRandomValue(0, 1) == 0) ? RED : (Color){0, 255, 128, 255}; // Rojo o Verde-Terminal
+                    DrawRectangle(x, y, w, h, Fade(c, 0.8f));
+                }
+            }
+        }
+    }
+    // --- FIN DE EFECTOS POCA VIDA ---
+
 
     // --- DIBUJO DE FANTASMAS (Susto y Despertando) ---
     BeginMode2D(camera);
@@ -203,8 +283,6 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
 
     // 2. ¡¡NUEVO!! Aplicar la niebla de guerra
     // Usamos BLEND_MULTIPLY: Mapa * Niebla.
-    // Si Niebla es NEGRO (0), el resultado es NEGRO.
-    // Si Niebla es BLANCO (1), el resultado es Mapa.
     BeginBlendMode(BLEND_MULTIPLIED);
     DrawTextureRec(
         nieblaMinimapa.texture,
@@ -222,7 +300,6 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     ); // Borde
 
     // 4. Calcular la posicion del jugador en el minimapa
-    // (Posicion_Mundo * zoom) + (Centro_Mundo * zoom) + Offset_Pantalla
     Vector2 posJugadorEnMapa = Vector2Scale(jugador.getPosicion(), minimapaZoom);
     Vector2 centroMinimapa = { (3200 * minimapaZoom) / 2, (3200 * minimapaZoom) / 2 };
     Vector2 posFinalJugador = Vector2Add(Vector2Add(posJugadorEnMapa, centroMinimapa), minimapaOffset);
@@ -231,6 +308,31 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     DrawCircleV(posFinalJugador, 3.0f, RED);
 
     // ------------------------------------------
+
+    // --- ¡¡NUEVO!! EFECTO VIGNETTE DE DAÑO (CORREGIDO) ---
+    float tiempoInmune = jugador.getTiempoInmune();
+    if (tiempoInmune > 0.0f)
+    {
+        // El timer va de 1.0 a 0.0. Lo usamos como alfa.
+        // Usamos MAROON (bordo) en lugar de RED brillante.
+        // Multiplicamos por 0.8 para que no sea 100% opaco en el pico.
+        float alpha = tiempoInmune * 0.8f;
+        Color colorBorde = Fade(MAROON, alpha);
+        Color colorCentro = Fade(BLANK, 0.0f); // Centro transparente
+
+        // Dibujamos 4 gradientes para crear la viñeta
+        int grosorBorde = 200; // Grosor del borde en pixeles
+
+        // Arriba
+        DrawRectangleGradientV(0, 0, Constantes::ANCHO_PANTALLA, grosorBorde, colorBorde, colorCentro);
+        // Abajo
+        DrawRectangleGradientV(0, Constantes::ALTO_PANTALLA - grosorBorde, Constantes::ANCHO_PANTALLA, grosorBorde, colorCentro, colorBorde);
+        // Izquierda
+        DrawRectangleGradientH(0, 0, grosorBorde, Constantes::ALTO_PANTALLA, colorBorde, colorCentro);
+        // Derecha
+        DrawRectangleGradientH(Constantes::ANCHO_PANTALLA - grosorBorde, 0, grosorBorde, Constantes::ALTO_PANTALLA, colorCentro, colorBorde);
+    }
+    // --------------------------------------
 
     dibujarHUD(jugador);
 }
