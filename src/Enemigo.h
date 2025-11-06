@@ -1,8 +1,17 @@
 #pragma once
 #include "raylib.h"
 #include <vector>
+#include "raymath.h" // <-- ¡AÑADIDO!
 
 class Protagonista;
+class Mapa; // <-- ¡AÑADIDO! Forward declaration
+
+// ¡NUEVO! Estados de la IA
+enum class EstadoIA {
+    PATRULLANDO,
+    PERSIGUIENDO,
+    ATACANDO // (Lo dejamos listo para el futuro)
+};
 
 class Enemigo {
 protected:
@@ -18,10 +27,19 @@ protected:
     float rangoVision;
     float anguloVision;
     float rangoEscucha;
-    bool haDetectadoAlJugador;
+
+    // --- ¡MODIFICADO! Reemplazamos el bool por la FSM ---
+    // bool haDetectadoAlJugador; // <-- ELIMINADO
+    EstadoIA estadoActual;
+    Vector2 destinoPatrulla;
+    float temporizadorPatrulla;
+    // --------------------------------------------------
 
     bool puedeVearAlJugador(Vector2 posJugador);
     bool puedeEscucharAlJugador(Vector2 posJugador);
+
+    // ¡NUEVO! Función virtual para patrullar
+    virtual void elegirNuevoDestinoPatrulla(const Mapa& mapa);
 
 public:
     // --- CONSTRUCTOR RESTAURADO (8 args) ---
@@ -31,13 +49,19 @@ public:
     virtual ~Enemigo() {}
 
     // --- MÉTODOS RESTAURADOS ---
-    virtual void actualizarIA(Vector2 posJugador) = 0;
+    // ¡MODIFICADO! Ahora recibe el Mapa
+    virtual void actualizarIA(Vector2 posJugador, const Mapa& mapa) = 0;
     virtual void dibujar() = 0;
     virtual void atacar(Protagonista& jugador) = 0;
 
     // --- CORREGIDO: Nombre y tipo ---
     virtual void recibirDanio(int cantidad);
     void setPosicion(Vector2 nuevaPos);
+
+    // --- ¡¡NUEVO!! ---
+    // Setter para que la física actualice la "cara"
+    void setDireccion(Vector2 nuevaDir);
+    // -----------------
 
     // Getters
     bool estaVivo() const;

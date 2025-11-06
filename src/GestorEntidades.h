@@ -8,6 +8,8 @@
 #include "Bala.h"
 #include "Consumible.h"
 
+class Mapa; // <-- ¡AÑADIDO!
+
 class GestorEntidades
 {
 private:
@@ -47,7 +49,8 @@ public:
     GestorEntidades();
     ~GestorEntidades();
 
-    void actualizarIAEntidades(Protagonista& jugador);
+    // ¡MODIFICADO!
+    void actualizarIAEntidades(Protagonista& jugador, const Mapa& mapa);
     void dibujarEntidades();
     void recolectarBasura();
     void limpiarTodo();

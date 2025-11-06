@@ -1,6 +1,8 @@
 #pragma once
 #include "Enemigo.h"
 
+class Mapa; // <-- ¡AÑADIDO!
+
 class Fantasma : public Enemigo {
 private:
     Vector2 movimientoRecursivo(int profundidad);
@@ -26,7 +28,8 @@ public:
     Fantasma(Vector2 pos);
 
     // --- CORREGIDO: Firma de la funcion ---
-    virtual void actualizarIA(Vector2 posJugador) override;
+    // ¡¡MODIFICADO!! Añadido 'const Mapa& mapa'
+    virtual void actualizarIA(Vector2 posJugador, const Mapa& mapa) override;
     virtual void dibujar() override;
     virtual void atacar(Protagonista& jugador) override;
 };

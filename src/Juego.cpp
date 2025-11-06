@@ -70,7 +70,7 @@ void Juego::actualizar()
             actualizarJugando();
             break;
         case EstadoJuego::LEYENDO_NOTA:
-            actualizarLeyendoNota();
+            actualizarLeyendoNota(); // <-- ¡¡TYPO CORREGIDO!!
             break;
         case EstadoJuego::DIALOGO_FINAL:
             actualizarDialogo();
@@ -122,7 +122,9 @@ void Juego::actualizarJugando()
     bool quiereInteractuar = SistemaInput::quiereInteractuar();
 
     jugador.actualizarInterno(renderizador.getCamera());
-    gestor.actualizarIAEntidades(jugador);
+
+    // ¡¡MODIFICACIÓN!! Pasamos el mapa
+    gestor.actualizarIAEntidades(jugador, miMapa);
 
 
     // --- 4. LOGICA DE INTERACCION (TECLA 'E')!! ---
@@ -344,7 +346,10 @@ void Juego::actualizarDialogo()
     }
 
     if (fantasmaPtr) {
-        fantasmaPtr->actualizarIA(jugador.getPosicion());
+        // ¡MODIFICACIÓN SUTIL PERO IMPORTANTE!
+        // Le pasamos miMapa, aunque el fantasma no la use ahora,
+        // la firma de actualizarIA lo requiere.
+        fantasmaPtr->actualizarIA(jugador.getPosicion(), miMapa);
 
         float distancia = Vector2Distance(jugador.getPosicion(), fantasmaPtr->getPosicion());
         if (distancia < 100.0f) {

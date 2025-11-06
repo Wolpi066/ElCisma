@@ -2,6 +2,7 @@
 #include "Constantes.h"
 #include "raymath.h"
 #include "Protagonista.h" // Necesario para 'atacar'
+#include "Mapa.h"         // <-- ¡AÑADIDO!
 
 // Inicializamos las variables estaticas
 bool Fantasma::despertado = false;
@@ -33,7 +34,10 @@ Fantasma::Fantasma(Vector2 pos)
 }
 
 // --- ACTUALIZADO: Logica de IA con 4 estados ---
-void Fantasma::actualizarIA(Vector2 posJugador) {
+// ¡¡MODIFICADO!! Añadido 'const Mapa& mapa'
+void Fantasma::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
+    // El parámetro 'mapa' no se usa aquí, pero es necesario
+    // para sobreescribir la función de la clase base Enemigo.
 
     if (despertado) {
         // --- 1. ESTADO: DESPERTADO (Logica normal de persecucion) ---

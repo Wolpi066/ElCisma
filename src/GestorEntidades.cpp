@@ -1,5 +1,6 @@
 #include "GestorEntidades.h"
 #include "Fantasma.h" // <-- ¡Añadido! Necesario para la comprobacion
+#include "Mapa.h"     // <-- ¡AÑADIDO!
 
 GestorEntidades::GestorEntidades()
 {
@@ -11,12 +12,13 @@ GestorEntidades::~GestorEntidades()
 }
 
 // Actualiza la IA (intencion de movimiento) de las entidades
-void GestorEntidades::actualizarIAEntidades(Protagonista& jugador)
+// ¡MODIFICADO!
+void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& mapa)
 {
     Vector2 posJugador = jugador.getPosicion();
 
     for (Enemigo* enemigo : enemigos) {
-        enemigo->actualizarIA(posJugador); // <-- CORREGIDO
+        enemigo->actualizarIA(posJugador, mapa); // <-- CORREGIDO Y MODIFICADO
     }
 
     for (Jefe* jefe : jefes) {

@@ -2,6 +2,7 @@
 #include "Constantes.h"
 #include "raymath.h"
 #include "Protagonista.h" // ¡¡Importante!!
+#include "Mapa.h"         // ¡¡AÑADIDO!!
 
 // --- CORREGIDO: Constructor llama a 8 args ---
 MonstruoObeso::MonstruoObeso(Vector2 pos)
@@ -17,16 +18,70 @@ MonstruoObeso::MonstruoObeso(Vector2 pos)
 }
 
 // --- CORREGIDO: Nombre de la funcion ---
-void MonstruoObeso::actualizarIA(Vector2 posJugador) {
+// --- ¡¡LÓGICA DE IA COMPLETAMENTE REEMPLAZADA POR FSM!! ---
+void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
 
-    if (!this->haDetectadoAlJugador) {
-        if (puedeVearAlJugador(posJugador) || puedeEscucharAlJugador(posJugador)) {
-            this->haDetectadoAlJugador = true;
+    // --- 1. TRANSICIONES DE ESTADO ---
+    bool jugadorDetectado = puedeVearAlJugador(posJugador) || puedeEscucharAlJugador(posJugador);
+
+    if (estadoActual == EstadoIA::PATRULLANDO) {
+        if (jugadorDetectado) {
+            estadoActual = EstadoIA::PERSIGUIENDO;
+        }
+    }
+    else if (estadoActual == EstadoIA::PERSIGUIENDO) {
+        if (!jugadorDetectado) {
+            float distancia = Vector2Distance(posicion, posJugador);
+            // Lo perdemos si está 1.5x su rango de visión
+            if (distancia > rangoVision * 1.5f) {
+                estadoActual = EstadoIA::PATRULLANDO;
+                temporizadorPatrulla = 0.0f;
+            }
+        }
+        // TODO: Si el Obeso disparara, aquí iría la transición a ATACANDO
+        // if (jugadorDetectado && distancia < RANGO_ATAQUE_OBESO) {
+        //     estadoActual = EstadoIA::ATACANDO;
+        // }
+    }
+    // else if (estadoActual == EstadoIA::ATACANDO) {
+        // ...lógica de ataque...
+    // }
+
+    // --- 2. ACCIONES DE ESTADO ---
+    Vector2 objetivo;
+
+    switch (estadoActual)
+    {
+        case EstadoIA::PATRULLANDO:
+        {
+            temporizadorPatrulla -= GetFrameTime();
+            if (temporizadorPatrulla <= 0.0f || Vector2Distance(posicion, destinoPatrulla) < radio * 2.0f) {
+                elegirNuevoDestinoPatrulla(mapa);
+            }
+            objetivo = destinoPatrulla;
+            break;
+        }
+        case EstadoIA::PERSIGUIENDO:
+        {
+            objetivo = posJugador;
+            break;
+        }
+        case EstadoIA::ATACANDO:
+        {
+            // TODO: Si disparase, aquí se quedaría quieto
+            // objetivo = posicion;
+
+            // Como ataca por colisión (por ahora), simplemente persigue
+            objetivo = posJugador;
+            break;
         }
     }
 
-    if (this->haDetectadoAlJugador) {
-        this->direccion = Vector2Normalize(Vector2Subtract(posJugador, this->posicion));
+    // --- 3. ACTUALIZAR DIRECCIÓN (para MotorFisica) ---
+    Vector2 vectorHaciaObjetivo = Vector2Subtract(objetivo, this->posicion);
+
+    if (Vector2LengthSqr(vectorHaciaObjetivo) > 10.0f) {
+        this->direccion = Vector2Normalize(vectorHaciaObjetivo);
     }
 }
 

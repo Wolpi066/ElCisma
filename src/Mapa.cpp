@@ -368,7 +368,11 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
 bool Mapa::esAreaValida(Vector2 pos)
 {
     // Chequeo simple para items de piso
-    Rectangle areaCheck = { pos.x - 5, pos.y - 5, 10, 10 };
+    // --- ¡¡CORREGIDO!! ---
+    // Usamos un área de 64x64 (radio 32) para asegurar que quepan
+    // los enemigos y no solo los items.
+    Rectangle areaCheck = { pos.x - 32, pos.y - 32, 64, 64 };
+
     for (const auto& muro : muros) { // Chequea muros
         if (CheckCollisionRecs(areaCheck, muro)) return false;
     }
