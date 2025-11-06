@@ -20,7 +20,10 @@ Protagonista::Protagonista(Vector2 pos) :
     radio(15.0f),
     // --- NUEVO: Inicializar linterna ---
     linternaEncendida(true),
-    temporizadorFlicker(0.0f)
+    temporizadorFlicker(0.0f),
+    // --- 　NUEVO!! Inicializar Knockback ---
+    knockbackVelocidad({0, 0}),
+    knockbackTimer(0.0f)
     // ---------------------------------
 {
 }
@@ -42,6 +45,11 @@ void Protagonista::actualizarInterno(Camera2D camera) {
     if (temporizadorDisparo > 0) {
         temporizadorDisparo -= GetFrameTime();
     }
+    // --- 　NUEVO!! Timer de Knockback ---
+    if (knockbackTimer > 0) {
+        knockbackTimer -= GetFrameTime();
+    }
+    // -----------------------------------
 
     // --- 　BLOQUE DE ROTACION MODIFICADO CON DELAY!! ---
     // 1. Obtener la posicion del mouse en el mundo
@@ -135,6 +143,18 @@ void Protagonista::matar()
 }
 // ------------------
 
+// --- 　NUEVA FUNCION!! ---
+void Protagonista::aplicarKnockback(Vector2 direccion, float fuerza, float duracion)
+{
+    // Solo aplica un nuevo knockback si no esta ya en uno
+    if (knockbackTimer <= 0.0f)
+    {
+        this->knockbackVelocidad = Vector2Scale(direccion, fuerza);
+        this->knockbackTimer = duracion;
+    }
+}
+// -------------------------
+
 // --- Metodos de Consumibles ---
 void Protagonista::recargarBateria(const int& cantidad) {
     bateria += cantidad;
@@ -186,6 +206,17 @@ float Protagonista::getAnguloVista() const {
 float Protagonista::getRadio() const {
     return radio;
 }
+// --- 　NUEVOS GETTERS!! ---
+float Protagonista::getTiempoInmune() const {
+    return tiempoInmune;
+}
+float Protagonista::getKnockbackTimer() const {
+    return knockbackTimer;
+}
+Vector2 Protagonista::getVelocidadKnockback() const {
+    return knockbackVelocidad;
+}
+// ---------------------------
 
 
 // --- 　GETTERS DINAMICOS ACTUALIZADOS!! ---

@@ -314,13 +314,13 @@
 	"Armadura.h"
 	"Protagonista.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\armadura.h
+1762442260 c:\users\volpi\onedrive\escritorio\elcisma\src\armadura.h
 	"Consumible.h"
 
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.h
 	"raylib.h"
 
-1762437668 c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.h
+1762442906 c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.h
 	"raylib.h"
 	"Constantes.h"
 
@@ -351,7 +351,7 @@
 	"Bateria.h"
 	"Protagonista.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\bateria.h
+1762442246 c:\users\volpi\onedrive\escritorio\elcisma\src\bateria.h
 	"Consumible.h"
 
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\botiquin.cpp
@@ -359,7 +359,7 @@
 	"Protagonista.h"
 	"Constantes.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\botiquin.h
+1762442238 c:\users\volpi\onedrive\escritorio\elcisma\src\botiquin.h
 	"Consumible.h"
 
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.cpp
@@ -367,7 +367,7 @@
 	"Protagonista.h"
 	"Constantes.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.h
+1762442255 c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.h
 	"Consumible.h"
 
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\cofre.cpp
@@ -442,7 +442,7 @@
 	"Protagonista.h"
 	"Constantes.h"
 
-1762438858 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1762442280 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raymath.h"
@@ -484,11 +484,11 @@
 	"Mapa.h"
 	"GestorEntidades.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.h
+1762443492 c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.h
 	"Protagonista.h"
 	"GestorEntidades.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.h
+1762442928 c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.h
 	"raylib.h"
 	<vector>
 	<list>
@@ -526,7 +526,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.h
 	<string>
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
+1762440474 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
 	"Mapa.h"
 	"Constantes.h"
 	"raymath.h"
@@ -558,7 +558,7 @@
 	"Protagonista.h"
 	"Mapa.h"
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.cpp
+1762442272 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.cpp
 	"MotorColisiones.h"
 	"Spawner.h"
 	"Botiquin.h"
@@ -567,7 +567,7 @@
 	"Fantasma.h"
 	"IndicadorPuerta.h"
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
+1762442955 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
 	"MotorFisica.h"
 	"raymath.h"
 	"Constantes.h"
@@ -575,7 +575,7 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\nota.cpp
 	"Nota.h"
 
-1762437675 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
+1762443020 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
 	"Protagonista.h"
 	"raymath.h"
 	"Consumible.h"

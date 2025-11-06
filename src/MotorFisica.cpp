@@ -80,7 +80,7 @@ FinChequeo_Y:
 
 // --- METODOS PUBLICOS ---
 
-// --- ¢B¢BFIRMA ACTUALIZADA!! ---
+// --- ¡¡MODIFICADO!! ---
 void MotorFisica::moverJugador(
     Protagonista& jugador,
     Vector2 dirMovimiento,
@@ -93,16 +93,26 @@ void MotorFisica::moverJugador(
     if (!jugador.estaVivo()) return;
 
     Vector2 velocidad = {0, 0};
-    if (Vector2Length(dirMovimiento) > 0.0f) {
+
+    // --- ¡¡NUEVA LOGICA DE KNOCKBACK!! ---
+    if (jugador.getKnockbackTimer() > 0.0f)
+    {
+        // Si esta en knockback, ignora el input y usa la velocidad del golpe
+        velocidad = jugador.getVelocidadKnockback();
+    }
+    else if (Vector2Length(dirMovimiento) > 0.0f)
+    {
+        // Movimiento normal (controlado por el jugador)
         velocidad = Vector2Scale(Vector2Normalize(dirMovimiento), Constantes::VELOCIDAD_JUGADOR);
     }
+    // ------------------------------------
 
     Rectangle rectJugador = jugador.getRect();
 
     // --- LLAMADA ACTUALIZADA ---
     Vector2 nuevaPos = calcularMovimientoValido(
         jugador.getPosicion(),
-        velocidad,
+        velocidad, // Usa la velocidad (de knockback o de input)
         rectJugador,
         muros,
         cajas,

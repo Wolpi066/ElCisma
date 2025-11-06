@@ -134,7 +134,8 @@ void Juego::actualizarJugando()
     // --- 4. LOGICA DE INTERACCION (TECLA 'E')!! ---
     if (quiereInteractuar)
     {
-        float radioInteraccion = 50.0f;
+        // ¡¡MODIFICADO!! Radio aumentado
+        float radioInteraccion = 75.0f; // Antes 50.0f
         Vector2 posJugador = jugador.getPosicion();
 
         Consumible* itemMasCercano = nullptr;
@@ -142,6 +143,8 @@ void Juego::actualizarJugando()
 
         for (Consumible* item : gestor.getConsumibles())
         {
+            // Ahora, CUALQUIER item que queramos recoger con 'E' (Llave, Nota, Botiquin...)
+            // debe tener esInteraccionPorTecla() == true
             if (item->esInteraccionPorTecla() && !item->estaConsumido())
             {
                 Rectangle itemRect = item->getRect();
@@ -182,7 +185,7 @@ void Juego::actualizarJugando()
                     case 2: gestor.registrarConsumible(Spawner<Bateria>::Spawn(posDrop)); break;
                     case 3: gestor.registrarConsumible(Spawner<CajaDeMuniciones>::Spawn(posDrop)); break;
                     case 4: gestor.registrarConsumible(Spawner<Armadura>::Spawn(posDrop)); break;
-                    case 99: jugador.recibirLlave(); break;
+                    case 99: gestor.registrarConsumible(Spawner<Llave>::Spawn(posDrop)); break; // ¡¡CORREGIDO!! La llave spawnea, no se da directo
                     default: break;
                 }
             }
@@ -192,10 +195,18 @@ void Juego::actualizarJugando()
                 this->notaActualID = nota->usar(jugador); // 'usar' devuelve el ID
                 this->estadoActual = EstadoJuego::LEYENDO_NOTA; // Pausa el juego
             }
-            // Opcion 4: Es la Llave (que spawneo un cofre)
-            else if (dynamic_cast<Llave*>(itemMasCercano))
+            // --- ¡¡LÓGICA ACTUALIZADA!! ---
+            // Opcion 4: Es un item de recoleccion (Llave, Botiquin, Bateria, etc.)
+            // Todos estos items ahora usan 'esInteraccionPorTecla()'
+            else if (
+                dynamic_cast<Llave*>(itemMasCercano) ||
+                dynamic_cast<Botiquin*>(itemMasCercano) ||
+                dynamic_cast<Bateria*>(itemMasCercano) ||
+                dynamic_cast<CajaDeMuniciones*>(itemMasCercano) ||
+                dynamic_cast<Armadura*>(itemMasCercano)
+            )
             {
-                itemMasCercano->usar(jugador); // La recoge
+                itemMasCercano->usar(jugador); // Lo recoge/consume
             }
         }
     }
@@ -248,6 +259,7 @@ void Juego::actualizarJugando()
     }
 
     // 7. Colisiones
+    // ¡¡MODIFICADO!! Ahora no necesita la lista de consumibles
     MotorColisiones::procesar(jugador, gestor);
 
     // 8. Recoleccion de basura

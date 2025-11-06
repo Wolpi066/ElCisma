@@ -5,6 +5,7 @@
 #include "Armadura.h"
 #include "Fantasma.h"
 #include "IndicadorPuerta.h" // ¡¡Añadido!!
+#include "raymath.h" // ¡¡AÑADIDO!! Necesario para Vector2Subtract y Normalize
 
 // CAMBIO: Firma del metodo actualizada
 void MotorColisiones::procesar(
@@ -14,25 +15,9 @@ void MotorColisiones::procesar(
     // Obtenemos las listas del gestor
     std::vector<Enemigo*>& enemigos = gestor.getEnemigos();
     std::vector<Bala*>& balas = gestor.getBalas();
-    std::list<Consumible*>& consumibles = gestor.getConsumibles();
     std::vector<Jefe*>& jefes = gestor.getJefes();
 
-    // 1. Jugador vs Consumibles (POR CONTACTO)
-    for (Consumible* item : consumibles) {
-
-        // --- ¡¡LOGICA ACTUALIZADA!! ---
-        // Solo procesamos los items que NO son por tecla ('E')
-        if (!item->esInteraccionPorTecla())
-        {
-            if (!item->estaConsumido() && CheckCollisionRecs(jugador.getRect(), item->getRect())) {
-                item->usar(jugador);
-            }
-        }
-        // Los items por tecla (Llave, etc.) se manejan en Juego.cpp
-        // ---------------------------------
-    }
-
-    // 2. Balas vs Entidades
+    // 1. Balas vs Entidades
     for (Bala* bala : balas) {
         if (!bala->estaActiva()) continue;
 
@@ -77,17 +62,63 @@ void MotorColisiones::procesar(
         // Balas Enemigas
         else if (bala->getOrigen() == OrigenBala::ENEMIGO) {
             // vs Jugador
-            if (CheckCollisionRecs(bala->getRect(), jugador.getRect())) {
+            if (jugador.estaVivo() && CheckCollisionRecs(bala->getRect(), jugador.getRect())) {
+
+                // --- ¡¡LOGICA DE KNOCKBACK!! ---
+                float tiempoInmuneAntes = jugador.getTiempoInmune();
+
                 jugador.recibirDanio(bala->getDanio());
                 bala->desactivar();
+
+                float tiempoInmuneDespues = jugador.getTiempoInmune();
+
+                // Si el tiempoInmune se acaba de activar, ¡el golpe fue exitoso!
+                if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
+                {
+                    // Empujado en la direccion de la bala
+                    Vector2 dirKnockback = Vector2Normalize(bala->getVelocidad());
+                    // --- ¡¡VALORES AJUSTADOS!! ---
+                    float fuerza = 2.0f; // Mas lento
+                    float duracion = 0.15f; // Mas fluido
+                    jugador.aplicarKnockback(dirKnockback, fuerza, duracion);
+                }
+                // -------------------------------------
             }
         }
     }
 
-    // 3. Enemigos vs Jugador (Contacto)
+    // 2. Enemigos vs Jugador (Contacto)
     for (Enemigo* enemigo : enemigos) {
         if (enemigo->estaVivo() && CheckCollisionRecs(jugador.getRect(), enemigo->getRect())) {
-            enemigo->atacar(jugador);
+
+            // --- ¡¡LOGICA DE KNOCKBACK!! ---
+            float tiempoInmuneAntes = jugador.getTiempoInmune();
+
+            enemigo->atacar(jugador); // Intenta hacer daño (zombie, obeso) o matar (fantasma)
+
+            // Solo aplica knockback si el jugador SIGUE vivo despues del ataque
+            if (jugador.estaVivo())
+            {
+                float tiempoInmuneDespues = jugador.getTiempoInmune();
+
+                // Si el tiempoInmune se acaba de activar, ¡el golpe fue exitoso!
+                if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
+                {
+                    // Empujado lejos del enemigo
+                    Vector2 dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), enemigo->getPosicion()));
+
+                    // Fallback por si estan perfectamente superpuestos
+                    if (Vector2LengthSqr(dirKnockback) == 0.0f) {
+                        dirKnockback = {1.0f, 0.0f}; // Empujar a la derecha por defecto
+                    }
+
+                    // --- ¡¡VALORES AJUSTADOS!! ---
+                    float fuerza = 3.0f; // Mas lento
+                    float duracion = 0.2f; // Mas fluido
+                    jugador.aplicarKnockback(dirKnockback, fuerza, duracion);
+                }
+            }
+            // -------------------------------------
         }
     }
 }
