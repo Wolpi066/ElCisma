@@ -1,17 +1,17 @@
 #include "MotorColisiones.h"
-#include "Spawner.h" // Necesario para el drop de enemigos
+#include "Spawner.h"
 #include "Botiquin.h"
 #include "CajaDeMuniciones.h"
 #include "Armadura.h"
-#include "Fantasma.h" // ¡¡Importante!!
+#include "Fantasma.h"
 #include "IndicadorPuerta.h"
 #include "raymath.h"
+#include "Jefe.h"
 
 void MotorColisiones::procesar(
     Protagonista& jugador,
     GestorEntidades& gestor)
 {
-    // Obtenemos las listas del gestor
     std::vector<Enemigo*>& enemigos = gestor.getEnemigos();
     std::vector<Bala*>& balas = gestor.getBalas();
     std::vector<Jefe*>& jefes = gestor.getJefes();
@@ -20,13 +20,15 @@ void MotorColisiones::procesar(
     for (Bala* bala : balas) {
         if (!bala->estaActiva()) continue;
 
-        // Balas del Jugador
         if (bala->getOrigen() == OrigenBala::JUGADOR) {
             // vs Enemigos
             for (Enemigo* enemigo : enemigos) {
                 if (enemigo->estaVivo() && CheckCollisionRecs(bala->getRect(), enemigo->getRect())) {
-                    bool enemigoMurio = (enemigo->getVida() <= bala->getDanio());
-                    enemigo->recibirDanio(bala->getDanio());
+
+                    int danio = bala->esDisparoCheat() ? 1000 : bala->getDanio();
+
+                    bool enemigoMurio = (enemigo->getVida() <= danio);
+                    enemigo->recibirDanio(danio);
                     bala->desactivar();
                     if (enemigoMurio) {
                         if (!dynamic_cast<Fantasma*>(enemigo))
@@ -47,8 +49,16 @@ void MotorColisiones::procesar(
             }
             // vs Jefe
             for (Jefe* jefe : jefes) {
-                if (jefe->estaVivo() && CheckCollisionRecs(bala->getRect(), jefe->getRect())) {
-                    jefe->recibirDanio(bala->getDanio());
+                if (jefe->estaVivo() && !jefe->esInvulnerableActualmente() && CheckCollisionRecs(bala->getRect(), jefe->getRect())) {
+
+                    // --- ¡¡LÓGICA CHEAT MODIFICADA!! ---
+                    if (bala->esDisparoCheat()) {
+                        jefe->forzarFaseDos(); // ¡¡NUEVO!! No hace daño, fuerza la fase
+                    } else {
+                        jefe->recibirDanio(bala->getDanio(), jugador.getPosicion());
+                    }
+                    // -----------------------------
+
                     bala->desactivar();
                     break;
                 }
@@ -56,7 +66,6 @@ void MotorColisiones::procesar(
         }
         // Balas Enemigas
         else if (bala->getOrigen() == OrigenBala::ENEMIGO) {
-            // vs Jugador
             if (jugador.estaVivo() && CheckCollisionRecs(bala->getRect(), jugador.getRect())) {
                 float tiempoInmuneAntes = jugador.getTiempoInmune();
                 jugador.recibirDanio(bala->getDanio());
@@ -73,24 +82,39 @@ void MotorColisiones::procesar(
         }
     }
 
-    // --- ¡¡BLOQUE REFACTORIZADO!! ---
     // 2. Comprobacion de Ataques Enemigos
     for (Enemigo* enemigo : enemigos) {
         if (!enemigo->estaVivo()) continue;
 
-        // Opcion A: El Fantasma ataca por contacto (como antes)
         if (Fantasma* f = dynamic_cast<Fantasma*>(enemigo))
         {
             if (CheckCollisionRecs(jugador.getRect(), f->getRect())) {
-                f->atacar(jugador); // El fantasma se autogestiona
+                f->atacar(jugador);
             }
         }
-        // Opcion B: El resto de enemigos ataca segun su IA de "lunge"
         else if (enemigo->estaListoParaAtacar())
         {
-            // Si la IA dice que esta listo (pausa terminada),
-            // llamamos a su funcion de ataque.
             enemigo->atacar(jugador);
+        }
+    }
+
+    // 3. Comprobación de Daño por Contacto (Jefe vs Jugador)
+    for (Jefe* jefe : jefes) {
+        if (!jefe->estaVivo() || jefe->esInvulnerableActualmente()) continue;
+
+        if (CheckCollisionRecs(jugador.getRect(), jefe->getRect())) {
+
+            float tiempoInmuneAntes = jugador.getTiempoInmune();
+            jugador.recibirDanio(jefe->getDanioContacto());
+            float tiempoInmuneDespues = jugador.getTiempoInmune();
+
+            if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
+            {
+                Vector2 dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), jefe->getPosicion()));
+                float fuerza = 8.0f;
+                float duracion = 0.3f;
+                jugador.aplicarKnockback(dirKnockback, fuerza, duracion);
+            }
         }
     }
 }

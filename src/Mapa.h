@@ -32,30 +32,36 @@ private:
     std::vector<Vector2> spawnsCofres;
 
     void cargarMapa();
-    void dibujarPiso();
+
+    // --- ¡¡MOVIDO A PUBLIC!! ---
+    // void dibujarPiso();
+
     bool esAreaValida(Vector2 pos);
     bool esAreaValida(Vector2 pos, CofreOrientacion orient);
 
     SpawnCofre getSpawnCofrePegadoAPared(Rectangle zona);
 
-    // --- ¡¡NUEVO!! ---
-    // Helper para encontrar un spawn PARA NOTAS (encima de una caja)
     Vector2 getPosicionSpawnNota(const Rectangle& caja);
-    // -----------------
 
 public:
     Mapa();
     ~Mapa();
 
+    // --- ¡¡NUEVO MÉTODO PÚBLICO!! ---
+    // (Movido desde private para que SistemaRender pueda usarlo)
+    void dibujarPiso();
+    // ---------------------------------
+
     void poblarMundo(GestorEntidades& gestor);
 
     Vector2 getPosicionSpawnValida(Rectangle zona);
-    void dibujar();
+    void dibujar(); // <-- Esta función ahora es redundante, pero la dejamos
 
     const std::vector<Rectangle>& getMuros() const;
     const std::vector<Rectangle>& getCajas() const;
 
     void abrirPuerta();
+    void cerrarPuerta();
     bool estaPuertaAbierta() const;
     Rectangle getPuertaJefe() const;
 };

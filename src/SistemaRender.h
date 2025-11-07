@@ -11,27 +11,29 @@ private:
     Camera2D camera;
     LightInfo linterna;
 
-    // --- ¡¡NUEVO!! Minimapa ---
-    RenderTexture2D minimapaTextura; // El mapa estatico (muros, cajas)
-    RenderTexture2D nieblaMinimapa;  // La mascara de "niebla de guerra"
+    // --- Minimapa ---
+    RenderTexture2D minimapaTextura;
+    RenderTexture2D nieblaMinimapa;
     float minimapaZoom;
     Vector2 minimapaOffset;
     // -------------------------
 
-    void dibujarMundo(Mapa& mapa, GestorEntidades& gestor, Protagonista& jugador);
+    // --- ¡¡FIRMA CORREGIDA!! ---
+    // (Ahora recibe el Rectangle de la cámara, no la cámara entera)
+    void dibujarMundo(const Rectangle& cameraView, Mapa& mapa, GestorEntidades& gestor, Protagonista& jugador);
     void dibujarHUD(Protagonista& jugador);
+
+    // --- ¡¡NUEVA FUNCIÓN HELPER!! ---
+    // (Calcula el rectángulo de la vista de la cámara para el culling)
+    Rectangle getCameraViewRect(const Camera2D& cam);
+    // ---------------------------------
 
 public:
     SistemaRender();
     ~SistemaRender();
 
-    // --- ¡¡MODIFICADO!! ---
-    // Se llama una vez desde Juego::Juego() para crear el mapa
     void inicializarMinimapa(Mapa& mapa);
-
-    // Se llama CADA FRAME desde Juego::actualizarJugando()
     void actualizarNieblaMinimapa(const Protagonista& jugador);
-    // -----------------
 
     void dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidades& gestor);
 

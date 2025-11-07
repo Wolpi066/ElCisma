@@ -1,5 +1,7 @@
 #include "GestorEntidades.h"
-#include "Mapa.h" // <-- ¡AÑADIDO!
+#include "Mapa.h"
+#include "BalaMonstruosa.h"
+#include "Constantes.h"
 
 GestorEntidades::GestorEntidades()
 {
@@ -9,30 +11,37 @@ GestorEntidades::~GestorEntidades()
 {
 }
 
-// ¡MODIFICADO!
 void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& mapa)
 {
-    // ¡¡MODIFICADO!! Ahora recibe el Mapa
     Vector2 posJugador = jugador.getPosicion();
 
+    // Actualiza Enemigos
     for (Enemigo* enemigo : enemigos) {
         if (enemigo->estaVivo()) {
-            enemigo->actualizarBase(); // <-- ¡¡NUEVA LLAMADA!! Actualiza timers
+            enemigo->actualizarBase();
             enemigo->actualizarIA(posJugador, mapa);
         }
     }
 
+    // Actualiza Jefes
     for (Jefe* jefe : jefes) {
         if (jefe->estaVivo()) {
-            // --- ¡¡ERROR CORREGIDO!! ---
-            // La firma de Jefe::actualizar pide Protagonista&
-            jefe->actualizar(jugador);
+
+            jefe->actualizar(jugador, mapa);
+
+            std::vector<Vector2>& disparos = jefe->getDisparosSolicitados();
+            if (!disparos.empty())
+            {
+                for (const Vector2& direccion : disparos)
+                {
+                    Vector2 posBala = jefe->getPosicion();
+                    registrarBala(new BalaMonstruosa(posBala, direccion));
+                }
+
+                jefe->limpiarDisparosSolicitados();
+            }
         }
     }
-
-    // --- ¡¡BUCLE ELIMINADO!! ---
-    // La clase Bala no tiene metodo actualizar().
-    // Se mueve desde MotorFisica::moverBalas()
 }
 
 
@@ -87,7 +96,7 @@ void GestorEntidades::limpiarTodo()
 }
 
 
-// --- CORREGIDO: Nombres de métodos ---
+// --- Registradores ---
 void GestorEntidades::registrarEnemigo(Enemigo* enemigo) {
     enemigos.push_back(enemigo);
 }
@@ -102,7 +111,7 @@ void GestorEntidades::registrarJefe(Jefe* jefe) {
 }
 
 
-// Getters
+// --- Getters ---
 std::vector<Enemigo*>& GestorEntidades::getEnemigos() {
     return enemigos;
 }

@@ -13,7 +13,10 @@
 
 enum class EstadoJuego {
     JUGANDO,
-    LEYENDO_NOTA, // <-- ¢B¢BNUEVO!!
+    LEYENDO_NOTA,
+    // --- ¢B¢BNUEVO ESTADO!! ---
+    INICIANDO_JEFE, // Para la animaci«Qn de spawn
+    // ------------------------
     DIALOGO_FINAL,
     FIN_JUEGO_GANADO,
     FIN_JUEGO_MUERTO
@@ -40,20 +43,29 @@ private:
     float proximoSustoFantasma;
     void ResetSustoFantasma();
 
-    // --- ¢B¢BNUEVO!! ---
-    int notaActualID; // Guarda el ID de la nota que estamos leyendo
-    // -----------------
+    int notaActualID;
+
+    // --- ¢B¢BNUEVOS MIEMBROS PARA SECUENCIA DE JEFE!! ---
+    bool jefeHaSpawned;
+    Rectangle triggerRectJefe; // El "trigger" para empezar la pelea
+    float temporizadorSpawnJefe; // El timer para la animaci«Qn
+    // --------------------------------------------------
 
     void actualizar();
     void dibujar();
 
-    // --- ¢B¢BNOMBRES CAMBIADOS!! ---
     void actualizarJugando();
     void actualizarDialogo();
-    void actualizarLeyendoNota(); // <-- ¢B¢BNUEVO!!
+    void actualizarLeyendoNota();
+    // --- ¢B¢BNUEVAS FUNCIONES!! ---
+    void actualizarIniciandoJefe();
+    void dibujarIniciandoJefe();
+    // ----------------------------
 
     void dibujarJugando();
     void dibujarDialogo();
-    void dibujarLeyendoNota(); // <-- ¢B¢BNUEVO!!
+    void dibujarLeyendoNota();
     void dibujarFinJuego();
+
+    void procesarCheats();
 };

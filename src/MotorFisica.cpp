@@ -4,15 +4,15 @@
 
 // --- LOGICA DE MOVIMIENTO Y COLISION AABB ---
 
-// --- ¢B¢BFIRMA ACTUALIZADA!! ---
+// --- ¡¡FIRMA ACTUALIZADA!! ---
 Vector2 MotorFisica::calcularMovimientoValido(
     Vector2 posActual,
     Vector2 velActual,
     Rectangle rectColision,
     const std::vector<Rectangle>& muros,
     const std::vector<Rectangle>& cajas,
-    const Rectangle& puerta, // ¢B¢BNUEVO!!
-    bool puertaEstaAbierta   // ¢B¢BNUEVO!!
+    const Rectangle& puerta, // ¡¡NUEVO!!
+    bool puertaEstaAbierta   // ¡¡NUEVO!!
 )
 {
     Vector2 nuevaPos = posActual;
@@ -218,7 +218,7 @@ void MotorFisica::moverEnemigos(
     }
 }
 
-// --- ¢B¢BFIRMA ACTUALIZADA!! ---
+// --- ¡¡FUNCIÓN CLAVE MODIFICADA!! ---
 void MotorFisica::moverJefes(
     std::vector<Jefe*>& jefes,
     const std::vector<Rectangle>& muros,
@@ -230,11 +230,13 @@ void MotorFisica::moverJefes(
     for (Jefe* jefe : jefes) {
         if (!jefe->estaVivo()) continue;
 
+        Vector2 posAntes = jefe->getPosicion();
         Vector2 velocidad = jefe->getVelocidadActual();
         Rectangle rectJefe = jefe->getRect();
 
-        Vector2 nuevaPos = calcularMovimientoValido(
-            jefe->getPosicion(),
+        // 1. Calcula la nueva posición válida
+        Vector2 posNueva = calcularMovimientoValido(
+            posAntes,
             velocidad,
             rectJefe,
             muros,
@@ -243,11 +245,30 @@ void MotorFisica::moverJefes(
             puertaEstaAbierta
         );
 
-        jefe->setPosicion(nuevaPos);
+        // --- ¡¡LÓGICA DE ATURDIMIENTO POR EMBESTIDA!! ---
+        // 2. Comprueba si el jefe estaba embistiendo
+        if (jefe->getFase() == FaseJefe::FASE_UNO &&
+            jefe->getEstadoF1() == EstadoFaseUno::EMBISTIENDO)
+        {
+            // 3. Comprueba si la física lo frenó (chocó contra un muro)
+            //    (Si la velocidad de entrada era alta, pero la posición es la misma)
+            if (Vector2LengthSqr(velocidad) > 0.0f && Vector2Equals(posAntes, posNueva))
+            {
+                // ¡¡CHOQUE!!
+                // Le decimos al "cerebro" (IA) que cambie de estado
+                jefe->setVelocidad({0, 0});
+                jefe->setEstadoF1(EstadoFaseUno::ATURDIDO_EMBESTIDA);
+                jefe->setTemporizadorEstado(2.5f); // 2.5 seg de aturdimiento
+            }
+        }
+        // --- FIN DE LA LÓGICA DE ATURDIMIENTO ---
+
+        // 4. Aplica la posición final
+        jefe->setPosicion(posNueva);
     }
 }
 
-// --- ¢B¢BFIRMA ACTUALIZADA!! ---
+// --- ¡¡FIRMA ACTUALIZADA!! ---
 void MotorFisica::moverBalas(
     std::vector<Bala*>& balas,
     const std::vector<Rectangle>& muros,

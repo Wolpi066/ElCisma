@@ -2,19 +2,17 @@
 #include "Constantes.h"
 #include "raymath.h"
 
-// --- ¡¡AÑADIDO!! ---
-#include <algorithm> // Para std::shuffle
-#include <random>    // Para std::default_random_engine
-#include <chrono>    // Para la semilla (seed)
-#include <numeric>   // Para std::iota
-// -------------------
+#include <algorithm>
+#include <random>
+#include <chrono>
+#include <numeric>
 
 // Incluimos las clases necesarias para poblar el mundo
 #include "GestorEntidades.h"
 #include "Spawner.h"
 #include "Zombie.h"
 #include "MonstruoObeso.h"
-#include "Jefe.h"
+#include "Jefe.h" // Sigue siendo necesario para la pre-declaración
 #include "Bateria.h"
 #include "Armadura.h"
 #include "Botiquin.h"
@@ -23,7 +21,7 @@
 #include "Fantasma.h"
 #include "IndicadorPuerta.h"
 #include "Cofre.h"
-#include "Nota.h" // <-- ¡NUEVO!!
+#include "Nota.h"
 
 Mapa::Mapa()
     : mundoRect({ -1500, -1500, 3000, 3000 }),
@@ -56,19 +54,23 @@ void Mapa::dibujar()
     }
 }
 
-// --- ¡Getters Actualizados!! ---
 const std::vector<Rectangle>& Mapa::getMuros() const {
     return muros;
 }
 const std::vector<Rectangle>& Mapa::getCajas() const {
     return cajas;
 }
-// ---------------------------------
 
 // --- Nuevas funciones de la puerta ---
 void Mapa::abrirPuerta() {
     puertaAbierta = true;
 }
+
+// --- ¡¡NUEVA IMPLEMENTACIÓN!! ---
+void Mapa::cerrarPuerta() {
+    puertaAbierta = false;
+}
+// -------------------------------
 
 bool Mapa::estaPuertaAbierta() const {
     return puertaAbierta;
@@ -97,6 +99,7 @@ void Mapa::dibujarPiso()
 
 void Mapa::cargarMapa()
 {
+    // ... (todo el código de cargarMapa() va aquí... es idéntico al que me pasaste) ...
     // --- ¡REFACTOR DE MUROS Y CAJAS!! ---
     muros.clear();
     cajas.clear();
@@ -211,7 +214,7 @@ void Mapa::cargarMapa()
     cajas.push_back({ -1450, 1050, 80, 40 }); // Escritorio
     cajas.push_back({ -1450, 1200, 80, 40 }); // Escritorio
     cajas.push_back({ -1450, 1350, 80, 40 }); // Escritorio
-    cajas.push_back({ -1300, 950, 40, 40 });  // Silla/Papelera
+    cajas.push_back({ -1300, 950, 40, 40 });   // Silla/Papelera
     cajas.push_back({ -1300, 1100, 40, 40 }); // Silla/Papelera
     cajas.push_back({ -1300, 1250, 40, 40 }); // Silla/Papelera
     muros.push_back({ -1480, 1150, 100, 20 }); // Pared cubículo rota
@@ -227,30 +230,30 @@ void Mapa::cargarMapa()
     muros.push_back({ 1440, 1000, 30, 150 }); // Lockers
     muros.push_back({ 1400, 1200, 30, 150 }); // Lockers
     muros.push_back({ 1440, 1200, 30, 150 }); // Lockers
-    cajas.push_back({ 1000, 1400, 60, 60 });  // Mesa
-    cajas.push_back({ 1200, 1400, 60, 60 });  // Mesa
+    cajas.push_back({ 1000, 1400, 60, 60 });   // Mesa
+    cajas.push_back({ 1200, 1400, 60, 60 });   // Mesa
     cajas.push_back({ 1150, 1100, 100, 60 }); // Mesa central
-    cajas.push_back({ 1130, 1090, 40, 40 });  // Silla volcada
-    cajas.push_back({ 1270, 1110, 40, 40 });  // Silla volcada
+    cajas.push_back({ 1130, 1090, 40, 40 });   // Silla volcada
+    cajas.push_back({ 1270, 1110, 40, 40 });   // Silla volcada
 
     // --- RELLENO DE PASILLOS INTERIORES (CON PROPÓSITO) ---
     // Pasillo Interior Oeste (Alcove de Descanso)
     muros.push_back({ -850, -100, 100, 20 }); // Muro superior del alcove
     muros.push_back({ -850, 100, 100, 20 });  // Muro inferior del alcove
     muros.push_back({ -850, -100, 20, 220 }); // Muro trasero del alcove
-    cajas.push_back({ -830, -10, 60, 20 });   // Mesa dentro del alcove
+    cajas.push_back({ -830, -10, 60, 20 });    // Mesa dentro del alcove
     // Pasillo Interior Este (Puesto de Seguridad)
-    muros.push_back({ 850, -75, 20, 150 });   // Pared trasera
-    muros.push_back({ 830, -75, 20, 20 });    // Pared superior
+    muros.push_back({ 850, -75, 20, 150 });    // Pared trasera
+    muros.push_back({ 830, -75, 20, 20 });     // Pared superior
     muros.push_back({ 830, 55, 20, 20 });     // Pared inferior
-    cajas.push_back({ 830, -55, 20, 110 });   // Escritorio/Consola
+    cajas.push_back({ 830, -55, 20, 110 });    // Escritorio/Consola
     // Pasillo Interior Sur (Bancos)
-    cajas.push_back({ -150, 580, 100, 20 });  // Banco (pegado a pared de sala jefe)
-    cajas.push_back({ 50, 580, 100, 20 });    // Banco (pegado a pared de sala jefe)
+    cajas.push_back({ -150, 580, 100, 20 });   // Banco (pegado a pared de sala jefe)
+    cajas.push_back({ 50, 580, 100, 20 });     // Banco (pegado a pared de sala jefe)
     // Pasillo Interior Norte (Restos del colapso)
     muros.push_back({ -200, -750, 400, 20 }); // Muro horizontal largo (Original)
-    cajas.push_back({ -220, -780, 40, 40 });  // Escombro (Original)
-    cajas.push_back({ 220, -720, 40, 40 });   // Escombro (Original)
+    cajas.push_back({ -220, -780, 40, 40 });   // Escombro (Original)
+    cajas.push_back({ 220, -720, 40, 40 });    // Escombro (Original)
 
     // --- ¡¡NUEVO!! RELLENO TEMÁTICO DE ZONAS EXTERNAS (BORDES) ---
     // --- Zona Borde Norte (Caseta de Seguridad de Logística) ---
@@ -264,25 +267,25 @@ void Mapa::cargarMapa()
     cajas.push_back({ 500, -1100, 150, 150 }); // Pila de cajas (punto de interés suelto)
     // --- Zona Borde Sur (Estación de Triaje / Barricada) ---
     muros.push_back({ -250, 1200, 500, 20 }); // Barricada principal
-    cajas.push_back({ -200, 1160, 40, 40 });  // Cobertura (delante)
-    cajas.push_back({ 100, 1160, 40, 40 });   // Cobertura (delante)
+    cajas.push_back({ -200, 1160, 40, 40 });   // Cobertura (delante)
+    cajas.push_back({ 100, 1160, 40, 40 });    // Cobertura (delante)
     cajas.push_back({ -150, 1240, 100, 40 }); // Cama 1
-    cajas.push_back({ 50, 1240, 100, 40 });   // Cama 2
-    cajas.push_back({ -50, 1300, 40, 40 });   // Suministros (detrás)
+    cajas.push_back({ 50, 1240, 100, 40 });    // Cama 2
+    cajas.push_back({ -50, 1300, 40, 40 });    // Suministros (detrás)
     // --- Zona Borde Oeste (Colapso Estructural) ---
     muros.push_back({ -1200, -300, 150, 40 }); // Losa de pared caída
     muros.push_back({ -1400, 100, 40, 200 });  // Pilar caído
     cajas.push_back({ -1180, -280, 40, 40 });  // Escombro
-    cajas.push_back({ -1380, 300, 60, 60 });   // Escombro grande
-    cajas.push_back({ -1100, 400, 80, 40 });   // Mueble de oficina
+    cajas.push_back({ -1380, 300, 60, 60 });    // Escombro grande
+    cajas.push_back({ -1100, 400, 80, 40 });    // Mueble de oficina
     // --- Zona Borde Este (Laboratorio de Observación Psiónica) ---
     muros.push_back({ 1100, -200, 20, 400 }); // Pared Oeste (Fondo)
     muros.push_back({ 1300, -200, 20, 150 }); // Pared Este (Norte, rota)
-    muros.push_back({ 1300, 50, 20, 150 });   // Pared Este (Sur, rota)
+    muros.push_back({ 1300, 50, 20, 150 });    // Pared Este (Sur, rota)
     muros.push_back({ 1100, -200, 200, 20 }); // Pared Norte
     muros.push_back({ 1100, 200, 200, 20 });  // Pared Sur
     muros.push_back({ 1120, -100, 20, 200 }); // Panel de servidor
-    cajas.push_back({ 1150, 0, 80, 80 });     // Equipo central
+    cajas.push_back({ 1150, 0, 80, 80 });      // Equipo central
 }
 
 void Mapa::poblarMundo(GestorEntidades& gestor)
@@ -393,7 +396,11 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     gestor.registrarEnemigo(Spawner<MonstruoObeso>::Spawn(getPosicionSpawnValida(pasilloSur)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(anilloNorte)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(anilloSur)));
-    gestor.registrarJefe(new Jefe({0.0f, 0.0f}));
+
+    // --- ¡¡MODIFICACIÓN!! EL JEFE YA NO SPAWNEA AQUÍ ---
+    // gestor.registrarJefe(new Jefe({0.0f, 0.0f}));
+    // -------------------------------------------------
+
     gestor.registrarEnemigo(Spawner<Fantasma>::Spawn({-9999, -9999}));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(corredorBordeN)));
     gestor.registrarEnemigo(Spawner<Zombie>::Spawn(getPosicionSpawnValida(habSeguridadN)));

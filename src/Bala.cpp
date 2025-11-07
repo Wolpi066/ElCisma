@@ -2,22 +2,24 @@
 #include "Constantes.h"
 #include "raymath.h"
 
-// --- RESTAURADO: Constructor correcto ---
-Bala::Bala(Vector2 pos, Vector2 dir, float rapidez, int dmg, OrigenBala org, float rad) :
+// --- ¡¡MODIFICADO!! (Almacena dir y rapidez) ---
+Bala::Bala(Vector2 pos, Vector2 dir, float rapidez, int dmg, OrigenBala org, float rad, bool esCheat) :
     posicion(pos),
     danio(dmg),
     origen(org),
     radio(rad),
-    activa(true)
+    activa(true),
+    esCheat(esCheat),
+    // --- ¡¡FIX VACA!! ---
+    direccion(Vector2Normalize(dir)), // Almacenamos la dirección normalizada
+    rapidez(rapidez)                // Almacenamos la rapidez (ej: 1200.0f)
 {
-    this->velocidad = Vector2Scale(Vector2Normalize(dir), rapidez);
+    // Ya no calculamos 'this->velocidad' aquí
 }
+// ---------------------------------
 
-// --- RESTAURADO: Implementaciones correctas ---
 void Bala::actualizarVidaUtil(Vector2 posJugador) {
     if (!activa) return;
-
-    // Solo comprueba la distancia para desactivarse
     float distanciaAlJugador = Vector2Distance(posicion, posJugador);
     if (distanciaAlJugador > 2000.0f) {
         activa = false;
@@ -48,13 +50,20 @@ int Bala::getDanio() const {
     return danio;
 }
 
+bool Bala::esDisparoCheat() const {
+    return esCheat;
+}
+
 Vector2 Bala::getPosicion() const {
     return posicion;
 }
 
+// --- ¡¡MODIFICADO!! (Implementa el "Vaca Fix") ---
 Vector2 Bala::getVelocidad() const {
-    return this->velocidad;
+    // Calculamos el desplazamiento por frame (lo que MotorFisica espera)
+    return Vector2Scale(direccion, rapidez * GetFrameTime());
 }
+// ---------------------------------------------
 
 bool Bala::estaMuerto() const {
     return !activa;
