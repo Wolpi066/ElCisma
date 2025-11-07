@@ -475,6 +475,14 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
 // --- Metodos de Ayuda para Spawn Valido ---
 bool Mapa::esAreaValida(Vector2 pos)
 {
+    // --- ¡¡NUEVO!! Chequeo de Zona Segura de Spawn ---
+    // (El jugador spawnea en {0, 500} segun Juego.cpp)
+    if (Vector2Distance(pos, {0.0f, 500.0f}) < Constantes::RADIO_SPAWN_SEGURO_JUGADOR)
+    {
+        return false;
+    }
+    // ------------------------------------------------
+
     // Chequeo para items de piso y enemigos
     Rectangle areaCheck = { pos.x - 32, pos.y - 32, 64, 64 };
 

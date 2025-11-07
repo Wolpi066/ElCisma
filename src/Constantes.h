@@ -11,6 +11,7 @@ namespace Constantes {
     const int VIDA_MAX_JUGADOR = 10;
     const int MUNICION_MAX = 20;
     const int BATERIA_MAX = 100;
+    const float RADIO_SPAWN_SEGURO_JUGADOR = 300.0f; // <-- ¡¡NUEVO!!
 
     // --- Parametros de Enemigo ---
     const int VIDA_ZOMBIE = 3;
@@ -29,7 +30,7 @@ namespace Constantes {
     const float RADIO_FANTASMA = 15.0f;
 
     // --- Parametros de IA ---
-    const float RANGO_VISUAL_ZOMBIE = 180.0f; // <-- MODIFICADO (Antes 250.0f)
-    const float ANGULO_CONO_ZOMBIE = 90.0f;
+    const float RANGO_VISUAL_ZOMBIE = 160.0f; // <-- ¡¡MODIFICADO!! (Antes 180.0f)
+    const float ANGULO_CONO_ZOMBIE = 80.0f; // <-- ¡¡MODIFICADO!! (Antes 90.0f)
     const float RANGO_AUDIO_ZOMBIE = 100.0f;
 }

@@ -324,7 +324,7 @@
 	"raylib.h"
 	"Constantes.h"
 
-1762460721 c:\users\volpi\onedrive\escritorio\elcisma\src\constantes.h
+1762469480 c:\users\volpi\onedrive\escritorio\elcisma\src\constantes.h
 
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bala.cpp
 	"Bala.h"
@@ -594,7 +594,7 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.cpp
 	"SistemaInput.h"
 
-1762464128 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
+1762468030 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
 	"SistemaRender.h"
 	"Constantes.h"
 	"Fantasma.h"
