@@ -494,7 +494,7 @@
 	"Protagonista.h"
 	"GestorEntidades.h"
 
-1762478002 c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.h
+1762522087 c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.h
 	"raylib.h"
 	<vector>
 	<list>
@@ -579,7 +579,7 @@
 	"raymath.h"
 	"Jefe.h"
 
-1762478009 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
+1762522094 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
 	"MotorFisica.h"
 	"raymath.h"
 	"Constantes.h"
