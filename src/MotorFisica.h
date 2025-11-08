@@ -22,7 +22,6 @@ private:
                                             bool& choco); // <-- ¡¡AÑADIDO!!
 
 public:
-    // --- (Las firmas públicas no cambian) ---
     static void moverJugador(Protagonista& jugador, Vector2 dirMovimiento,
                              const std::vector<Rectangle>& muros,
                              const std::vector<Rectangle>& cajas,

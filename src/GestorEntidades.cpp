@@ -1,6 +1,7 @@
 #include "GestorEntidades.h"
 #include "Mapa.h"
 #include "BalaMonstruosa.h"
+#include "MinaEnemiga.h" // <-- ¡¡NUEVO!!
 #include "Constantes.h"
 
 GestorEntidades::GestorEntidades()
@@ -29,19 +30,31 @@ void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& m
 
             jefe->actualizar(jugador, mapa);
 
-            std::vector<Vector2>& disparos = jefe->getDisparosSolicitados();
-            if (!disparos.empty())
+            // --- ¡¡LÓGICA DE DISPARO MODIFICADA!! ---
+            // 2. Tomamos las balas que el jefe generó en su 'actualizar()'
+            std::vector<Bala*>& balasNuevas = jefe->getBalasGeneradas();
+            if (!balasNuevas.empty())
             {
-                for (const Vector2& direccion : disparos)
+                for (Bala* bala : balasNuevas)
                 {
-                    Vector2 posBala = jefe->getPosicion();
-                    registrarBala(new BalaMonstruosa(posBala, direccion));
+                    // Las registramos en el gestor
+                    registrarBala(bala);
                 }
-
-                jefe->limpiarDisparosSolicitados();
+                jefe->limpiarBalasGeneradas(); // ¡Importante!
             }
+            // --- FIN LÓGICA MODIFICADA ---
         }
     }
+
+    // --- ¡¡NUEVA LÓGICA DE MINAS!! ---
+    // 3. Actualizamos las balas (para las minas)
+    for (Bala* bala : balas) {
+        if (bala->estaActiva()) {
+            // Llama al 'actualizar' de la bala (solo las minas lo usan)
+            bala->actualizar(jugador, mapa);
+        }
+    }
+    // -------------------------------
 }
 
 

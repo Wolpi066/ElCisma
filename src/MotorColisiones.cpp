@@ -15,25 +15,25 @@ void MotorColisiones::procesar(
     std::vector<Enemigo*>& enemigos = gestor.getEnemigos();
     std::vector<Bala*>& balas = gestor.getBalas();
     std::vector<Jefe*>& jefes = gestor.getJefes();
+    Rectangle rectJugador = jugador.getRect(); // Obtenemos el rect del jugador una vez
 
     // 1. Balas vs Entidades
     for (Bala* bala : balas) {
         if (!bala->estaActiva()) continue;
+        Rectangle rectBala = bala->getRect();
 
         if (bala->getOrigen() == OrigenBala::JUGADOR) {
             // vs Enemigos
             for (Enemigo* enemigo : enemigos) {
-                if (enemigo->estaVivo() && CheckCollisionRecs(bala->getRect(), enemigo->getRect())) {
-
+                if (enemigo->estaVivo() && CheckCollisionRecs(rectBala, enemigo->getRect())) {
                     int danio = bala->esDisparoCheat() ? 1000 : bala->getDanio();
-
                     bool enemigoMurio = (enemigo->getVida() <= danio);
                     enemigo->recibirDanio(danio);
                     bala->desactivar();
                     if (enemigoMurio) {
                         if (!dynamic_cast<Fantasma*>(enemigo))
                         {
-                            if (GetRandomValue(1, 10) <= 9) { // 90%
+                            if (GetRandomValue(1, 10) <= 9) {
                                 int tipoDrop = GetRandomValue(0, 2);
                                 Vector2 posDrop = enemigo->getPosicion();
                                 switch(tipoDrop) {
@@ -49,16 +49,12 @@ void MotorColisiones::procesar(
             }
             // vs Jefe
             for (Jefe* jefe : jefes) {
-                if (jefe->estaVivo() && !jefe->esInvulnerableActualmente() && CheckCollisionRecs(bala->getRect(), jefe->getRect())) {
-
-                    // --- ¡¡LÓGICA CHEAT MODIFICADA!! ---
+                if (jefe->estaVivo() && !jefe->esInvulnerableActualmente() && CheckCollisionRecs(rectBala, jefe->getRect())) {
                     if (bala->esDisparoCheat()) {
-                        jefe->forzarFaseDos(); // ¡¡NUEVO!! No hace daño, fuerza la fase
+                        jefe->forzarFaseDos();
                     } else {
                         jefe->recibirDanio(bala->getDanio(), jugador.getPosicion());
                     }
-                    // -----------------------------
-
                     bala->desactivar();
                     break;
                 }
@@ -66,7 +62,8 @@ void MotorColisiones::procesar(
         }
         // Balas Enemigas
         else if (bala->getOrigen() == OrigenBala::ENEMIGO) {
-            if (jugador.estaVivo() && CheckCollisionRecs(bala->getRect(), jugador.getRect())) {
+            // vs Jugador
+            if (jugador.estaVivo() && CheckCollisionRecs(rectBala, rectJugador)) {
                 float tiempoInmuneAntes = jugador.getTiempoInmune();
                 jugador.recibirDanio(bala->getDanio());
                 bala->desactivar();
@@ -74,9 +71,7 @@ void MotorColisiones::procesar(
                 if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
                 {
                     Vector2 dirKnockback = Vector2Normalize(bala->getVelocidad());
-                    float fuerza = 2.0f;
-                    float duracion = 0.15f;
-                    jugador.aplicarKnockback(dirKnockback, fuerza, duracion);
+                    jugador.aplicarKnockback(dirKnockback, 2.0f, 0.15f);
                 }
             }
         }
@@ -85,10 +80,9 @@ void MotorColisiones::procesar(
     // 2. Comprobacion de Ataques Enemigos
     for (Enemigo* enemigo : enemigos) {
         if (!enemigo->estaVivo()) continue;
-
         if (Fantasma* f = dynamic_cast<Fantasma*>(enemigo))
         {
-            if (CheckCollisionRecs(jugador.getRect(), f->getRect())) {
+            if (CheckCollisionRecs(rectJugador, f->getRect())) {
                 f->atacar(jugador);
             }
         }
@@ -102,19 +96,35 @@ void MotorColisiones::procesar(
     for (Jefe* jefe : jefes) {
         if (!jefe->estaVivo() || jefe->esInvulnerableActualmente()) continue;
 
-        if (CheckCollisionRecs(jugador.getRect(), jefe->getRect())) {
-
+        // A. Daño por Contacto (Cuerpo a Cuerpo)
+        if (CheckCollisionRecs(rectJugador, jefe->getRect())) {
             float tiempoInmuneAntes = jugador.getTiempoInmune();
             jugador.recibirDanio(jefe->getDanioContacto());
             float tiempoInmuneDespues = jugador.getTiempoInmune();
-
             if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
             {
                 Vector2 dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), jefe->getPosicion()));
-                float fuerza = 8.0f;
-                float duracion = 0.3f;
-                jugador.aplicarKnockback(dirKnockback, fuerza, duracion);
+                jugador.aplicarKnockback(dirKnockback, 8.0f, 0.3f);
             }
         }
+
+        // --- ¡¡NUEVA COLISIÓN!! ---
+        // B. Daño por Ataque de Brazo (Fase 1)
+        if (jefe->getFase() == FaseJefe::FASE_UNO && jefe->getEstadoF1() == EstadoFaseUno::ESTIRANDO_BRAZO)
+        {
+            Rectangle hitboxBrazo = jefe->getHitboxBrazo();
+            if (hitboxBrazo.width > 0 && CheckCollisionRecs(rectJugador, hitboxBrazo))
+            {
+                 float tiempoInmuneAntes = jugador.getTiempoInmune();
+                 jugador.recibirDanio(15); // Daño del brazo (hardcodeado 15)
+                 float tiempoInmuneDespues = jugador.getTiempoInmune();
+                 if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
+                 {
+                    Vector2 dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), jefe->getPosicion()));
+                    jugador.aplicarKnockback(dirKnockback, 10.0f, 0.2f); // Fuerte knockback
+                 }
+            }
+        }
+        // --- FIN NUEVA COLISIÓN ---
     }
 }

@@ -1,52 +1,47 @@
 #include "MotorFisica.h"
 #include "raymath.h"
-#include "Constantes.h" // Para velocidades
-
-// --- LOGICA DE MOVIMIENTO Y COLISION AABB ---
+#include "Constantes.h"
 
 // --- ¡¡FIRMA ACTUALIZADA!! ---
 Vector2 MotorFisica::calcularMovimientoValido(
     Vector2 posActual,
-    Vector2 velActual,
+    Vector2 velActual, // (Esta función espera el desplazamiento por frame)
     Rectangle rectColision,
     const std::vector<Rectangle>& muros,
     const std::vector<Rectangle>& cajas,
-    const Rectangle& puerta, // ¡¡NUEVO!!
-    bool puertaEstaAbierta,   // ¡¡NUEVO!!
-    bool& choco               // <-- ¡¡AÑADIDO!!
+    const Rectangle& puerta,
+    bool puertaEstaAbierta,
+    bool& choco
 )
 {
     Vector2 nuevaPos = posActual;
-    choco = false; // <-- ¡¡AÑADIDO!! Inicializamos en false
+    choco = false;
 
     // --- Comprobar Eje X ---
     nuevaPos.x += velActual.x;
     rectColision.x = nuevaPos.x - (rectColision.width / 2);
 
-    // Chequeo contra muros
     for (const auto& obs : muros) {
         if (CheckCollisionRecs(rectColision, obs)) {
             nuevaPos.x = posActual.x;
             rectColision.x = posActual.x - (rectColision.width / 2);
-            choco = true; // <-- ¡¡AÑADIDO!!
+            choco = true;
             goto ChequeoEjeY_X;
         }
     }
-    // Chequeo contra cajas
     for (const auto& obs : cajas) {
         if (CheckCollisionRecs(rectColision, obs)) {
             nuevaPos.x = posActual.x;
             rectColision.x = posActual.x - (rectColision.width / 2);
-            choco = true; // <-- ¡¡AÑADIDO!!
+            choco = true;
             goto ChequeoEjeY_X;
         }
     }
-    // Chequeo contra puerta
     if (!puertaEstaAbierta) {
         if (CheckCollisionRecs(rectColision, puerta)) {
              nuevaPos.x = posActual.x;
              rectColision.x = posActual.x - (rectColision.width / 2);
-             choco = true; // <-- ¡¡AÑADIDO!!
+             choco = true;
         }
     }
 
@@ -55,30 +50,27 @@ ChequeoEjeY_X:
     nuevaPos.y += velActual.y;
     rectColision.y = nuevaPos.y - (rectColision.height / 2);
 
-    // Chequeo contra muros
     for (const auto& obs : muros) {
         if (CheckCollisionRecs(rectColision, obs)) {
             nuevaPos.y = posActual.y;
             rectColision.y = posActual.y - (rectColision.height / 2);
-            choco = true; // <-- ¡¡AÑADIDO!!
+            choco = true;
             goto FinChequeo_Y;
         }
     }
-    // Chequeo contra cajas
     for (const auto& obs : cajas) {
         if (CheckCollisionRecs(rectColision, obs)) {
             nuevaPos.y = posActual.y;
             rectColision.y = posActual.y - (rectColision.height / 2);
-            choco = true; // <-- ¡¡AÑADIDO!!
+            choco = true;
             goto FinChequeo_Y;
         }
     }
-    // Chequeo contra puerta
     if (!puertaEstaAbierta) {
         if (CheckCollisionRecs(rectColision, puerta)) {
              nuevaPos.y = posActual.y;
              rectColision.y = posActual.y - (rectColision.height / 2);
-             choco = true; // <-- ¡¡AÑADIDO!!
+             choco = true;
         }
     }
 
@@ -86,7 +78,6 @@ FinChequeo_Y:
     return nuevaPos;
 }
 
-// --- METODOS PUBLICOS ---
 
 void MotorFisica::moverJugador(
     Protagonista& jugador,
@@ -98,9 +89,7 @@ void MotorFisica::moverJugador(
 )
 {
     if (!jugador.estaVivo()) return;
-
     Vector2 velocidad = {0, 0};
-
     if (jugador.getKnockbackTimer() > 0.0f)
     {
         velocidad = jugador.getVelocidadKnockback();
@@ -109,22 +98,20 @@ void MotorFisica::moverJugador(
     {
         velocidad = Vector2Scale(Vector2Normalize(dirMovimiento), Constantes::VELOCIDAD_JUGADOR);
     }
-
     Rectangle rectJugador = jugador.getRect();
-    bool chocoDummy = false; // Variable dummy para que compile
+    bool chocoDummy = false;
 
-    // --- LLAMADA ACTUALIZADA ---
+    // --- ¡¡FIX!! (Quitamos el GetFrameTime() de aquí) ---
     Vector2 nuevaPos = calcularMovimientoValido(
         jugador.getPosicion(),
-        velocidad,
+        velocidad, // <-- ¡ARREGLADO!
         rectJugador,
         muros,
         cajas,
         puerta,
         puertaEstaAbierta,
-        chocoDummy // <-- ¡¡AÑADIDO!!
+        chocoDummy
     );
-
     jugador.setPosicion(nuevaPos);
 }
 
@@ -142,8 +129,7 @@ void MotorFisica::moverEnemigos(
             continue;
         }
 
-        // (Lógica de Steering omitida por brevedad...)
-        // ...
+        // (Lógica de Steering)
         Vector2 dirDeseada = enemigo->getDireccion();
         if (Vector2LengthSqr(dirDeseada) == 0.0f) {
             continue;
@@ -184,29 +170,24 @@ void MotorFisica::moverEnemigos(
         }
         Vector2 velocidad = Vector2Scale(dirFinal, enemigo->getVelocidad());
         enemigo->setDireccion(dirFinal);
-        // ...
-        // (Fin lógica de Steering)
 
+        bool chocoDummy = false;
 
-        bool chocoDummy = false; // Variable dummy
-
-        // --- LLAMADA ACTUALIZADA ---
+        // --- ¡¡FIX!! (Quitamos el GetFrameTime() de aquí) ---
         Vector2 nuevaPos = calcularMovimientoValido(
             enemigo->getPosicion(),
-            velocidad,
+            velocidad, // <-- ¡ARREGLADO!
             rectEnemigo,
             muros,
             cajas,
             puerta,
             puertaEstaAbierta,
-            chocoDummy // <-- ¡¡AÑADIDO!!
+            chocoDummy
         );
-
         enemigo->setPosicion(nuevaPos);
     }
 }
 
-// --- ¡¡FUNCIÓN CLAVE MODIFICADA!! ---
 void MotorFisica::moverJefes(
     std::vector<Jefe*>& jefes,
     const std::vector<Rectangle>& muros,
@@ -219,41 +200,34 @@ void MotorFisica::moverJefes(
         if (!jefe->estaVivo()) continue;
 
         Vector2 posAntes = jefe->getPosicion();
+        // (La velocidad del Jefe SÍ viene con GetFrameTime() desde Jefe.cpp)
         Vector2 velocidad = jefe->getVelocidadActual();
         Rectangle rectJefe = jefe->getRect();
 
-        // --- ¡¡LÓGICA DE ATURDIMIENTO CORREGIDA!! ---
+        bool haChocado = false;
 
-        bool haChocado = false; // <-- 1. Preparamos el bool
-
-        // 2. Calcula la nueva posición válida (y actualiza haChocado)
         Vector2 posNueva = calcularMovimientoValido(
             posAntes,
-            velocidad,
+            velocidad, // (Correcto)
             rectJefe,
             muros,
             cajas,
             puerta,
             puertaEstaAbierta,
-            haChocado // <-- 3. Pasamos la referencia
+            haChocado
         );
 
-        // 4. Comprueba si el jefe estaba embistiendo
         if (jefe->getFase() == FaseJefe::FASE_UNO &&
             jefe->getEstadoF1() == EstadoFaseUno::EMBISTIENDO)
         {
-            // 5. Comprueba si el motor de física reportó un choque
-            if (haChocado) // <-- 6. ¡¡FIX!! Usamos el bool, no Vector2Equals
+            if (haChocado)
             {
-                // ¡¡CHOQUE!!
                 jefe->setVelocidad({0, 0});
                 jefe->setEstadoF1(EstadoFaseUno::ATURDIDO_EMBESTIDA);
-                jefe->setTemporizadorEstado(2.5f); // 2.5 seg de aturdimiento (GDD)
+                jefe->setTemporizadorEstado(2.5f);
             }
         }
-        // --- FIN DE LA LÓGICA DE ATURDIMIENTO ---
 
-        // 7. Aplica la posición final
         jefe->setPosicion(posNueva);
     }
 }
@@ -269,8 +243,12 @@ void MotorFisica::moverBalas(
     for (Bala* bala : balas) {
         if (!bala->estaActiva()) continue;
 
-        Vector2 velocidad = bala->getVelocidad();
-        Vector2 nuevaPos = Vector2Add(bala->getPosicion(), velocidad);
+        // --- ¡¡VACA FIX APLICADO!! ---
+        Vector2 velocidadCompleta = bala->getVelocidad();
+        Vector2 velPorFrame = Vector2Scale(velocidadCompleta, GetFrameTime());
+        // -----------------------------
+
+        Vector2 nuevaPos = Vector2Add(bala->getPosicion(), velPorFrame);
 
         Rectangle rectBala = bala->getRect();
         rectBala.x = nuevaPos.x - rectBala.width / 2;
@@ -308,19 +286,15 @@ void MotorFisica::moverBalas(
 void MotorFisica::resolverColisionesDinamicas(Protagonista& jugador, std::vector<Enemigo*>& enemigos)
 {
     if (!jugador.estaVivo()) return;
-
     Rectangle rectJugador = jugador.getRect();
     Vector2 posJugador = jugador.getPosicion();
-
     for (Enemigo* enemigo : enemigos)
     {
         if (!enemigo->estaVivo()) continue;
         if (dynamic_cast<Fantasma*>(enemigo)) {
             continue;
         }
-
         Rectangle rectEnemigo = enemigo->getRect();
-
         if (CheckCollisionRecs(rectJugador, rectEnemigo))
         {
             Vector2 posEnemigo = enemigo->getPosicion();
@@ -328,12 +302,10 @@ void MotorFisica::resolverColisionesDinamicas(Protagonista& jugador, std::vector
             float dist = Vector2Distance(posJugador, posEnemigo);
             float overlap = radioTotal - dist;
             Vector2 vectorSep = Vector2Subtract(posEnemigo, posJugador);
-
             if (Vector2LengthSqr(vectorSep) == 0.0f) {
                 vectorSep = {1.0f, 0.0f};
             }
             vectorSep = Vector2Normalize(vectorSep);
-
             Vector2 moverEnemigo = Vector2Scale(vectorSep, overlap);
             enemigo->setPosicion(Vector2Add(posEnemigo, moverEnemigo));
         }

@@ -2,19 +2,17 @@
 #include "Constantes.h"
 #include "raymath.h"
 
-// --- ¡¡MODIFICADO!! (Almacena dir y rapidez) ---
+// --- ¡¡MODIFICADO!! (Almacena velocidad completa) ---
 Bala::Bala(Vector2 pos, Vector2 dir, float rapidez, int dmg, OrigenBala org, float rad, bool esCheat) :
     posicion(pos),
     danio(dmg),
     origen(org),
     radio(rad),
     activa(true),
-    esCheat(esCheat),
-    // --- ¡¡FIX VACA!! ---
-    direccion(Vector2Normalize(dir)), // Almacenamos la dirección normalizada
-    rapidez(rapidez)                // Almacenamos la rapidez (ej: 1200.0f)
+    esCheat(esCheat)
 {
-    // Ya no calculamos 'this->velocidad' aquí
+    // Almacenamos la velocidad completa (píxeles por segundo)
+    this->velocidad = Vector2Scale(Vector2Normalize(dir), rapidez);
 }
 // ---------------------------------
 
@@ -28,6 +26,10 @@ void Bala::actualizarVidaUtil(Vector2 posJugador) {
 
 void Bala::setPosicion(Vector2 nuevaPos) {
     this->posicion = nuevaPos;
+}
+
+void Bala::setVelocidad(Vector2 nuevaVel) {
+    this->velocidad = nuevaVel;
 }
 
 bool Bala::estaActiva() const {
@@ -58,10 +60,9 @@ Vector2 Bala::getPosicion() const {
     return posicion;
 }
 
-// --- ¡¡MODIFICADO!! (Implementa el "Vaca Fix") ---
+// --- ¡¡MODIFICADO!! (Devuelve la velocidad completa) ---
 Vector2 Bala::getVelocidad() const {
-    // Calculamos el desplazamiento por frame (lo que MotorFisica espera)
-    return Vector2Scale(direccion, rapidez * GetFrameTime());
+    return this->velocidad;
 }
 // ---------------------------------------------
 

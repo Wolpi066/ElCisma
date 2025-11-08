@@ -6,6 +6,7 @@
 
 // FWD Declarations
 class Mapa;
+class Bala;
 
 enum class FaseJefe {
     FASE_UNO,
@@ -17,16 +18,22 @@ enum class EstadoFaseUno {
     APUNTANDO_EMBESTIDA,
     EMBISTIENDO,
     ATURDIDO_EMBESTIDA,
-    DISPARO_ESCOPETA,
-    PULSO_RADIAL
+    SALTANDO,
+    ESTIRANDO_BRAZO
+};
+
+enum class EstadoEstirarBrazo {
+    CARGANDO_AVISO,
+    EXTENDIENDO_CARNE,
+    EXTENDIENDO_HUESO
 };
 
 enum class EstadoFaseDos {
     PAUSANDO,
-    APUNTANDO_SOMBRA,
-    ATAQUE_SOMBRA_MOVIENDO,
-    DISPARO_INTELIGENTE,
-    LLUVIA_DE_BALAS
+    TELETRANSPORTANDO,
+    PLANTANDO_MINAS,
+    DISPARO_ESCOPETA,
+    PULSO_RADIAL
 };
 
 
@@ -40,6 +47,7 @@ private:
     int vida;
     int danioContacto;
     float radioHitbox;
+    float velocidadLenta;
 
     FaseJefe faseActual;
     bool enTransicion;
@@ -52,20 +60,32 @@ private:
     Vector2 objetivoEmbestida;
     float temporizadorEmbestida;
 
-    float temporizadorAtaqueSombra;
-    Vector2 objetivoAtaqueSombra;
+    // --- ¡¡FIX SALTO!! ---
+    Vector2 objetivoSalto;
+    Vector2 inicioSalto; // <-- ¡NUEVO!
+    float progresoSalto; // <-- (Reemplaza escalaSalto)
+    // -------------------
 
-    std::vector<Vector2> disparosSolicitados;
+    Vector2 objetivoBrazo;
+    float extensionBrazo;
+
+    EstadoEstirarBrazo estadoBrazo;
+
+    std::vector<Bala*> balasGeneradas;
 
     void actualizarFaseUno(Protagonista& jugador, const Mapa& mapa);
     void actualizarFaseDos(Protagonista& jugador, const Mapa& mapa);
     void transicionAFaseDos();
 
-    void ejecutarPausaF1();
+    void ejecutarPausaF1(Protagonista& jugador);
     void ejecutarDisparoEscopeta();
     void ejecutarPulsoRadial();
+    void ejecutarSalto(Protagonista& jugador);
+    void ejecutarEstirarBrazo(Protagonista& jugador);
 
     void ejecutarPausaF2();
+    void ejecutarTeletransporte();
+    void ejecutarPlantandoMinas();
     void ejecutarAtaqueSombra(Protagonista& jugador);
     void ejecutarDisparoInteligente(Protagonista& jugador);
 
@@ -78,13 +98,12 @@ public:
     void dibujar();
 
     void recibirDanio(int cantidad, Vector2 posicionJugador);
-
-    // --- ¡¡NUEVA FUNCIÓN PARA CHEAT!! ---
     void forzarFaseDos();
-    // ------------------------------------
 
-    std::vector<Vector2>& getDisparosSolicitados();
-    void limpiarDisparosSolicitados();
+    std::vector<Bala*>& getBalasGeneradas();
+    void limpiarBalasGeneradas();
+
+    Rectangle getHitboxBrazo() const;
 
     void setPosicion(Vector2 nuevaPos);
     void setVelocidad(Vector2 vel);

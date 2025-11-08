@@ -2,6 +2,11 @@
 #include "raylib.h"
 #include "raymath.h"
 
+// --- ¡¡FIX!! Declaraciones anticipadas ---
+class Protagonista;
+class Mapa;
+// ------------------------------------
+
 enum class OrigenBala {
     JUGADOR,
     ENEMIGO
@@ -10,11 +15,7 @@ enum class OrigenBala {
 class Bala {
 protected:
     Vector2 posicion;
-    // --- ¡¡FIX VACA!! ---
-    // Ya no almacenamos la velocidad. Almacenamos la dirección y la rapidez.
-    Vector2 direccion;
-    float rapidez;
-    // -------------------
+    Vector2 velocidad;
     int danio;
     OrigenBala origen;
     float radio;
@@ -25,8 +26,13 @@ public:
     Bala(Vector2 pos, Vector2 dir, float rapidez, int dmg, OrigenBala org, float rad, bool esCheat = false);
     virtual ~Bala() {}
 
+    // --- ¡¡FIX!! Esta es la línea que causaba el error ---
+    virtual void actualizar(Protagonista& jugador, const Mapa& mapa) {} // Para las minas
+    // --------------------------------------------------
+
     void actualizarVidaUtil(Vector2 posJugador);
     void setPosicion(Vector2 nuevaPos);
+    void setVelocidad(Vector2 nuevaVel);
 
     virtual void dibujar() = 0;
 
@@ -38,10 +44,7 @@ public:
     bool esDisparoCheat() const;
     Vector2 getPosicion() const;
 
-    // --- ¡¡MODIFICADO!! ---
-    // Este método ahora calculará el desplazamiento por frame
     Vector2 getVelocidad() const;
-    // ----------------------
 
     virtual bool estaMuerto() const;
     virtual bool estaConsumido() const;

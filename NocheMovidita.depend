@@ -326,23 +326,23 @@
 
 1762486250 c:\users\volpi\onedrive\escritorio\elcisma\src\constantes.h
 
-1762493722 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bala.cpp
+1762522872 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bala.cpp
 	"Bala.h"
 	"Constantes.h"
 	"raymath.h"
 
-1762493716 c:\users\volpi\onedrive\escritorio\elcisma\src\bala.h
+1762523292 c:\users\volpi\onedrive\escritorio\elcisma\src\bala.h
 	"raylib.h"
 	"raymath.h"
 
-1762493537 source:c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.cpp
+1762522883 source:c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.cpp
 	"BalaDeRifle.h"
 	"Constantes.h"
 
 1762493531 c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.h
 	"Bala.h"
 
-1762494327 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.cpp
+1762522892 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.cpp
 	"BalaMonstruosa.h"
 
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.h
@@ -402,10 +402,11 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
 	"Enemigo.h"
 
-1762493565 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
+1762523094 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
 	"GestorEntidades.h"
 	"Mapa.h"
 	"BalaMonstruosa.h"
+	"MinaEnemiga.h"
 	"Constantes.h"
 
 1762493556 c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.h
@@ -417,7 +418,7 @@
 	"Bala.h"
 	"Consumible.h"
 
-1762494555 c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.h
+1762565856 c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.h
 	"raylib.h"
 	"raymath.h"
 	<vector>
@@ -440,12 +441,14 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\indicadorpuerta.h
 	"Consumible.h"
 
-1762494562 source:c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.cpp
+1762524791 source:c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.cpp
 	"Jefe.h"
 	"Protagonista.h"
 	"Mapa.h"
 	"Constantes.h"
 	<cstdlib>
+	"BalaMonstruosa.h"
+	"MinaEnemiga.h"
 
 1762493507 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
@@ -494,7 +497,7 @@
 	"Protagonista.h"
 	"GestorEntidades.h"
 
-1762522087 c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.h
+1762523106 c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.h
 	"raylib.h"
 	<vector>
 	<list>
@@ -568,7 +571,7 @@
 	"Protagonista.h"
 	"Mapa.h"
 
-1762494594 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.cpp
+1762523182 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.cpp
 	"MotorColisiones.h"
 	"Spawner.h"
 	"Botiquin.h"
@@ -579,7 +582,7 @@
 	"raymath.h"
 	"Jefe.h"
 
-1762522094 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
+1762523558 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
 	"MotorFisica.h"
 	"raymath.h"
 	"Constantes.h"
@@ -610,6 +613,15 @@
 1762461327 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
 	"Zombie.h"
 	"Constantes.h"
+	"raymath.h"
+	"Protagonista.h"
+	"Mapa.h"
+
+1762523300 c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.h
+	"Bala.h"
+
+1762523307 source:c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.cpp
+	"MinaEnemiga.h"
 	"raymath.h"
 	"Protagonista.h"
 	"Mapa.h"
