@@ -2,10 +2,9 @@
 #include "raylib.h"
 #include "raymath.h"
 
-// --- ¡¡FIX!! Declaraciones anticipadas ---
+// FWD Declarations
 class Protagonista;
 class Mapa;
-// ------------------------------------
 
 enum class OrigenBala {
     JUGADOR,
@@ -15,7 +14,7 @@ enum class OrigenBala {
 class Bala {
 protected:
     Vector2 posicion;
-    Vector2 velocidad;
+    Vector2 velocidad; // (Velocidad por SEGUNDO)
     int danio;
     OrigenBala origen;
     float radio;
@@ -26,9 +25,8 @@ public:
     Bala(Vector2 pos, Vector2 dir, float rapidez, int dmg, OrigenBala org, float rad, bool esCheat = false);
     virtual ~Bala() {}
 
-    // --- ¡¡FIX!! Esta es la línea que causaba el error ---
-    virtual void actualizar(Protagonista& jugador, const Mapa& mapa) {} // Para las minas
-    // --------------------------------------------------
+    virtual void actualizar(Protagonista& jugador, const Mapa& mapa);
+    virtual void recibirDanio(int cantidad, OrigenBala origenDanio = OrigenBala::JUGADOR);
 
     void actualizarVidaUtil(Vector2 posJugador);
     void setPosicion(Vector2 nuevaPos);

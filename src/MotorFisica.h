@@ -13,19 +13,18 @@
 class MotorFisica
 {
 private:
-    // --- ¡¡FIRMA ACTUALIZADA!! ---
-    // (Añadido bool& choco al final)
     static Vector2 calcularMovimientoValido(Vector2 posActual, Vector2 velActual, Rectangle rectColision,
                                             const std::vector<Rectangle>& muros,
                                             const std::vector<Rectangle>& cajas,
                                             const Rectangle& puerta, bool puertaEstaAbierta,
-                                            bool& choco); // <-- ¡¡AÑADIDO!!
+                                            bool& choco);
 
 public:
     static void moverJugador(Protagonista& jugador, Vector2 dirMovimiento,
                              const std::vector<Rectangle>& muros,
                              const std::vector<Rectangle>& cajas,
-                             const Rectangle& puerta, bool puertaEstaAbierta);
+                             const Rectangle& puerta, bool puertaEstaAbierta,
+                             const std::vector<Bala*>& balas);
 
     static void moverEnemigos(std::vector<Enemigo*>& enemigos,
                               const std::vector<Rectangle>& muros,

@@ -1,10 +1,8 @@
 #pragma once
 #include "Bala.h"
 
-// --- ¡¡FIX!! Declaraciones anticipadas ---
 class Protagonista;
 class Mapa;
-// ------------------------------------
 
 class MinaEnemiga : public Bala {
 private:
@@ -12,12 +10,23 @@ private:
     float temporizadorVida;
     bool estaArmada;
 
+    bool estaMuriendo;
+    float temporizadorExplosion;
+    bool explosionLastimaJefe;
+
+    // --- ¡¡VACA FIX 4.0!! ---
+    float velocidadInicial;
+    Vector2 direccionNormalizada;
+    // --------------------
+
 public:
     MinaEnemiga(Vector2 pos, Vector2 dir);
 
-    // --- ¡¡FIX!! Esta es la línea que causaba el error ---
     void actualizar(Protagonista& jugador, const Mapa& mapa) override;
-    // --------------------------------------------------
-
     void dibujar() override;
+
+    void recibirDanio(int cantidad, OrigenBala origenDanio) override;
+    void explotar(bool porJugador);
+    bool estaExplotando() const;
+    bool explosionPuedeHerirJefe() const;
 };

@@ -1,6 +1,7 @@
 #include "BalaDeRifle.h"
 #include "Constantes.h"
 
+// --- ¡¡VACA FIX 4.0!! (Velocidad en px/sec) ---
 static const float VELOCIDAD_BALA_RIFLE = 1200.0f;
 static const int   DANIO_BALA_RIFLE     = 1;
 static const float RADIO_BALA_RIFLE     = 4.0f;
@@ -9,10 +10,10 @@ BalaDeRifle::BalaDeRifle(Vector2 pos, Vector2 dir, bool esCheat)
     : Bala(
         pos,
         dir,
-        VELOCIDAD_BALA_RIFLE, // 1200.0f
-        DANIO_BALA_RIFLE,     // 1
+        VELOCIDAD_BALA_RIFLE,   // <-- 1200.0f
+        DANIO_BALA_RIFLE,
         OrigenBala::JUGADOR,
-        RADIO_BALA_RIFLE,     // 4.0f
+        RADIO_BALA_RIFLE,
         esCheat
     )
 {

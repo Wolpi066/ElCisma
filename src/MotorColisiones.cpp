@@ -7,6 +7,8 @@
 #include "IndicadorPuerta.h"
 #include "raymath.h"
 #include "Jefe.h"
+#include "TrozoDeCarne.h"
+#include "MinaEnemiga.h"
 
 void MotorColisiones::procesar(
     Protagonista& jugador,
@@ -15,7 +17,7 @@ void MotorColisiones::procesar(
     std::vector<Enemigo*>& enemigos = gestor.getEnemigos();
     std::vector<Bala*>& balas = gestor.getBalas();
     std::vector<Jefe*>& jefes = gestor.getJefes();
-    Rectangle rectJugador = jugador.getRect(); // Obtenemos el rect del jugador una vez
+    Rectangle rectJugador = jugador.getRect();
 
     // 1. Balas vs Entidades
     for (Bala* bala : balas) {
@@ -23,61 +25,123 @@ void MotorColisiones::procesar(
         Rectangle rectBala = bala->getRect();
 
         if (bala->getOrigen() == OrigenBala::JUGADOR) {
-            // vs Enemigos
-            for (Enemigo* enemigo : enemigos) {
-                if (enemigo->estaVivo() && CheckCollisionRecs(rectBala, enemigo->getRect())) {
-                    int danio = bala->esDisparoCheat() ? 1000 : bala->getDanio();
-                    bool enemigoMurio = (enemigo->getVida() <= danio);
-                    enemigo->recibirDanio(danio);
-                    bala->desactivar();
-                    if (enemigoMurio) {
-                        if (!dynamic_cast<Fantasma*>(enemigo))
-                        {
-                            if (GetRandomValue(1, 10) <= 9) {
-                                int tipoDrop = GetRandomValue(0, 2);
-                                Vector2 posDrop = enemigo->getPosicion();
-                                switch(tipoDrop) {
-                                    case 0: gestor.registrarConsumible(Spawner<Botiquin>::Spawn(posDrop)); break;
-                                    case 1: gestor.registrarConsumible(Spawner<CajaDeMuniciones>::Spawn(posDrop)); break;
-                                    case 2: gestor.registrarConsumible(Spawner<Armadura>::Spawn(posDrop)); break;
+
+            if (dynamic_cast<MinaEnemiga*>(bala) || dynamic_cast<TrozoDeCarne*>(bala))
+            {
+                // (En el futuro, podríamos hacer que el jugador ponga minas)
+            }
+            else // Es una bala de rifle normal
+            {
+                // A. Bala de Rifle vs Enemigos
+                for (Enemigo* enemigo : enemigos) {
+                    if (enemigo->estaVivo() && CheckCollisionRecs(rectBala, enemigo->getRect())) {
+                        int danio = bala->esDisparoCheat() ? 1000 : bala->getDanio();
+                        bool enemigoMurio = (enemigo->getVida() <= danio);
+                        enemigo->recibirDanio(danio);
+                        bala->desactivar();
+                        if (enemigoMurio) {
+                            if (!dynamic_cast<Fantasma*>(enemigo))
+                            {
+                                if (GetRandomValue(1, 10) <= 9) {
+                                    int tipoDrop = GetRandomValue(0, 2);
+                                    Vector2 posDrop = enemigo->getPosicion();
+                                    switch(tipoDrop) {
+                                        case 0: gestor.registrarConsumible(Spawner<Botiquin>::Spawn(posDrop)); break;
+                                        case 1: gestor.registrarConsumible(Spawner<CajaDeMuniciones>::Spawn(posDrop)); break;
+                                        case 2: gestor.registrarConsumible(Spawner<Armadura>::Spawn(posDrop)); break;
+                                    }
                                 }
                             }
                         }
+                        break;
                     }
-                    break;
                 }
-            }
-            // vs Jefe
-            for (Jefe* jefe : jefes) {
-                if (jefe->estaVivo() && !jefe->esInvulnerableActualmente() && CheckCollisionRecs(rectBala, jefe->getRect())) {
-                    if (bala->esDisparoCheat()) {
-                        jefe->forzarFaseDos();
-                    } else {
-                        jefe->recibirDanio(bala->getDanio(), jugador.getPosicion());
+                if (!bala->estaActiva()) continue;
+
+                // B. Bala de Rifle vs Jefe
+                for (Jefe* jefe : jefes) {
+                    if (jefe->estaVivo() && !jefe->esInvulnerableActualmente() && CheckCollisionRecs(rectBala, jefe->getRect())) {
+                        if (bala->esDisparoCheat()) {
+                            jefe->forzarFaseDos();
+                        } else {
+                            jefe->recibirDanio(bala->getDanio(), jugador.getPosicion());
+                        }
+                        bala->desactivar();
+                        break;
                     }
-                    bala->desactivar();
-                    break;
+                }
+                if (!bala->estaActiva()) continue;
+
+                // C. Bala de Rifle vs Balas Enemigas (Minas)
+                for (Bala* balaEnemiga : balas)
+                {
+                    if (balaEnemiga->getOrigen() == OrigenBala::ENEMIGO && CheckCollisionRecs(rectBala, balaEnemiga->getRect()))
+                    {
+                        balaEnemiga->recibirDanio(bala->getDanio(), OrigenBala::JUGADOR);
+                        bala->desactivar();
+                        break;
+                    }
                 }
             }
         }
-        // Balas Enemigas
         else if (bala->getOrigen() == OrigenBala::ENEMIGO) {
-            // vs Jugador
+            // A. Bala Enemiga vs Jugador
             if (jugador.estaVivo() && CheckCollisionRecs(rectBala, rectJugador)) {
+
+                if (TrozoDeCarne* charco = dynamic_cast<TrozoDeCarne*>(bala))
+                {
+                    if (charco->esCharco())
+                    {
+                        continue;
+                    }
+                }
+
+                MinaEnemiga* mina = dynamic_cast<MinaEnemiga*>(bala);
+                if (mina && !mina->estaExplotando())
+                {
+                    mina->explotar(false);
+                }
+
                 float tiempoInmuneAntes = jugador.getTiempoInmune();
                 jugador.recibirDanio(bala->getDanio());
-                bala->desactivar();
+
+                if (mina)
+                {
+                    if (!mina->estaExplotando()) mina->desactivar();
+                } else {
+                    bala->desactivar();
+                }
+
                 float tiempoInmuneDespues = jugador.getTiempoInmune();
                 if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
                 {
                     Vector2 dirKnockback = Vector2Normalize(bala->getVelocidad());
+                    if (Vector2LengthSqr(dirKnockback) == 0.0f)
+                    {
+                        dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), bala->getPosicion()));
+                    }
                     jugador.aplicarKnockback(dirKnockback, 2.0f, 0.15f);
+                }
+            }
+
+            // B. Bala Enemiga (Mina AoE) vs Jefe
+            if (MinaEnemiga* mina = dynamic_cast<MinaEnemiga*>(bala))
+            {
+                if (mina->estaExplotando() && mina->explosionPuedeHerirJefe())
+                {
+                    for (Jefe* jefe : jefes)
+                    {
+                        if (jefe->estaVivo() && !jefe->esInvulnerableActualmente() && CheckCollisionRecs(mina->getRect(), jefe->getRect()))
+                        {
+                            jefe->recibirDanio(mina->getDanio(), mina->getPosicion());
+                        }
+                    }
                 }
             }
         }
     }
 
-    // 2. Comprobacion de Ataques Enemigos
+    // 2. Comprobacion de Ataques Enemigos (Contacto)
     for (Enemigo* enemigo : enemigos) {
         if (!enemigo->estaVivo()) continue;
         if (Fantasma* f = dynamic_cast<Fantasma*>(enemigo))
@@ -92,7 +156,7 @@ void MotorColisiones::procesar(
         }
     }
 
-    // 3. Comprobación de Daño por Contacto (Jefe vs Jugador)
+    // 3. Comprobación de Daño (Jefe vs Jugador)
     for (Jefe* jefe : jefes) {
         if (!jefe->estaVivo() || jefe->esInvulnerableActualmente()) continue;
 
@@ -108,7 +172,6 @@ void MotorColisiones::procesar(
             }
         }
 
-        // --- ¡¡NUEVA COLISIÓN!! ---
         // B. Daño por Ataque de Brazo (Fase 1)
         if (jefe->getFase() == FaseJefe::FASE_UNO && jefe->getEstadoF1() == EstadoFaseUno::ESTIRANDO_BRAZO)
         {
@@ -116,15 +179,16 @@ void MotorColisiones::procesar(
             if (hitboxBrazo.width > 0 && CheckCollisionRecs(rectJugador, hitboxBrazo))
             {
                  float tiempoInmuneAntes = jugador.getTiempoInmune();
-                 jugador.recibirDanio(15); // Daño del brazo (hardcodeado 15)
+                 // --- ¡¡FIX!! (Hardcodeado el valor de daño) ---
+                 jugador.recibirDanio(5);
+                 // ------------------------------------------
                  float tiempoInmuneDespues = jugador.getTiempoInmune();
                  if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
                  {
                     Vector2 dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), jefe->getPosicion()));
-                    jugador.aplicarKnockback(dirKnockback, 10.0f, 0.2f); // Fuerte knockback
+                    jugador.aplicarKnockback(dirKnockback, 10.0f, 0.2f);
                  }
             }
         }
-        // --- FIN NUEVA COLISIÓN ---
     }
 }

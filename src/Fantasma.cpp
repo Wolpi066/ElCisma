@@ -9,6 +9,10 @@ bool Fantasma::despertado = false;
 bool Fantasma::modoFuria = false;
 bool Fantasma::modoDialogo = false;
 
+// --- TAREA 1: Lógica del Fantasma ---
+bool Fantasma::jefeEnCombate = false; // ¡NUEVO!
+// ------------------------------------
+
 // --- Inicializar estado de "Susto" ---
 bool Fantasma::estaAsustando = false;
 float Fantasma::temporizadorSusto = 0.0f;
@@ -38,6 +42,15 @@ Fantasma::Fantasma(Vector2 pos)
 void Fantasma::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
     // El parámetro 'mapa' no se usa aquí, pero es necesario
     // para sobreescribir la función de la clase base Enemigo.
+
+    // --- TAREA 1: Lógica del Fantasma ---
+    // Si el jefe está activo, el fantasma no hace NADA y se oculta.
+    if (jefeEnCombate) {
+        this->posicion = {-9999, -9999};
+        return;
+    }
+    // ------------------------------------
+
 
     if (despertado) {
         // --- 1. ESTADO: DESPERTADO (Logica normal de persecucion) ---
@@ -100,6 +113,12 @@ Vector2 Fantasma::movimientoRecursivo(int profundidad) {
 
 // --- ACTUALIZADO: Logica de Dibujado ---
 void Fantasma::dibujar() {
+
+    // --- TAREA 1: Lógica del Fantasma ---
+    // Si el jefe está activo, no se dibuja.
+    if (jefeEnCombate) return;
+    // ------------------------------------
+
     if (despertado) {
         // --- DIBUJO NORMAL (DESPERTADO) ---
         if (modoFuria) {
@@ -123,6 +142,12 @@ void Fantasma::dibujar() {
 
 // --- ACTUALIZADO: Logica de Ataque ---
 void Fantasma::atacar(Protagonista& jugador) {
+
+    // --- TAREA 1: Lógica del Fantasma ---
+    // Si el jefe está activo, no ataca.
+    if (jefeEnCombate) return;
+    // ------------------------------------
+
     // Si esta en modo dialogo, NO ataca
     if (modoDialogo) return;
 

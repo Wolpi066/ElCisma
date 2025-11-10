@@ -1,11 +1,12 @@
 #include "MotorFisica.h"
 #include "raymath.h"
 #include "Constantes.h"
+#include "TrozoDeCarne.h"
+#include "MinaEnemiga.h" // <-- ¡NUEVO!
 
-// --- ¡¡FIRMA ACTUALIZADA!! ---
 Vector2 MotorFisica::calcularMovimientoValido(
     Vector2 posActual,
-    Vector2 velActual, // (Esta función espera el desplazamiento por frame)
+    Vector2 velActual,
     Rectangle rectColision,
     const std::vector<Rectangle>& muros,
     const std::vector<Rectangle>& cajas,
@@ -17,7 +18,6 @@ Vector2 MotorFisica::calcularMovimientoValido(
     Vector2 nuevaPos = posActual;
     choco = false;
 
-    // --- Comprobar Eje X ---
     nuevaPos.x += velActual.x;
     rectColision.x = nuevaPos.x - (rectColision.width / 2);
 
@@ -46,7 +46,6 @@ Vector2 MotorFisica::calcularMovimientoValido(
     }
 
 ChequeoEjeY_X:
-    // --- Comprobar Eje Y ---
     nuevaPos.y += velActual.y;
     rectColision.y = nuevaPos.y - (rectColision.height / 2);
 
@@ -85,26 +84,45 @@ void MotorFisica::moverJugador(
     const std::vector<Rectangle>& muros,
     const std::vector<Rectangle>& cajas,
     const Rectangle& puerta,
-    bool puertaEstaAbierta
+    bool puertaEstaAbierta,
+    const std::vector<Bala*>& balas
 )
 {
     if (!jugador.estaVivo()) return;
     Vector2 velocidad = {0, 0};
     if (jugador.getKnockbackTimer() > 0.0f)
     {
-        velocidad = jugador.getVelocidadKnockback();
+        velocidad = Vector2Scale(jugador.getVelocidadKnockback(), GetFrameTime());
     }
     else if (Vector2Length(dirMovimiento) > 0.0f)
     {
         velocidad = Vector2Scale(Vector2Normalize(dirMovimiento), Constantes::VELOCIDAD_JUGADOR);
     }
     Rectangle rectJugador = jugador.getRect();
+
+    bool estaEnCharco = false;
+    for (const Bala* bala : balas)
+    {
+        if (const TrozoDeCarne* charco = dynamic_cast<const TrozoDeCarne*>(bala))
+        {
+            if (charco->esCharco() && CheckCollisionRecs(rectJugador, charco->getRect()))
+            {
+                estaEnCharco = true;
+                break;
+            }
+        }
+    }
+
+    if (estaEnCharco)
+    {
+        velocidad = Vector2Scale(velocidad, 0.5f); // 50% lento
+    }
+
     bool chocoDummy = false;
 
-    // --- ¡¡FIX!! (Quitamos el GetFrameTime() de aquí) ---
     Vector2 nuevaPos = calcularMovimientoValido(
         jugador.getPosicion(),
-        velocidad, // <-- ¡ARREGLADO!
+        velocidad,
         rectJugador,
         muros,
         cajas,
@@ -129,11 +147,11 @@ void MotorFisica::moverEnemigos(
             continue;
         }
 
-        // (Lógica de Steering)
         Vector2 dirDeseada = enemigo->getDireccion();
         if (Vector2LengthSqr(dirDeseada) == 0.0f) {
             continue;
         }
+        // ... (lógica de steering omitida por brevedad) ...
         Vector2 vectorEvitacion = { 0, 0 };
         float pesoEvitacion = 0.0f;
         Rectangle rectEnemigo = enemigo->getRect();
@@ -168,15 +186,15 @@ void MotorFisica::moverEnemigos(
         } else {
             dirFinal = dirDeseada;
         }
+        // ... (fin lógica de steering) ...
+
         Vector2 velocidad = Vector2Scale(dirFinal, enemigo->getVelocidad());
         enemigo->setDireccion(dirFinal);
-
         bool chocoDummy = false;
 
-        // --- ¡¡FIX!! (Quitamos el GetFrameTime() de aquí) ---
         Vector2 nuevaPos = calcularMovimientoValido(
             enemigo->getPosicion(),
-            velocidad, // <-- ¡ARREGLADO!
+            velocidad,
             rectEnemigo,
             muros,
             cajas,
@@ -188,6 +206,7 @@ void MotorFisica::moverEnemigos(
     }
 }
 
+
 void MotorFisica::moverJefes(
     std::vector<Jefe*>& jefes,
     const std::vector<Rectangle>& muros,
@@ -197,10 +216,7 @@ void MotorFisica::moverJefes(
 )
 {
     for (Jefe* jefe : jefes) {
-        if (!jefe->estaVivo()) continue;
-
         Vector2 posAntes = jefe->getPosicion();
-        // (La velocidad del Jefe SÍ viene con GetFrameTime() desde Jefe.cpp)
         Vector2 velocidad = jefe->getVelocidadActual();
         Rectangle rectJefe = jefe->getRect();
 
@@ -208,7 +224,7 @@ void MotorFisica::moverJefes(
 
         Vector2 posNueva = calcularMovimientoValido(
             posAntes,
-            velocidad, // (Correcto)
+            velocidad,
             rectJefe,
             muros,
             cajas,
@@ -232,6 +248,7 @@ void MotorFisica::moverJefes(
     }
 }
 
+
 void MotorFisica::moverBalas(
     std::vector<Bala*>& balas,
     const std::vector<Rectangle>& muros,
@@ -243,11 +260,10 @@ void MotorFisica::moverBalas(
     for (Bala* bala : balas) {
         if (!bala->estaActiva()) continue;
 
-        // --- ¡¡VACA FIX APLICADO!! ---
         Vector2 velocidadCompleta = bala->getVelocidad();
-        Vector2 velPorFrame = Vector2Scale(velocidadCompleta, GetFrameTime());
-        // -----------------------------
+        if (Vector2LengthSqr(velocidadCompleta) == 0.0f) continue;
 
+        Vector2 velPorFrame = Vector2Scale(velocidadCompleta, GetFrameTime());
         Vector2 nuevaPos = Vector2Add(bala->getPosicion(), velPorFrame);
 
         Rectangle rectBala = bala->getRect();
@@ -276,7 +292,13 @@ void MotorFisica::moverBalas(
         }
 
         if (choca) {
-            bala->desactivar();
+            if (dynamic_cast<MinaEnemiga*>(bala) || dynamic_cast<TrozoDeCarne*>(bala))
+            {
+                 bala->setPosicion(bala->getPosicion());
+                 bala->setVelocidad({0,0});
+            } else {
+                 bala->desactivar();
+            }
         } else {
             bala->setPosicion(nuevaPos);
         }
@@ -300,11 +322,16 @@ void MotorFisica::resolverColisionesDinamicas(Protagonista& jugador, std::vector
             Vector2 posEnemigo = enemigo->getPosicion();
             float radioTotal = jugador.getRadio() + enemigo->getRadio();
             float dist = Vector2Distance(posJugador, posEnemigo);
+
+            if (dist == 0.0f)
+            {
+                dist = 0.1f;
+                posEnemigo.x += 0.1f;
+            }
+
             float overlap = radioTotal - dist;
             Vector2 vectorSep = Vector2Subtract(posEnemigo, posJugador);
-            if (Vector2LengthSqr(vectorSep) == 0.0f) {
-                vectorSep = {1.0f, 0.0f};
-            }
+
             vectorSep = Vector2Normalize(vectorSep);
             Vector2 moverEnemigo = Vector2Scale(vectorSep, overlap);
             enemigo->setPosicion(Vector2Add(posEnemigo, moverEnemigo));

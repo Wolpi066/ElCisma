@@ -52,6 +52,8 @@
 		<Unit filename="src/Bala.h" />
 		<Unit filename="src/BalaDeRifle.cpp" />
 		<Unit filename="src/BalaDeRifle.h" />
+		<Unit filename="src/BalaInfernal.cpp" />
+		<Unit filename="src/BalaInfernal.h" />
 		<Unit filename="src/BalaMonstruosa.cpp" />
 		<Unit filename="src/BalaMonstruosa.h" />
 		<Unit filename="src/Bateria.cpp" />
@@ -83,6 +85,8 @@
 		<Unit filename="src/Llave.h" />
 		<Unit filename="src/Mapa.cpp" />
 		<Unit filename="src/Mapa.h" />
+		<Unit filename="src/MinaEnemiga.cpp" />
+		<Unit filename="src/MinaEnemiga.h" />
 		<Unit filename="src/MonstruoObeso.cpp" />
 		<Unit filename="src/MonstruoObeso.h" />
 		<Unit filename="src/MotorColisiones.cpp" />
@@ -100,6 +104,8 @@
 		<Unit filename="src/SistemaRender.cpp" />
 		<Unit filename="src/SistemaRender.h" />
 		<Unit filename="src/Spawner.h" />
+		<Unit filename="src/TrozoDeCarne.cpp" />
+		<Unit filename="src/TrozoDeCarne.h" />
 		<Unit filename="src/Zombie.cpp" />
 		<Unit filename="src/Zombie.h" />
 		<Unit filename="src/main.cpp" />

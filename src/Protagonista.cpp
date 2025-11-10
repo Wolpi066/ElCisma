@@ -2,10 +2,8 @@
 #include "raymath.h"
 #include "Constantes.h"
 
-// --- Constantes de Linterna para Escalado ---
 static const float ALCANCE_LINTERNA_MIN = 80.0f;
 static const float ANGULO_CONO_MIN = 0.1f;
-// ---------------------------------------------
 
 
 Protagonista::Protagonista(Vector2 pos) :
@@ -27,7 +25,6 @@ Protagonista::Protagonista(Vector2 pos) :
     temporizadorFlicker(0.0f),
     knockbackVelocidad({0.0f, 0.0f}),
     knockbackTimer(0.0f),
-    // --- ¡¡NUEVO!! Inicialización de flags ---
     proximoDisparoEsCheat(false),
     bateriaCongelada(false)
 {
@@ -35,7 +32,6 @@ Protagonista::Protagonista(Vector2 pos) :
 
 void Protagonista::actualizarInterno(Camera2D camera)
 {
-    // 1. Actualizar timers
     if (temporizadorDisparo > 0) {
         temporizadorDisparo -= GetFrameTime();
     }
@@ -46,36 +42,29 @@ void Protagonista::actualizarInterno(Camera2D camera)
         knockbackTimer -= GetFrameTime();
     }
 
-    // 2. Actualizar direccion de vista (con suavizado/delay)
     Vector2 posMouse = GetScreenToWorld2D(GetMousePosition(), camera);
     Vector2 dirDeseada = Vector2Normalize(Vector2Subtract(posMouse, posicion));
     direccionVista = Vector2Lerp(direccionVista, dirDeseada, Constantes::VELOCIDAD_LINTERNA * GetFrameTime());
     direccionVista = Vector2Normalize(direccionVista);
     anguloVista = atan2f(direccionVista.y, direccionVista.x) * RAD2DEG;
 
-    // --- ¡¡FIX BATERÍA CONGELADA!! ---
-    // 3. Encender / Apagar Linterna (solo si la batería no está congelada)
     if (!bateriaCongelada && IsKeyPressed(KEY_F)) {
         linternaEncendida = !linternaEncendida;
     }
 
-    // 4. Consumo de Bateria (solo si la batería no está congelada)
     if (!bateriaCongelada && linternaEncendida && bateria > 0) {
         temporizadorBateria += GetFrameTime();
-
         if (temporizadorBateria >= (1.0f / Constantes::BATERIA_CONSUMO_SEGUNDO))
         {
             bateria--;
             temporizadorBateria = 0.0f;
         }
     }
-    // --- FIN DEL FIX ---
 
     if (bateria <= 0) {
         linternaEncendida = false;
     }
 
-    // 5. Flicker (Parpadeo) de Bateria
     if (linternaEncendida && bateria < Constantes::BATERIA_FLICKER_THRESHOLD)
     {
         temporizadorFlicker -= GetFrameTime();
@@ -87,25 +76,19 @@ void Protagonista::actualizarInterno(Camera2D camera)
 }
 
 
-// --- ¡¡MODIFICADO!! (Devuelve int) ---
 int Protagonista::intentarDisparar(bool quiereDisparar)
 {
     if (quiereDisparar && temporizadorDisparo <= 0 && municion > 0) {
         municion--;
         temporizadorDisparo = Constantes::TIEMPO_RECARGA_DISPARO;
-
-        // --- ¡¡LÓGICA CHEAT!! ---
         if (proximoDisparoEsCheat) {
-            proximoDisparoEsCheat = false; // Se consume el cheat
-            return 2; // Disparo tipo CHEAT
+            proximoDisparoEsCheat = false;
+            return 2; // Cheat
         }
-        // --------------------
-
-        return 1; // Disparo tipo NORMAL
+        return 1; // Normal
     }
     return 0; // No disparó
 }
-// --- FIN MODIFICACIÓN ---
 
 void Protagonista::setPosicion(Vector2 nuevaPos) {
     this->posicion = nuevaPos;
@@ -151,11 +134,12 @@ void Protagonista::matar()
 void Protagonista::aplicarKnockback(Vector2 direccion, float fuerza, float duracion)
 {
     if (!estaVivo()) return;
-    knockbackVelocidad = Vector2Scale(direccion, fuerza * 50.0f * GetFrameTime());
+    // --- ¡¡VACA FIX 4.0!! (Velocidad en px/frame) ---
+    knockbackVelocidad = Vector2Scale(direccion, fuerza);
+    // ---------------------------------------------
     knockbackTimer = duracion;
 }
 
-// --- Metodos de Consumibles ---
 void Protagonista::recargarBateria(const int& cantidad) {
     bateria += cantidad;
     if (bateria > Constantes::BATERIA_MAX) bateria = Constantes::BATERIA_MAX;
@@ -179,7 +163,6 @@ void Protagonista::quitarLlave() {
     tieneLlave = false;
 }
 
-// --- ¡¡NUEVOS SETTERS!! ---
 void Protagonista::activarCheatDisparo()
 {
     proximoDisparoEsCheat = true;
@@ -189,10 +172,7 @@ void Protagonista::setBateriaCongelada(bool congelada)
 {
     bateriaCongelada = congelada;
 }
-// -------------------------
 
-
-// --- Getters ---
 bool Protagonista::estaVivo() const {
     return vida > 0;
 }
@@ -237,35 +217,27 @@ Vector2 Protagonista::getVelocidadKnockback() const {
 float Protagonista::getAnguloCono() const
 {
     if (!linternaEncendida) return 0.0f;
-
     float bateriaNorm = (float)bateria / (float)Constantes::BATERIA_MAX;
     bateriaNorm = Clamp(bateriaNorm, 0.0f, 1.0f);
-
     float anguloCalculado = ANGULO_CONO_MIN + (anguloCono - ANGULO_CONO_MIN) * bateriaNorm;
-
     if (bateria < Constantes::BATERIA_FLICKER_THRESHOLD) {
         if (temporizadorFlicker < 0.05f) {
             return anguloCalculado * 0.7f;
         }
     }
-
     return anguloCalculado;
 }
 
 float Protagonista::getAlcanceLinterna() const
 {
     if (!linternaEncendida) return 0.0f;
-
     float bateriaNorm = (float)bateria / (float)Constantes::BATERIA_MAX;
     bateriaNorm = Clamp(bateriaNorm, 0.0f, 1.0f);
-
     float alcanceCalculado = ALCANCE_LINTERNA_MIN + (alcanceLinterna - ALCANCE_LINTERNA_MIN) * bateriaNorm;
-
     if (bateria < Constantes::BATERIA_FLICKER_THRESHOLD) {
         if (temporizadorFlicker < 0.05f) {
             return alcanceCalculado * 0.8f;
         }
     }
-
     return alcanceCalculado;
 }

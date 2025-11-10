@@ -13,6 +13,10 @@ public:
     static bool modoFuria;   // Para aura roja
     static bool modoDialogo; // Para no atacar
 
+    // --- TAREA 1: Lógica del Fantasma ---
+    static bool jefeEnCombate; // ¡NUEVO! Se activa cuando el jefe spawnea
+    // ------------------------------------
+
     // --- Estado de "Susto" ---
     static bool estaAsustando;       // True si esta en el evento de susto
     static float temporizadorSusto;  // Cuanto dura el susto

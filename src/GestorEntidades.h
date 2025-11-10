@@ -8,7 +8,12 @@
 #include "Bala.h"
 #include "Consumible.h"
 
-class Mapa; // <-- ¡AÑADIDO!
+#include "Spawner.h"
+#include "Botiquin.h"
+#include "CajaDeMuniciones.h"
+#include "Armadura.h"
+
+class Mapa;
 
 class GestorEntidades
 {
@@ -18,7 +23,6 @@ private:
     std::list<Consumible*> consumibles;
     std::vector<Jefe*> jefes;
 
-    // --- Plantillas de Limpieza ---
     template <typename T>
     void limpiarLista(std::vector<T*>& lista) {
         auto it = lista.begin();
@@ -49,19 +53,16 @@ public:
     GestorEntidades();
     ~GestorEntidades();
 
-    // ¡MODIFICADO!
     void actualizarIAEntidades(Protagonista& jugador, const Mapa& mapa);
     void dibujarEntidades();
     void recolectarBasura();
     void limpiarTodo();
 
-    // --- CORREGIDO: Nombres de métodos ---
     void registrarEnemigo(Enemigo* enemigo);
     void registrarBala(Bala* bala);
     void registrarConsumible(Consumible* consumible);
     void registrarJefe(Jefe* jefe);
 
-    // Getters
     std::vector<Enemigo*>& getEnemigos();
     std::vector<Bala*>& getBalas();
     std::list<Consumible*>& getConsumibles();

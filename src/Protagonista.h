@@ -24,24 +24,17 @@ private:
     bool linternaEncendida;
     float temporizadorFlicker;
 
-    Vector2 knockbackVelocidad;
+    Vector2 knockbackVelocidad; // (Velocidad por SEGUNDO)
     float knockbackTimer;
 
-    // --- ¡¡NUEVOS FLAGS!! ---
     bool proximoDisparoEsCheat;
     bool bateriaCongelada;
-    // ------------------------
 
 public:
     Protagonista(Vector2 pos);
 
     void actualizarInterno(Camera2D camera);
-
-    // --- ¡¡MODIFICADO!! ---
-    // Devuelve int: 0=No disparó, 1=Disparo Normal, 2=Disparo Cheat
     int intentarDisparar(bool quiereDisparar);
-    // ----------------------
-
     void setPosicion(Vector2 nuevaPos);
 
     void dibujar();
@@ -57,12 +50,9 @@ public:
     void recibirLlave();
     void quitarLlave();
 
-    // --- ¡¡NUEVOS SETTERS!! ---
     void activarCheatDisparo();
     void setBateriaCongelada(bool congelada);
-    // -------------------------
 
-    // --- Getters ---
     bool estaVivo() const;
     Vector2 getPosicion() const;
     Vector2 getDireccionVista() const;
