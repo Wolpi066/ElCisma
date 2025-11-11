@@ -425,7 +425,7 @@
 	"CajaDeMuniciones.h"
 	"Armadura.h"
 
-1762748714 c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.h
+1762789196 c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.h
 	"raylib.h"
 	"raymath.h"
 	<vector>
@@ -449,7 +449,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\indicadorpuerta.h
 	"Consumible.h"
 
-1762748733 source:c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.cpp
+1762789226 source:c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.cpp
 	"Jefe.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -461,7 +461,7 @@
 	"TrozoDeCarne.h"
 	"BalaInfernal.h"
 
-1762748754 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1762789240 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raymath.h"
@@ -480,7 +480,7 @@
 	"Spawner.h"
 	"Jefe.h"
 
-1762608202 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
+1762790275 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
 	"raylib.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -652,9 +652,9 @@
 	"Protagonista.h"
 	"Mapa.h"
 
-1762748559 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.cpp
+1762789168 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.cpp
 	"BalaInfernal.h"
 
-1762748552 c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.h
+1762788220 c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.h
 	"Bala.h"
 

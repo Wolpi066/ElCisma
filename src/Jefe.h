@@ -4,7 +4,7 @@
 #include <vector>
 #include "Protagonista.h"
 
-// --- TAREA 2: Añadida la nueva bala ---
+// --- TAREA 2: Usar la bala del BH ---
 #include "BalaInfernal.h"
 // ----------------------------------
 
@@ -97,30 +97,32 @@ private:
 
     std::vector<Bala*> balasGeneradas;
 
-    // --- TAREA 2: Constantes para el NUEVO Bullet Hell (Rediseño 100s) ---
-    // (Ajustadas para 5 fases)
+    // --- TAREA 2: Constantes para el NUEVO Bullet Hell (Rediseño 60s - FÁCIL) ---
 
-    // Fase 1 (Doble Pulso)
-    const int BH_PULSO_COOLDOWN = 50; // (frames) Un pulso cada 0.83s
-    const int BH_PULSO_DELAY = 10; // (frames) El segundo pulso
-    const int BH_PULSO_CANTIDAD_BALAS = 12;
+    // Fase 1 (Pulsos)
+    const int BH_PULSO_COOLDOWN = 90; // (frames) 1.5s
+    const int BH_PULSO_CANTIDAD_BALAS = 10;
 
-    // Fase 2 (Ráfagas Giratorias)
-    const int BH_RAFAGA_COOLDOWN = 30; // (frames) Una ráfaga cada 0.5s
-    const int BH_RAFAGA_CANTIDAD_BALAS = 4;
-    const float BH_RAFAGA_SEPARACION = 0.15f; // (radianes)
+    // Fase 2 (Ráfagas)
+    const int BH_RAFAGA_COOLDOWN = 50; // (frames) ~0.8s
+    const int BH_RAFAGA_CANTIDAD_BALAS = 3; // (Menos balas)
+    const float BH_RAFAGA_SEPARACION = 0.20f; // (Más separadas)
 
     // Fase 3 (Lluvia de Olas - ¡FIXED!)
-    const int BH_OLA_COOLDOWN = 30; // (frames) Una nueva línea de ola cada 0.5s
-    const float BH_OLA_AMPLITUD = 190.0f; // Ancho de la ola (ej: -190 a 190) (¡Arreglado!)
-    const int BH_OLA_CANTIDAD_BALAS = 8; // Balas por ola
-    const float BH_OLA_HUECO = 80.0f; // Tamaño del hueco seguro
-    const float BH_OLA_Y_ORIGEN_OFFSET = -190.0f; // Offset Y (¡Arreglado!)
+    const int BH_OLA_COOLDOWN = 45; // (frames) 0.75s (¡Más lento/espaciado!)
+    const float BH_OLA_AMPLITUD = 220.0f; // (frames) (¡Más ancho!)
+    const int BH_OLA_CANTIDAD_BALAS = 8;
+    const float BH_OLA_HUECO = 110.0f; // (Hueco más grande)
+    const float BH_OLA_Y_ORIGEN_OFFSET = -190.0f;
 
-    // Fase 5 (Espiral - Más fácil)
-    const int BH_ESPIRAL_COOLDOWN = 8; // (frames) Más lento
-    const int BH_ESPIRAL_FILAS = 4; // (4 en lugar de 5, más fácil)
-    const float BH_ESPIRAL_ROTACION = 6.0f; // Grados
+    // Fase 4 (Espiral)
+    const int BH_ESPIRAL_COOLDOWN = 10; // (Más lento)
+    const int BH_ESPIRAL_FILAS = 4; // (Menos filas)
+    const float BH_ESPIRAL_ROTACION = 4.0f; // (Más lento)
+
+    // Fase 5 (Doble Pulso)
+    const int BH_PULSO_DOBLE_COOLDOWN = 70; // (Más lento)
+    const int BH_PULSO_DOBLE_DELAY = 12; // (frames)
     // -----------------------------------------------------------------
 
     void actualizarFaseUno(Protagonista& jugador, const Mapa& mapa);

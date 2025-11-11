@@ -8,7 +8,7 @@
 #include "MinaEnemiga.h"
 #include "TrozoDeCarne.h"
 
-// --- TAREA 2: Añadida la nueva bala ---
+// --- TAREA 2: Usar la bala del BH ---
 #include "BalaInfernal.h"
 // ----------------------------------
 
@@ -33,8 +33,8 @@ static const float EXTENSION_HUESO_RELATIVA = 0.1f;
 static const float TIEMPO_TIRAR_CARNE = 0.5f;
 static const float TIEMPO_TRANSFORMACION_FINAL = 3.0f;
 
-// --- TAREA 2: Duración x2 (100s) ---
-static const float TIEMPO_BULLET_HELL = 100.0f; // (Modificado a 100.0)
+// --- TAREA 2: Duración Reducida (60s) ---
+static const float TIEMPO_BULLET_HELL = 60.0f; // (Modificado a 60.0)
 // -----------------------------------
 
 static const float COOLDOWN_MINAS = 2.0f;
@@ -528,7 +528,7 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa)
             if (temporizadorEstado <= 0)
             {
                 faseActual = FaseJefe::BULLET_HELL;
-                temporizadorEstado = TIEMPO_BULLET_HELL; // Ahora son 100s
+                temporizadorEstado = TIEMPO_BULLET_HELL; // Ahora son 60s
                 progresoMuerte = 0.0f;
                 bulletHellBaseDirection = 0.0f;
                 bulletHellSpawnTimer = 0; // (int)
@@ -542,14 +542,14 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa)
             float tiempoPasado = TIEMPO_BULLET_HELL - temporizadorEstado;
             progresoMuerte = Clamp(tiempoPasado / TIEMPO_BULLET_HELL, 0.0f, 1.0f);
 
-            // --- INICIO REDISEÑO BULLET HELL (Tarea 2 - 100 Segundos) ---
+            // --- INICIO REDISEÑO BULLET HELL (Tarea 2 - 60 Segundos - FÁCIL) ---
 
             bulletHellSpawnTimer++; // Contador de frames
-            bulletHellBaseDirection += 0.025f; // Rotación/offset (más rápido)
-            bulletHellAngleEspirales += BH_ESPIRAL_ROTACION; // Ángulo rápido para espirales
+            bulletHellBaseDirection += 0.025f;
+            bulletHellAngleEspirales += BH_ESPIRAL_ROTACION;
 
-            // FASE 1 (100s - 80s): "Doble Pulso" (Más rápido)
-            if (temporizadorEstado > 80.0f)
+            // FASE 1 (60s - 48s): "Pulsos Simples"
+            if (temporizadorEstado > 48.0f)
             {
                 if (bulletHellSpawnTimer % BH_PULSO_COOLDOWN == 0)
                 {
@@ -561,26 +561,14 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa)
                         balasGeneradas.push_back(new BalaInfernal(posicion, dir)); // BALA NUEVA
                     }
                 }
-                // Segundo pulso, 10 frames después
-                if (bulletHellSpawnTimer % BH_PULSO_COOLDOWN == BH_PULSO_DELAY)
-                {
-                    float anguloBase = bulletHellBaseDirection + (PI / BH_PULSO_CANTIDAD_BALAS); // Offset
-                    for (int i = 0; i < BH_PULSO_CANTIDAD_BALAS; i++)
-                    {
-                        float angulo = anguloBase + (i * (2 * PI / BH_PULSO_CANTIDAD_BALAS));
-                        Vector2 dir = { cosf(angulo), sinf(angulo) };
-                        balasGeneradas.push_back(new BalaInfernal(posicion, dir)); // BALA NUEVA
-                    }
-                }
             }
-            // FASE 2 (80s - 60s): "Ráfagas Giratorias" (Más rápido)
-            else if (temporizadorEstado > 60.0f)
+            // FASE 2 (48s - 36s): "Ráfagas Simples" (No giratorias)
+            else if (temporizadorEstado > 36.0f)
             {
                 if (bulletHellSpawnTimer % BH_RAFAGA_COOLDOWN == 0)
                 {
                     Vector2 dirAlJugador = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), posicion));
-                    // La ráfaga rota lentamente
-                    float anguloBase = atan2f(dirAlJugador.y, dirAlJugador.x) + (bulletHellBaseDirection * 3.0f);
+                    float anguloBase = atan2f(dirAlJugador.y, dirAlJugador.x);
 
                     for (int i = 0; i < BH_RAFAGA_CANTIDAD_BALAS; i++)
                     {
@@ -591,24 +579,24 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa)
                     }
                 }
             }
-            // FASE 3 (60s - 40s): "Lluvia de Olas" (¡Bug Corregido!)
-            else if (temporizadorEstado > 40.0f)
+            // FASE 3 (36s - 24s): "Lluvia de Olas" (¡Bug Corregido!)
+            else if (temporizadorEstado > 24.0f)
             {
                 if (bulletHellSpawnTimer % BH_OLA_COOLDOWN == 0)
                 {
                     float sinOffset = sinf(bulletHellBaseDirection * 5.0f);
+                    // (Más ancho)
                     float centroDelHueco = sinOffset * (BH_OLA_AMPLITUD / 2.0f);
 
-                    // FIX: Spawnear relativo al JEFE (posición 0,0), no a la esquina del mundo
-                    // Usamos las constantes corregidas para estar DENTRO del trigger de 400x400
-                    float spawnY = posicion.y + BH_OLA_Y_ORIGEN_OFFSET; // (0.0 + -190.0)
+                    // (Spawn Y relativo al jefe, dentro de la arena)
+                    float spawnY = posicion.y + BH_OLA_Y_ORIGEN_OFFSET;
 
                     for (int i = 0; i < BH_OLA_CANTIDAD_BALAS; i++)
                     {
-                        // Spawnea de -190 a +190
+                        // (Spawn X más ancho, cubre toda la sala)
                         float posX = posicion.x - BH_OLA_AMPLITUD + (i * (BH_OLA_AMPLITUD * 2.0f / BH_OLA_CANTIDAD_BALAS));
 
-                        // Chequea el hueco
+                        // (Hueco más grande)
                         if (fabsf(posX - (posicion.x + centroDelHueco)) < (BH_OLA_HUECO / 2.0f)) continue;
 
                         Vector2 origenBala = {posX, spawnY};
@@ -618,43 +606,24 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa)
                     }
                 }
             }
-            // FASE 4 (40s - 20s): "Caos (Ráfagas + Lluvia)"
-            else if (temporizadorEstado > 20.0f)
+            // FASE 4 (24s - 12s): "Espiral Lenta" (4 brazos)
+            else if (temporizadorEstado > 12.0f)
             {
-                // Ráfagas Giratorias (Igual que Fase 2)
-                if (bulletHellSpawnTimer % BH_RAFAGA_COOLDOWN == 0)
+                if (bulletHellSpawnTimer % BH_ESPIRAL_COOLDOWN == 0)
                 {
-                    Vector2 dirAlJugador = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), posicion));
-                    float anguloBase = atan2f(dirAlJugador.y, dirAlJugador.x) + (bulletHellBaseDirection * 3.0f);
-                    for (int i = 0; i < BH_RAFAGA_CANTIDAD_BALAS; i++)
+                    float degreesPerRow = 360.0f / BH_ESPIRAL_FILAS;
+                    for (int row = 0; row < BH_ESPIRAL_FILAS; row++)
                     {
-                        float offset = (i - (BH_RAFAGA_CANTIDAD_BALAS / 2.0f)) * BH_RAFAGA_SEPARACION;
-                        float angulo = anguloBase + offset;
-                        Vector2 dir = { cosf(angulo), sinf(angulo) };
+                        float bulletDirection = bulletHellAngleEspirales + (degreesPerRow * row);
+                        Vector2 dir = { cosf(bulletDirection * DEG2RAD), sinf(bulletDirection * DEG2RAD) };
                         balasGeneradas.push_back(new BalaInfernal(posicion, dir)); // BALA NUEVA
                     }
                 }
-                // Lluvia de Olas (Igual que Fase 3)
-                if (bulletHellSpawnTimer % BH_OLA_COOLDOWN == 0)
-                {
-                    float sinOffset = sinf(bulletHellBaseDirection * 5.0f);
-                    float centroDelHueco = sinOffset * (BH_OLA_AMPLITUD / 2.0f);
-                    float spawnY = posicion.y + BH_OLA_Y_ORIGEN_OFFSET;
-                    for (int i = 0; i < BH_OLA_CANTIDAD_BALAS; i++)
-                    {
-                        float posX = posicion.x - BH_OLA_AMPLITUD + (i * (BH_OLA_AMPLITUD * 2.0f / BH_OLA_CANTIDAD_BALAS));
-                        if (fabsf(posX - (posicion.x + centroDelHueco)) < (BH_OLA_HUECO / 2.0f)) continue;
-                        Vector2 origenBala = {posX, spawnY};
-                        Vector2 dirBala = {0.0f, 1.0f};
-                        balasGeneradas.push_back(new BalaInfernal(origenBala, dirBala)); // BALA NUEVA
-                    }
-                }
             }
-            // FASE 5 (20s - 0s): "Desesperación (Doble Pulso + Espiral Única)" (Más fácil)
+            // FASE 5 (12s - 0s): "Pulsos Dobles"
             else
             {
-                // Doble Pulso (Igual que Fase 1)
-                if (bulletHellSpawnTimer % BH_PULSO_COOLDOWN == 0)
+                if (bulletHellSpawnTimer % BH_PULSO_DOBLE_COOLDOWN == 0)
                 {
                     float anguloBase = bulletHellBaseDirection;
                     for (int i = 0; i < BH_PULSO_CANTIDAD_BALAS; i++)
@@ -664,25 +633,14 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa)
                         balasGeneradas.push_back(new BalaInfernal(posicion, dir)); // BALA NUEVA
                     }
                 }
-                if (bulletHellSpawnTimer % BH_PULSO_COOLDOWN == BH_PULSO_DELAY)
+                // Segundo pulso, 12 frames después
+                if (bulletHellSpawnTimer % BH_PULSO_DOBLE_COOLDOWN == BH_PULSO_DOBLE_DELAY)
                 {
-                    float anguloBase = bulletHellBaseDirection + (PI / BH_PULSO_CANTIDAD_BALAS);
+                    float anguloBase = bulletHellBaseDirection + (PI / BH_PULSO_CANTIDAD_BALAS); // Offset
                     for (int i = 0; i < BH_PULSO_CANTIDAD_BALAS; i++)
                     {
                         float angulo = anguloBase + (i * (2 * PI / BH_PULSO_CANTIDAD_BALAS));
                         Vector2 dir = { cosf(angulo), sinf(angulo) };
-                        balasGeneradas.push_back(new BalaInfernal(posicion, dir)); // BALA NUEVA
-                    }
-                }
-
-                // Espiral Única (Más fácil)
-                if (bulletHellSpawnTimer % BH_ESPIRAL_COOLDOWN == 0)
-                {
-                    float degreesPerRow = 360.0f / BH_ESPIRAL_FILAS;
-                    for (int row = 0; row < BH_ESPIRAL_FILAS; row++)
-                    {
-                        float bulletDirection = bulletHellAngleEspirales + (degreesPerRow * row);
-                        Vector2 dir = { cosf(bulletDirection * DEG2RAD), sinf(bulletDirection * DEG2RAD) };
                         balasGeneradas.push_back(new BalaInfernal(posicion, dir)); // BALA NUEVA
                     }
                 }

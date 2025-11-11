@@ -14,8 +14,19 @@ enum class EstadoJuego {
     JUGANDO,
     LEYENDO_NOTA,
     INICIANDO_JEFE,
-    DIALOGO_FINAL,
-    FIN_JUEGO_GANADO,
+    DIALOGO_FINAL,          // Elana se acerca
+
+    // --- TAREA FINAL: Nuevos estados de diálogo ---
+    DIALOGO_INTRO,          // Elana da su monólogo inicial
+    DIALOGO_PREGUNTAS,      // El jugador elige qué preguntar
+    DIALOGO_RESPUESTA_1,    // Elana responde a la Pregunta 1
+    DIALOGO_RESPUESTA_2,    // Elana responde a la Pregunta 2
+    DIALOGO_DECISION_FINAL, // El jugador toma la decisión final
+
+    FIN_JUEGO_SACRIFICIO,   // Final 1 (Toma el control)
+    FIN_JUEGO_HUIR,         // Final 2 (Escapa)
+    // ---------------------------------------------
+
     FIN_JUEGO_MUERTO
 };
 
@@ -46,6 +57,11 @@ private:
     Rectangle triggerRectJefe;
     float temporizadorSpawnJefe;
 
+    // --- TAREA FINAL: Diálogo ---
+    int opcionDialogo; // Reutilizada para Q&A y Decisión Final
+    float temporizadorDialogo;
+    // -----------------------------
+
     void actualizar();
     void dibujar();
 
@@ -59,6 +75,19 @@ private:
     void dibujarDialogo();
     void dibujarLeyendoNota();
     void dibujarFinJuego();
+
+    // --- TAREA FINAL: Nuevas funciones de estado ---
+    void actualizarDialogoIntro();
+    void actualizarDialogoPreguntas();
+    void actualizarDialogoRespuesta();
+    void actualizarDialogoDecisionFinal();
+    void actualizarFinJuego(); // ¡NUEVO!
+
+    void dibujarDialogoIntro();
+    void dibujarDialogoPreguntas();
+    void dibujarDialogoRespuesta();
+    void dibujarDialogoDecisionFinal();
+    // ----------------------------------------------
 
     void procesarCheats();
 };
