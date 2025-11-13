@@ -1,6 +1,7 @@
 #include "Protagonista.h"
 #include "raymath.h"
 #include "Constantes.h"
+#include <vector> // <-- ¡AÑADIDO!
 
 static const float ALCANCE_LINTERNA_MIN = 80.0f;
 static const float ANGULO_CONO_MIN = 0.1f;
@@ -26,11 +27,33 @@ Protagonista::Protagonista(Vector2 pos) :
     knockbackVelocidad({0.0f, 0.0f}),
     knockbackTimer(0.0f),
     proximoDisparoEsCheat(false),
-    bateriaCongelada(false)
+    bateriaCongelada(false),
+    // --- ¡NUEVO! Inicializar Animación ---
+    animFrameCounter(0),
+    animCurrentFrame(0),
+    animFramesSpeed(8), // 8 FPS, como en tu ejemplo
+    estaMoviendo(false)
 {
+    // --- ¡NUEVO! Cargar tus 5 texturas (CON NOMBRES CORREGIDOS) ---
+    texWalkSouth.push_back(LoadTexture("caminando1.png")); // Frame 0 (Idle)
+    texWalkSouth.push_back(LoadTexture("caminando2.png")); // Frame 1
+    texWalkSouth.push_back(LoadTexture("caminando3.png")); // Frame 2
+    texWalkSouth.push_back(LoadTexture("caminando4.png")); // Frame 3
+    texWalkSouth.push_back(LoadTexture("caminando5.png")); // Frame 4
 }
 
-void Protagonista::actualizarInterno(Camera2D camera)
+// --- ¡NUEVO! Destructor ---
+Protagonista::~Protagonista()
+{
+    // Descarga las 5 texturas que cargamos
+    for (Texture2D tex : texWalkSouth)
+    {
+        UnloadTexture(tex);
+    }
+}
+
+// --- ¡MODIFICADO! ---
+void Protagonista::actualizarInterno(Camera2D camera, Vector2 direccionMovimiento)
 {
     if (temporizadorDisparo > 0) {
         temporizadorDisparo -= GetFrameTime();
@@ -73,6 +96,39 @@ void Protagonista::actualizarInterno(Camera2D camera)
             temporizadorFlicker = (float)GetRandomValue(0, 100) / 100.0f * (0.1f + ratio * 0.4f);
         }
     }
+
+    // --- ¡NUEVO! Lógica de Animación ---
+
+    // 1. Comprobar si el jugador se está moviendo
+    estaMoviendo = (Vector2LengthSqr(direccionMovimiento) > 0.0f);
+
+    // 2. Comprobar si se mueve hacia abajo (Top-Down)
+    bool caminaSur = (estaMoviendo && direccionMovimiento.y > 0.5f);
+
+    if (caminaSur)
+    {
+        // 3. Actualizar la lógica de frames (copiado de tu ejemplo)
+        animFrameCounter++;
+        if (animFrameCounter >= (60 / animFramesSpeed))
+        {
+            animFrameCounter = 0;
+            animCurrentFrame++;
+
+            // 4. Bucle de 5 frames (0-4)
+            if (animCurrentFrame > 4)
+            {
+                animCurrentFrame = 1; // Volvemos al frame 1, no al 0 (Idle)
+            }
+            // (Si el frame 0 NO es parte del ciclo de caminar, empezamos en 1)
+            if (animCurrentFrame == 0) animCurrentFrame = 1;
+        }
+    }
+    else
+    {
+        // 5. Si no se mueve (o se mueve a otro lado), vuelve al frame 0 (Idle)
+        animCurrentFrame = 0;
+    }
+    // --- Fin de Animación ---
 }
 
 
@@ -99,13 +155,47 @@ void Protagonista::dibujar()
 {
     if (!estaVivo()) return;
 
+    // --- ¡MODIFICADO! Dibujar Sprite ---
+
+    // 1. Obtener la textura actual
+    Texture2D texActual;
+
+    // (Asumimos que 'caminando1.png' (índice 0) es el IDLE)
+    // (Asumimos que 'caminando2-5.png' (índices 1-4) son el ciclo)
+    if (estaMoviendo && direccionVista.y > 0.5f) // (Simple check para "walking south")
+    {
+        texActual = texWalkSouth[animCurrentFrame]; // Usa el frame 1, 2, 3 o 4
+    }
+    else
+    {
+        texActual = texWalkSouth[0]; // Frame 0 (Idle)
+    }
+
+    // 2. Definir rectángulos de dibujado
+    float frameWidth = (float)texActual.width;
+    float frameHeight = (float)texActual.height;
+
+    Rectangle sourceRec = { 0.0f, 0.0f, frameWidth, frameHeight };
+    Rectangle destRec = { posicion.x, posicion.y, frameWidth, frameHeight };
+    Vector2 origen = { frameWidth / 2.0f, frameHeight / 2.0f }; // Centrar el sprite
+
+    // 3. Definir tinte (para efecto de daño)
+    Color tinte = WHITE;
     if (tiempoInmune > 0) {
         if ((int)(tiempoInmune * 10) % 2 == 0) {
-            DrawCircleV(posicion, radio, RED);
-            return;
+            tinte = RED; // Efecto de parpadeo rojo
         }
     }
-    DrawCircleV(posicion, radio, DARKBLUE);
+
+    // 4. Dibujar la textura
+    DrawTexturePro(texActual,
+                   sourceRec,
+                   destRec,
+                   origen,
+                   0.0f, // No rotamos el sprite, solo la linterna
+                   tinte);
+
+    // --- Fin de Modificación ---
 }
 
 void Protagonista::recibirDanio(int cantidad)

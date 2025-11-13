@@ -268,7 +268,7 @@ void SistemaRender::dibujarMundo(const Rectangle& cameraView, Mapa& mapa, Gestor
     }
 
     gestor.dibujarEntidades();
-    jugador.dibujar();
+    jugador.dibujar(); // <--- Esta línea llama al Protagonista::dibujar() modificado
 }
 
 void SistemaRender::dibujarHUD(Protagonista& jugador)

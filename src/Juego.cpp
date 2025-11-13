@@ -184,7 +184,9 @@ void Juego::actualizarJugando()
     bool quiereDisparar = SistemaInput::quiereDisparar();
     bool quiereInteractuar = SistemaInput::quiereInteractuar();
 
-    jugador.actualizarInterno(renderizador.getCamera());
+    // --- ¡MODIFICADO! Pasamos la dirección de movimiento ---
+    jugador.actualizarInterno(renderizador.getCamera(), direccionMovimiento);
+    // ----------------------------------------------------
 
     gestor.actualizarIAEntidades(jugador, miMapa);
 
@@ -392,6 +394,9 @@ void Juego::actualizarJugando()
 
 void Juego::actualizarLeyendoNota()
 {
+    // --- ¡MODIFICADO! El jugador no se mueve
+    jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
+
     if (SistemaInput::quiereInteractuar() || IsKeyPressed(KEY_ESCAPE))
     {
         estadoActual = EstadoJuego::JUGANDO;
@@ -401,7 +406,9 @@ void Juego::actualizarLeyendoNota()
 
 void Juego::actualizarIniciandoJefe()
 {
-    jugador.actualizarInterno(renderizador.getCamera());
+    // --- ¡MODIFICADO! El jugador no se mueve
+    jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
+
     temporizadorSpawnJefe -= GetFrameTime();
     if (temporizadorSpawnJefe <= 0)
     {
@@ -415,7 +422,7 @@ void Juego::actualizarDialogo()
 {
     // --- TAREA 3: Lógica de Diálogo Arreglada ---
     // Este estado ahora SOLO es una pausa cinemática.
-    jugador.actualizarInterno(renderizador.getCamera()); // El jugador puede mirar
+    jugador.actualizarInterno(renderizador.getCamera(), {0, 0}); // El jugador puede mirar, no moverse
 
     // El fantasma se mueve (lo gestiona gestor.actualizarIAEntidades)
     gestor.actualizarIAEntidades(jugador, miMapa);
@@ -440,7 +447,7 @@ void Juego::actualizarDialogo()
 // --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarDialogoIntro()
 {
-    jugador.actualizarInterno(renderizador.getCamera());
+    jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
     if (SistemaInput::quiereInteractuar())
     {
         estadoActual = EstadoJuego::DIALOGO_PREGUNTAS;
@@ -451,7 +458,7 @@ void Juego::actualizarDialogoIntro()
 // --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarDialogoPreguntas()
 {
-    jugador.actualizarInterno(renderizador.getCamera());
+    jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
 
     // Mover la selección (3 opciones)
     if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))
@@ -487,7 +494,7 @@ void Juego::actualizarDialogoPreguntas()
 // --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarDialogoRespuesta()
 {
-    jugador.actualizarInterno(renderizador.getCamera());
+    jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
     // Espera a que el jugador presione 'E' para volver a las preguntas
     if (SistemaInput::quiereInteractuar())
     {
@@ -499,7 +506,7 @@ void Juego::actualizarDialogoRespuesta()
 // --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarDialogoDecisionFinal()
 {
-    jugador.actualizarInterno(renderizador.getCamera());
+    jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
 
     // Mover la selección (2 opciones)
     if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))

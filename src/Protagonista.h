@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "Constantes.h"
+#include <vector> // <-- ¡AÑADIDO!
 
 class Consumible;
 
@@ -30,10 +31,24 @@ private:
     bool proximoDisparoEsCheat;
     bool bateriaCongelada;
 
+    // --- ¡NUEVO! Lógica de Animación ---
+    int animFrameCounter;   // Contador de frames (como en el ejemplo)
+    int animCurrentFrame;   // El frame actual a dibujar (0-4)
+    int animFramesSpeed;    // Velocidad (frames por segundo)
+    bool estaMoviendo;      // Flag para saber si está quieto o andando
+
+    // Vector para guardar tus 5 texturas
+    std::vector<Texture2D> texWalkSouth;
+    // --- Fin de Animación ---
+
 public:
     Protagonista(Vector2 pos);
+    ~Protagonista(); // <-- ¡AÑADIDO! Necesario para descargar texturas
 
-    void actualizarInterno(Camera2D camera);
+    // --- ¡MODIFICADO! ---
+    // Necesitamos saber si el jugador se está moviendo
+    void actualizarInterno(Camera2D camera, Vector2 direccionMovimiento);
+
     int intentarDisparar(bool quiereDisparar);
     void setPosicion(Vector2 nuevaPos);
 

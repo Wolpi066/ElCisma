@@ -14,17 +14,17 @@ enum class EstadoJuego {
     JUGANDO,
     LEYENDO_NOTA,
     INICIANDO_JEFE,
-    DIALOGO_FINAL,          // Elana se acerca
+    DIALOGO_FINAL,
 
     // --- TAREA FINAL: Nuevos estados de diálogo ---
-    DIALOGO_INTRO,          // Elana da su monólogo inicial
-    DIALOGO_PREGUNTAS,      // El jugador elige qué preguntar
-    DIALOGO_RESPUESTA_1,    // Elana responde a la Pregunta 1
-    DIALOGO_RESPUESTA_2,    // Elana responde a la Pregunta 2
-    DIALOGO_DECISION_FINAL, // El jugador toma la decisión final
+    DIALOGO_INTRO,
+    DIALOGO_PREGUNTAS,
+    DIALOGO_RESPUESTA_1,
+    DIALOGO_RESPUESTA_2,
+    DIALOGO_DECISION_FINAL,
 
-    FIN_JUEGO_SACRIFICIO,   // Final 1 (Toma el control)
-    FIN_JUEGO_HUIR,         // Final 2 (Escapa)
+    FIN_JUEGO_SACRIFICIO,
+    FIN_JUEGO_HUIR,
     // ---------------------------------------------
 
     FIN_JUEGO_MUERTO
