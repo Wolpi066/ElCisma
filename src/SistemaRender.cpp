@@ -1,7 +1,7 @@
 #include "SistemaRender.h"
 #include "Constantes.h"
 #include "Fantasma.h"
-#include "raymath.h" // Para Vector2Add
+#include "raymath.h"
 
 SistemaRender::SistemaRender() : camera({0})
 {
@@ -9,15 +9,13 @@ SistemaRender::SistemaRender() : camera({0})
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
-    // Volvemos a la inicialización simple. El radio se calculará en dibujarTodo.
     float alcanceInicial = 300.0f;
     Iluminacion::SetupLight(&linterna, {0,0}, WHITE, alcanceInicial, 1.0f);
 
-    // --- Inicializar Minimapa ---
     minimapaZoom = 0.07f;
     minimapaOffset = {
-        Constantes::ANCHO_PANTALLA - (3200 * minimapaZoom) - 10, // x
-        Constantes::ALTO_PANTALLA - (3200 * minimapaZoom) - 10  // y
+        Constantes::ANCHO_PANTALLA - (3200 * minimapaZoom) - 10,
+        Constantes::ALTO_PANTALLA - (3200 * minimapaZoom) - 10
     };
     minimapaTextura = LoadRenderTexture( (int)(3200 * minimapaZoom), (int)(3200 * minimapaZoom) );
     nieblaMinimapa = LoadRenderTexture( (int)(3200 * minimapaZoom), (int)(3200 * minimapaZoom) );
@@ -89,8 +87,6 @@ void SistemaRender::actualizarNieblaMinimapa(const Protagonista& jugador)
             float radioProximidad = 100.0f;
             DrawCircleV(jugador.getPosicion(), radioProximidad, Fade(WHITE, 0.05f));
 
-            // Esta lógica es correcta, asumimos que Protagonista
-            // ahora devolverá los valores ajustados por la batería.
             float alcance = jugador.getAlcanceLinterna();
             if (alcance > 0.0f)
             {
@@ -123,26 +119,19 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     camera.target = jugador.getPosicion();
     Iluminacion::MoveLight(&linterna, jugador.getPosicion());
 
-    // --- LÓGICA DE BATERÍA (REVERTIDA) ---
-    // Esta es la lógica que tenías antes.
-    // Ahora, 'getAlcanceLinterna()' debe ser modificado DENTRO
-    // de Protagonista para que devuelva el valor según la batería.
     float alcanceCono = jugador.getAlcanceLinterna();
-    float radioHalo = 80.0f; // Este era el valor mínimo que tenías
+    float radioHalo = 80.0f;
     linterna.radius = (alcanceCono > radioHalo) ? alcanceCono : radioHalo;
-
-    // La línea que daba error (linterna.fov = ...) se ha eliminado.
-    // ------------------------------------
 
     Rectangle cameraView = getCameraViewRect(camera);
 
     Iluminacion::UpdateLightShadows(
         &linterna,
-        mapa.getMuros(), // <-- FIX DE SOMBRAS (CORRECTO)
+        mapa.getMuros(),
         mapa.getPuertaJefe(),
         mapa.estaPuertaAbierta(),
         camera,
-        jugador // El sistema de iluminación leerá el ángulo desde 'jugador'
+        jugador
     );
 
     BeginMode2D(camera);
@@ -157,6 +146,11 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
         BLACK
     );
     EndBlendMode();
+
+    BeginMode2D(camera);
+        jugador.dibujar();
+    EndMode2D();
+
 
     int vidaActual = jugador.getVida();
     if (vidaActual <= 5 && jugador.estaVivo())
@@ -205,6 +199,7 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
         }
     }
     EndMode2D();
+
 
     DrawTextureRec(
         minimapaTextura.texture,
@@ -268,7 +263,7 @@ void SistemaRender::dibujarMundo(const Rectangle& cameraView, Mapa& mapa, Gestor
     }
 
     gestor.dibujarEntidades();
-    jugador.dibujar(); // <--- Esta línea llama al Protagonista::dibujar() modificado
+
 }
 
 void SistemaRender::dibujarHUD(Protagonista& jugador)
@@ -277,8 +272,4 @@ void SistemaRender::dibujarHUD(Protagonista& jugador)
     DrawText(TextFormat("Municion: %d", jugador.getMunicion()), 10, 30, 20, SKYBLUE);
     DrawText(TextFormat("Bateria: %d", (int)jugador.getBateria()), 10, 50, 20, YELLOW);
     DrawText(TextFormat("Llave: %s", jugador.getTieneLlave() ? "SI" : "NO"), 10, 70, 20, ORANGE);
-
-    if (!jugador.estaVivo()) {
-        DrawText("GAME OVER", Constantes::ANCHO_PANTALLA / 2 - 150, Constantes::ALTO_PANTALLA / 2 - 50, 60, RED);
-    }
 }

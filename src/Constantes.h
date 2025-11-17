@@ -6,6 +6,12 @@ namespace Constantes {
     const int ANCHO_PANTALLA = 1024;
     const int ALTO_PANTALLA = 768;
 
+    // --- ¡¡NUEVO!! Constantes de Animación del Jugador ---
+    const int PLAYER_FRAME_WIDTH = 63;
+    const int PLAYER_FRAME_HEIGHT = 63;
+    const int PLAYER_ANIM_FRAMES = 5;       // 5 frames por spritesheet
+    const float PLAYER_ANIM_SPEED = 8.0f;   // 8 frames por segundo (ajústalo a tu gusto)
+
     // --- Parametros de Jugador/Entidad ---
     const float VELOCIDAD_JUGADOR = 2.5f;
     const int VIDA_MAX_JUGADOR = 10;

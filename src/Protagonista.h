@@ -1,7 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "Constantes.h"
-#include <vector> // <-- ¡AÑADIDO!
+#include <vector>
 
 class Consumible;
 
@@ -12,41 +12,42 @@ private:
     int municion;
     int bateria;
     bool tieneArmadura;
+
+    // Lógica de Vista (Mouse - Linterna)
     Vector2 direccionVista;
     float anguloVista;
+    float anguloCono;
+    float alcanceLinterna;
+
+    // Lógica de Juego
     float temporizadorDisparo;
     float tiempoInmune;
     float temporizadorBateria;
     bool tieneLlave;
-    float anguloCono;
-    float alcanceLinterna;
     float radio;
 
     bool linternaEncendida;
     float temporizadorFlicker;
 
-    Vector2 knockbackVelocidad; // (Velocidad por SEGUNDO)
+    Vector2 knockbackVelocidad;
     float knockbackTimer;
 
     bool proximoDisparoEsCheat;
     bool bateriaCongelada;
 
-    // --- ¡NUEVO! Lógica de Animación ---
-    int animFrameCounter;   // Contador de frames (como en el ejemplo)
-    int animCurrentFrame;   // El frame actual a dibujar (0-4)
-    int animFramesSpeed;    // Velocidad (frames por segundo)
-    bool estaMoviendo;      // Flag para saber si está quieto o andando
+    // --- VISUALES ---
+    Texture2D texCaminando;
+    Texture2D texDisparando;
+    Texture2D texMuerto;      // Sprite muerte
 
-    // Vector para guardar tus 5 texturas
-    std::vector<Texture2D> texWalkSouth;
-    // --- Fin de Animación ---
+    float timerVisualDisparo;
+    float timerAnimacionMuerte; // Cuenta regresiva para mostrar Game Over
+    // ----------------
 
 public:
     Protagonista(Vector2 pos);
-    ~Protagonista(); // <-- ¡AÑADIDO! Necesario para descargar texturas
+    ~Protagonista();
 
-    // --- ¡MODIFICADO! ---
-    // Necesitamos saber si el jugador se está moviendo
     void actualizarInterno(Camera2D camera, Vector2 direccionMovimiento);
 
     int intentarDisparar(bool quiereDisparar);
@@ -68,7 +69,10 @@ public:
     void activarCheatDisparo();
     void setBateriaCongelada(bool congelada);
 
+    // --- Getters ---
     bool estaVivo() const;
+    bool haFinalizadoAnimacionMuerte() const; // Indica si ya terminó la agonía
+
     Vector2 getPosicion() const;
     Vector2 getDireccionVista() const;
     Rectangle getRect() const;

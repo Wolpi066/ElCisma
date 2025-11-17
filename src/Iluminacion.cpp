@@ -32,57 +32,55 @@ void Iluminacion::ComputeShadowVolumeForEdge(LightInfo* light, Vector2 sp, Vecto
     light->shadowCount++;
 }
 
-// --- FUNCION RESTAURADA (Volvemos a las funciones de alto nivel) ---
 void Iluminacion::DrawLightMask(LightInfo* light, Camera2D& camera, Protagonista& jugador)
 {
     BeginTextureMode(light->mask);
-        ClearBackground(WHITE);
+        ClearBackground(WHITE); // 1. La máscara es "oscuridad" opaca
         BeginMode2D(camera);
+
+            // --- 2. PERFORAR LUZ ---
+            // Usamos BLEND_MIN para "restar" de la máscara blanca, creando agujeros transparentes
             rlSetBlendFactors(RLGL_SRC_ALPHA, RLGL_SRC_ALPHA, RLGL_MIN);
             rlSetBlendMode(BLEND_CUSTOM);
 
             if (light->valid)
             {
-                // 1. EL HALO (Gradiente suave)
+                // Perfora el Halo (un gradiente de transparente a blanco)
                 float radioHalo = 80.0f;
                 DrawCircleGradient((int)light->position.x, (int)light->position.y, radioHalo, ColorAlpha(WHITE, 0), WHITE);
 
-                // 2. EL CONO (Sector solido, pero dinámico)
+                // Perfora el Cono (un sector transparente)
                 float anguloVista = jugador.getAnguloVista();
                 float anguloCono = jugador.getAnguloCono();
                 float alcance = jugador.getAlcanceLinterna();
 
-                // --- ¡¡LOGICA DE OSCURECIMIENTO!! ---
                 float bateriaPct = (float)jugador.getBateria() / (float)Constantes::BATERIA_MAX;
-                // A 100% (1.0), alpha es 0 (transparente, luz total).
-                // A 0% (0.0), alpha es 180 (muy opaco, luz muy tenue).
+                // Ajustamos el alpha del "agujero" (menos batería = agujero menos transparente = menos luz)
                 unsigned char alphaCono = (unsigned char)Lerp(180, 0, bateriaPct);
                 DrawCircleSector(light->position, alcance, anguloVista - anguloCono, anguloVista + anguloCono, 32, ColorAlpha(WHITE, (float)alphaCono / 255.0f));
 
                 rlDrawRenderBatchActive();
             }
 
-            // --- LOTE DE SOMBRAS ---
-            rlSetBlendMode(BLEND_ALPHA); // Reset
-            rlSetBlendFactors(RLGL_SRC_ALPHA, RLGL_SRC_ALPHA, RLGL_MAX);
-            rlSetBlendMode(BLEND_CUSTOM);
+            // --- 3. DIBUJAR SOMBRAS ---
+            // ¡¡ARREGLO!! Reseteamos a BLEND_ALPHA normal
+            rlSetBlendMode(BLEND_ALPHA);
 
+            // Dibujamos las sombras con BLACK.
+            // Esto "rellena" los agujeros de luz que acabamos de hacer.
             for (int i = 0; i < light->shadowCount; i++) {
-                DrawTriangleFan(light->shadows[i].vertices, 4, WHITE);
+                DrawTriangleFan(light->shadows[i].vertices, 4, BLACK); // <-- ¡¡ARREGLO!! (Debe ser BLACK)
             }
-            DrawCircleV(light->position, jugador.getRadio(), WHITE);
             rlDrawRenderBatchActive();
 
-            rlSetBlendMode(BLEND_ALPHA);
         EndMode2D();
     EndTextureMode();
 }
 
 
-// --- ¡¡FIRMA ACTUALIZADA!! ---
 void Iluminacion::UpdateLightShadows(
     LightInfo* light,
-    const std::vector<Rectangle>& muros, // <-- AHORA ES MUROS
+    const std::vector<Rectangle>& muros,
     const Rectangle& puerta,
     bool puertaEstaAbierta,
     Camera2D& camera,
@@ -90,10 +88,9 @@ void Iluminacion::UpdateLightShadows(
 )
 {
     light->shadowCount = 0;
-    light->valid = true; // Asumimos que es valida
+    light->valid = true;
 
-    // Comprobar si la luz esta dentro de un muro
-    for (const auto& box : muros) { // <-- Solo chequea muros
+    for (const auto& box : muros) {
         if (CheckCollisionPointRec(light->position, box)) {
             light->valid = false;
             break;
@@ -105,8 +102,8 @@ void Iluminacion::UpdateLightShadows(
 
     if (light->valid)
     {
-        // Procesar Muros (¡¡YA NO PROCESA CAJAS!!)
-        for (const auto& box : muros) // <-- Solo chequea muros
+        // Procesar Muros
+        for (const auto& box : muros)
         {
             if (!CheckCollisionRecs(light->bounds, box)) continue;
             Vector2 sp = { box.x, box.y };

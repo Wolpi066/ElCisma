@@ -39,8 +39,8 @@ Juego::Juego()
       jefeHaSpawned(false),
       triggerRectJefe({ -200, -200, 400, 400 }),
       temporizadorSpawnJefe(0.0f),
-      opcionDialogo(1), // (Inicializamos la opción)
-      temporizadorDialogo(0.0f) // (Inicializamos el timer)
+      opcionDialogo(1),
+      temporizadorDialogo(0.0f)
 {
     miMapa.poblarMundo(gestor);
     ResetSustoFantasma();
@@ -82,7 +82,6 @@ void Juego::actualizar()
             actualizarDialogo();
             break;
 
-        // --- TAREA FINAL: Nuevos estados ---
         case EstadoJuego::DIALOGO_INTRO:
             actualizarDialogoIntro();
             break;
@@ -97,14 +96,12 @@ void Juego::actualizar()
             actualizarDialogoDecisionFinal();
             break;
 
-        // Los estados finales ahora usan un temporizador
         case EstadoJuego::FIN_JUEGO_SACRIFICIO:
         case EstadoJuego::FIN_JUEGO_HUIR:
-            actualizarFinJuego(); // ¡NUEVO!
+            actualizarFinJuego();
             break;
         case EstadoJuego::FIN_JUEGO_MUERTO:
-            break; // Este no hace nada
-        // ---------------------------------
+            break;
     }
 }
 
@@ -127,7 +124,6 @@ void Juego::dibujar()
                 dibujarDialogo();
                 break;
 
-            // --- TAREA FINAL: Nuevos estados ---
             case EstadoJuego::DIALOGO_INTRO:
                 dibujarDialogoIntro();
                 break;
@@ -147,7 +143,6 @@ void Juego::dibujar()
             case EstadoJuego::FIN_JUEGO_MUERTO:
                 dibujarFinJuego();
                 break;
-            // ---------------------------------
         }
     EndDrawing();
 }
@@ -157,10 +152,23 @@ void Juego::actualizarJugando()
 {
     procesarCheats();
 
+    // --- MODIFICACIÓN DE MUERTE CON ANIMACIÓN ---
     if (!jugador.estaVivo()) {
-        estadoActual = EstadoJuego::FIN_JUEGO_MUERTO;
+        // Si el jugador murió, seguimos actualizando SU lógica interna
+        // para que se dibuje el frame de muerte y corra el timer.
+        // Pasamos dirección {0,0} para que no se mueva.
+        jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
+
+        // Verificamos si la animación de 2 segundos ya terminó
+        if (jugador.haFinalizadoAnimacionMuerte()) {
+            estadoActual = EstadoJuego::FIN_JUEGO_MUERTO;
+        }
+
+        // IMPORTANTE: Hacemos return aquí para que NO se ejecute movimiento,
+        // colisiones, ni IA de enemigos mientras estamos en "agonía".
         return;
     }
+    // -------------------------------------------
 
     if (!jefeHaSpawned && miMapa.estaPuertaAbierta())
     {
@@ -172,10 +180,7 @@ void Juego::actualizarJugando()
             jugador.quitarLlave();
             jugador.setBateriaCongelada(true);
 
-            // --- TAREA 1: Desactivar Fantasma ---
             Fantasma::jefeEnCombate = true;
-            // ------------------------------------
-
             return;
         }
     }
@@ -184,9 +189,7 @@ void Juego::actualizarJugando()
     bool quiereDisparar = SistemaInput::quiereDisparar();
     bool quiereInteractuar = SistemaInput::quiereInteractuar();
 
-    // --- ¡MODIFICADO! Pasamos la dirección de movimiento ---
     jugador.actualizarInterno(renderizador.getCamera(), direccionMovimiento);
-    // ----------------------------------------------------
 
     gestor.actualizarIAEntidades(jugador, miMapa);
 
@@ -299,17 +302,15 @@ void Juego::actualizarJugando()
 
     if (jefeHaSpawned && !gestor.getJefes().empty() && gestor.getJefes()[0]->estaEnFaseFinal())
     {
-        // --- TAREA 1: Reactivar Fantasma para diálogo ---
-        Fantasma::jefeEnCombate = false; // ¡Reactivada!
+        Fantasma::jefeEnCombate = false;
         Fantasma::estaDespertando = false;
         Fantasma::despertado = true;
-        Fantasma::modoFuria = false; // (Que se acerque lento)
-        Fantasma::modoDialogo = true; // (para que no ataque)
+        Fantasma::modoFuria = false;
+        Fantasma::modoDialogo = true;
         Fantasma::estaAsustando = false;
-        // ----------------------------------------------
 
         estadoActual = EstadoJuego::DIALOGO_FINAL;
-        temporizadorDialogo = 3.0f; // ¡Inicia el temporizador para que se acerque!
+        temporizadorDialogo = 3.0f;
         return;
     }
 
@@ -394,7 +395,6 @@ void Juego::actualizarJugando()
 
 void Juego::actualizarLeyendoNota()
 {
-    // --- ¡MODIFICADO! El jugador no se mueve
     jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
 
     if (SistemaInput::quiereInteractuar() || IsKeyPressed(KEY_ESCAPE))
@@ -406,7 +406,6 @@ void Juego::actualizarLeyendoNota()
 
 void Juego::actualizarIniciandoJefe()
 {
-    // --- ¡MODIFICADO! El jugador no se mueve
     jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
 
     temporizadorSpawnJefe -= GetFrameTime();
@@ -420,20 +419,16 @@ void Juego::actualizarIniciandoJefe()
 
 void Juego::actualizarDialogo()
 {
-    // --- TAREA 3: Lógica de Diálogo Arreglada ---
-    // Este estado ahora SOLO es una pausa cinemática.
-    jugador.actualizarInterno(renderizador.getCamera(), {0, 0}); // El jugador puede mirar, no moverse
+    jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
 
-    // El fantasma se mueve (lo gestiona gestor.actualizarIAEntidades)
     gestor.actualizarIAEntidades(jugador, miMapa);
 
     temporizadorDialogo -= GetFrameTime();
     if (temporizadorDialogo <= 0)
     {
-        estadoActual = EstadoJuego::DIALOGO_INTRO; // Pasa al monólogo
+        estadoActual = EstadoJuego::DIALOGO_INTRO;
         opcionDialogo = 1;
 
-        // Teletransporta a Elana frente al jugador para asegurar la escena
         for (Enemigo* enemigo : gestor.getEnemigos()) {
             if (dynamic_cast<Fantasma*>(enemigo)) {
                 enemigo->setPosicion(Vector2Add(jugador.getPosicion(), Vector2Scale(jugador.getDireccionVista(), 80.0f)));
@@ -441,26 +436,22 @@ void Juego::actualizarDialogo()
             }
         }
     }
-    // --- FIN TAREA 3 ---
 }
 
-// --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarDialogoIntro()
 {
     jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
     if (SistemaInput::quiereInteractuar())
     {
         estadoActual = EstadoJuego::DIALOGO_PREGUNTAS;
-        opcionDialogo = 1; // Resetea a la primera pregunta
+        opcionDialogo = 1;
     }
 }
 
-// --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarDialogoPreguntas()
 {
     jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
 
-    // Mover la selección (3 opciones)
     if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))
     {
         opcionDialogo--;
@@ -472,7 +463,6 @@ void Juego::actualizarDialogoPreguntas()
         if (opcionDialogo > 3) opcionDialogo = 1;
     }
 
-    // Confirmar selección
     if (SistemaInput::quiereInteractuar())
     {
         if (opcionDialogo == 1)
@@ -483,32 +473,28 @@ void Juego::actualizarDialogoPreguntas()
         {
             estadoActual = EstadoJuego::DIALOGO_RESPUESTA_2;
         }
-        else // Opcion 3 (Callado)
+        else
         {
             estadoActual = EstadoJuego::DIALOGO_DECISION_FINAL;
-            opcionDialogo = 1; // Resetea para la decisión final
+            opcionDialogo = 1;
         }
     }
 }
 
-// --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarDialogoRespuesta()
 {
     jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
-    // Espera a que el jugador presione 'E' para volver a las preguntas
     if (SistemaInput::quiereInteractuar())
     {
         estadoActual = EstadoJuego::DIALOGO_PREGUNTAS;
-        opcionDialogo = 1; // Resetea a la primera pregunta
+        opcionDialogo = 1;
     }
 }
 
-// --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarDialogoDecisionFinal()
 {
     jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
 
-    // Mover la selección (2 opciones)
     if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))
     {
         opcionDialogo = 1;
@@ -518,7 +504,6 @@ void Juego::actualizarDialogoDecisionFinal()
         opcionDialogo = 2;
     }
 
-    // Confirmar selección
     if (SistemaInput::quiereInteractuar())
     {
         if (opcionDialogo == 1)
@@ -529,18 +514,16 @@ void Juego::actualizarDialogoDecisionFinal()
         {
             estadoActual = EstadoJuego::FIN_JUEGO_HUIR;
         }
-        temporizadorDialogo = 3.0f; // Inicia el temporizador de 3 seg para cerrar
+        temporizadorDialogo = 3.0f;
     }
 }
 
-// --- TAREA 3: NUEVA FUNCIÓN ---
 void Juego::actualizarFinJuego()
 {
-    // Esta función ahora maneja el cierre automático
     temporizadorDialogo -= GetFrameTime();
     if (temporizadorDialogo <= 0)
     {
-        CloseWindow(); // Cierra el juego
+        CloseWindow();
     }
 }
 
@@ -582,13 +565,12 @@ void Juego::dibujarLeyendoNota()
         DrawLine(frame.x, y, frame.x + frame.width, y, Fade(BLACK, 0.5f));
     }
 
-    // --- TAREA 3: Llenar las Notas (YA IMPLEMENTADO) ---
     const char* textoTitulo = "REGISTRO";
     const char* textoNota = "...";
 
     switch(notaActualID)
     {
-        case 0: // Nota Inicial (Spawn)
+        case 0:
             textoTitulo = "...Estas despierto?";
             textoNota = "No hay tiempo. La Fusion es inminente. El Arquitecto...\n"
                         "El Cisma... esta en el centro. Debes llegar a el.\n\n"
@@ -613,8 +595,8 @@ void Juego::dibujarLeyendoNota()
             break;
         case 3:
             textoTitulo = "DIARIO DEL ARQUITECTO (El Cisma)";
-            textoNota = "¡Funciona! ¡Puedo sentirlo! ¡El Desdoblamiento es la clave!\n"
-                        "¡Unir la materia y el espiritu! ¡Seremos dioses!\n\n"
+            textoNota = "Funciona! Puedo sentirlo! El Desdoblamiento es la clave!\n"
+                        "Unir la materia y el espiritu! Seremos dioses!\n\n"
                         "Elana no lo entiende. Llama 'corrupcion' a lo que yo\n"
                         "llamo 'creacion'. Ella es... un estorbo.";
             break;
@@ -625,7 +607,7 @@ void Juego::dibujarLeyendoNota()
                         "La carne se pliega sobre si misma. Las balas estandar\n"
                         "no son suficientes. Solicitando municion perforante.";
             break;
-        case 5: // Nota de Elana (Fantasma)
+        case 5:
             textoTitulo = "MI INVESTIGACION";
             textoNota = "El esta ciego. El Vortice no se puede controlar,\n"
                         "solo se puede... cerrar. La Fusion no es ascension,\n"
@@ -637,8 +619,8 @@ void Juego::dibujarLeyendoNota()
             textoTitulo = "TRANSMISION CORRUPTA";
             textoNota = "...no puedo... no puedo ver... la carne... se retuerce...\n"
                         "huesos... cables... donde... donde esta mi cara?\n\n"
-                        "¡ELANA! ¡¿POR QUE ME HAS ENCERRADO AQUI?!\n"
-                        "¡¿POR QUE?! ¡m... mi... rostro...";
+                        "ELANA! POR QUE ME HAS ENCERRADO AQUI?!\n"
+                        "POR QUE?! m... mi... rostro...";
             break;
         case 7:
             textoTitulo = "REPORTE DE ENERGIA";
@@ -650,7 +632,7 @@ void Juego::dibujarLeyendoNota()
         case 8:
             textoTitulo = "REG-045: EL REMANENTE";
             textoNota = "Sujeto P-07 (El Remanente). Es el unico... hibrido estable.\n"
-                        "Puede transitar ambos planos. ¿Por que el? ¿Es su psique?\n"
+                        "Puede transitar ambos planos. Por que el? Es su psique?\n"
                         "El Arquitecto esta... celoso. Dice que P-07 es la\n"
                         "'Mascara' perfecta que necesita.";
             break;
@@ -673,8 +655,6 @@ void Juego::dibujarLeyendoNota()
             textoNota = "El archivo esta corrupto. No se puede leer el registro.";
             break;
     }
-    // --- FIN TAREA 3 ---
-
 
     DibujarTextoGlitch(textoTitulo, (int)(frame.x + 20), (int)(frame.y + 20), 20, (Color){0, 255, 128, 255});
     DrawLine((int)(frame.x + 20), (int)(frame.y + 45), (int)(frame.x + frame.width - 20), (int)(frame.y + 45), Fade(GREEN, 0.2f));
@@ -686,21 +666,19 @@ void Juego::dibujarLeyendoNota()
 
 void Juego::dibujarDialogo()
 {
-    // Este estado ahora SOLO es el fantasma acercándose
     renderizador.dibujarTodo(jugador, miMapa, gestor);
     DrawRectangle(0, Constantes::ALTO_PANTALLA - 100, Constantes::ANCHO_PANTALLA, 100, Fade(BLACK, 0.8f));
     DrawText("El 'Fantasma' se acerca... su movimiento es erratico pero decidido...", 20, Constantes::ALTO_PANTALLA - 80, 20, WHITE);
     DrawText("Sientes una presencia abrumadora... no es hostil, es... triste.", 20, Constantes::ALTO_PANTALLA - 50, 20, WHITE);
 }
 
-// --- TAREA 3: Funciones de dibujado del nuevo diálogo ---
 
 void DibujarCajaDialogo()
 {
     DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.85f));
     Rectangle frame = {
         Constantes::ANCHO_PANTALLA * 0.1f,
-        Constantes::ALTO_PANTALLA * 0.25f, // Más centrado
+        Constantes::ALTO_PANTALLA * 0.25f,
         Constantes::ANCHO_PANTALLA * 0.8f,
         Constantes::ALTO_PANTALLA * 0.5f
     };
@@ -738,9 +716,8 @@ void Juego::dibujarDialogoPreguntas()
     DibujarTextoGlitch(t1, (int)(frame.x + 20), (int)(frame.y + 30), 20, (Color){200, 200, 255, 255});
     DrawLine((int)(frame.x + 20), (int)(frame.y + 70), (int)(frame.x + frame.width - 20), (int)(frame.y + 70), Fade(PURPLE, 0.2f));
 
-    // Opciones
-    const char* textoOpcion1 = "[1] ¿Quien eres tu?";
-    const char* textoOpcion2 = "[2] ¿Que es este lugar?";
+    const char* textoOpcion1 = "[1] Quien eres tu?";
+    const char* textoOpcion2 = "[2] Que es este lugar?";
     const char* textoOpcion3 = "[3] ... (Quedarse callado)";
 
     Color color1 = (opcionDialogo == 1) ? YELLOW : GRAY;
@@ -798,7 +775,6 @@ void Juego::dibujarDialogoDecisionFinal()
     DibujarTextoGlitch(t1, (int)(frame.x + 20), (int)(frame.y + 30), 20, (Color){200, 200, 255, 255});
     DrawLine((int)(frame.x + 20), (int)(frame.y + 150), (int)(frame.x + frame.width - 20), (int)(frame.y + 150), Fade(PURPLE, 0.2f));
 
-    // Opciones
     const char* textoOpcion1 = "[1] Me quedare. Tomare el lugar del Cisma.";
     const char* textoOpcion2 = "[2] No es mi problema. Me voy de aqui.";
 
@@ -815,7 +791,6 @@ void Juego::dibujarDialogoDecisionFinal()
     float alphaCerrar = (sin(GetTime() * 2.0f) + 1.0f) / 2.0f;
     DrawText(textoCerrar, (int)(frame.x + frame.width - MeasureText(textoCerrar, 20) - 20), (int)(frame.y + frame.height - 40), 20, Fade(PURPLE, 0.5f + alphaCerrar * 0.5f));
 }
-// --- FIN TAREA 3 ---
 
 
 void Juego::dibujarFinJuego()
@@ -823,7 +798,6 @@ void Juego::dibujarFinJuego()
     renderizador.dibujarTodo(jugador, miMapa, gestor);
     DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.85f));
 
-    // --- TAREA 3: Finales Múltiples (Impactantes) ---
     if (estadoActual == EstadoJuego::FIN_JUEGO_SACRIFICIO)
     {
         const char* t1 = "EL NUEVO ARQUITECTO";
@@ -842,14 +816,13 @@ void Juego::dibujarFinJuego()
         DibujarTextoGlitch(t1, Constantes::ANCHO_PANTALLA / 2 - MeasureText(t1, 40) / 2, Constantes::ALTO_PANTALLA / 2 - 60, 40, RED);
         DibujarTextoGlitch(t2, Constantes::ANCHO_PANTALLA / 2 - MeasureText(t2, 20) / 2, Constantes::ALTO_PANTALLA / 2 + 20, 20, GRAY);
     }
-    else // FIN_JUEGO_MUERTO
+    else
     {
         const char* t1 = "TE HAS UNIDO AL ECO";
         const char* t2 = "Tu luz se apaga. Tu alma se une a los gritos del Nexo.";
         DibujarTextoGlitch(t1, Constantes::ANCHO_PANTALLA / 2 - MeasureText(t1, 50) / 2, Constantes::ALTO_PANTALLA / 2 - 40, 50, RED);
         DibujarTextoGlitch(t2, Constantes::ANCHO_PANTALLA / 2 - MeasureText(t2, 20) / 2, Constantes::ALTO_PANTALLA / 2 + 40, 20, GRAY);
     }
-    // --- FIN TAREA 3 ---
 }
 
 void Juego::procesarCheats()
@@ -875,7 +848,6 @@ void Juego::procesarCheats()
     if (IsKeyPressed(KEY_J)) {
         jugador.activarCheatDisparo();
     }
-    // --- ¡¡NUEVO CHEAT DE MUERTE!! ---
     if (IsKeyPressed(KEY_L))
     {
         if (jefeHaSpawned && !gestor.getJefes().empty())
@@ -883,5 +855,4 @@ void Juego::procesarCheats()
             gestor.getJefes()[0]->forzarMuerte();
         }
     }
-    // ---------------------------------
 }
