@@ -40,15 +40,37 @@ Juego::Juego()
       triggerRectJefe({ -200, -200, 400, 400 }),
       temporizadorSpawnJefe(0.0f),
       opcionDialogo(1),
-      temporizadorDialogo(0.0f)
+      temporizadorDialogo(0.0f),
+      opcionMenuMuerteSeleccionada(0)
 {
     miMapa.poblarMundo(gestor);
     ResetSustoFantasma();
     renderizador.inicializarMinimapa(miMapa);
+
+    // --- CARGAR ASSETS PANTALLA MUERTE Y BOTONES ---
+    texPantallaMuerte = LoadTexture("assets/HUD/PantallaMuerte.png");
+
+    texReintentar       = LoadTexture("assets/HUD/Botones/Reintentar.png");
+    texReintentarSel    = LoadTexture("assets/HUD/Botones/ReintentarSeleccionado.png");
+
+    texMenu             = LoadTexture("assets/HUD/Botones/Menu.png");
+    texMenuSel          = LoadTexture("assets/HUD/Botones/MenuSeleccionado.png");
+
+    texSalir            = LoadTexture("assets/HUD/Botones/Salir.png");
+    texSalirSel         = LoadTexture("assets/HUD/Botones/SalirSeleccionado.png");
 }
 
 Juego::~Juego()
 {
+    UnloadTexture(texPantallaMuerte);
+
+    UnloadTexture(texReintentar);
+    UnloadTexture(texReintentarSel);
+    UnloadTexture(texMenu);
+    UnloadTexture(texMenuSel);
+    UnloadTexture(texSalir);
+    UnloadTexture(texSalirSel);
+
     gestor.limpiarTodo();
 }
 
@@ -63,6 +85,33 @@ void Juego::run()
 void Juego::ResetSustoFantasma() {
     temporizadorSustoFantasma = 0.0f;
     proximoSustoFantasma = (float)GetRandomValue(15, 30);
+}
+
+void Juego::reiniciarJuego()
+{
+    jugador.reset();
+    jugador.setPosicion({0, 500});
+
+    gestor.limpiarTodo();
+    miMapa.poblarMundo(gestor);
+
+    estadoActual = EstadoJuego::JUGANDO;
+    temporizadorPartida = 0.0f;
+    notaActualID = 0;
+    jefeHaSpawned = false;
+    temporizadorSpawnJefe = 0.0f;
+
+    miMapa.abrirPuerta();
+
+    ResetSustoFantasma();
+    Fantasma::despertado = false;
+    Fantasma::estaDespertando = false;
+    Fantasma::estaAsustando = false;
+    Fantasma::modoFuria = false;
+    Fantasma::modoDialogo = false;
+    Fantasma::jefeEnCombate = false;
+
+    HideCursor();
 }
 
 void Juego::actualizar()
@@ -100,7 +149,17 @@ void Juego::actualizar()
         case EstadoJuego::FIN_JUEGO_HUIR:
             actualizarFinJuego();
             break;
+
         case EstadoJuego::FIN_JUEGO_MUERTO:
+            // Este estado ahora es solo un "puente" rápido
+            estadoActual = EstadoJuego::MENU_MUERTE;
+            temporizadorDialogo = 0.0f;
+            ShowCursor();
+            opcionMenuMuerteSeleccionada = 0;
+            break;
+
+        case EstadoJuego::MENU_MUERTE:
+            actualizarMenuMuerte();
             break;
     }
 }
@@ -140,11 +199,120 @@ void Juego::dibujar()
 
             case EstadoJuego::FIN_JUEGO_SACRIFICIO:
             case EstadoJuego::FIN_JUEGO_HUIR:
-            case EstadoJuego::FIN_JUEGO_MUERTO:
                 dibujarFinJuego();
+                break;
+
+            case EstadoJuego::FIN_JUEGO_MUERTO:
+                // Redundante, pero por seguridad dibujamos con fade inicial
+                dibujarMenuMuerte(0.0f);
+                break;
+
+            case EstadoJuego::MENU_MUERTE:
+                actualizarMenuMuerte(); // Pequeño hack para asegurar animación
+                // Calculamos alpha aquí mismo para pasarlo
+                {
+                     float alpha = Clamp(temporizadorDialogo / 2.0f, 0.0f, 1.0f);
+                     dibujarMenuMuerte(alpha);
+                }
                 break;
         }
     EndDrawing();
+}
+
+void Juego::actualizarMenuMuerte()
+{
+    // --- ANIMACIÓN FADE-IN ---
+    if (temporizadorDialogo < 2.0f) {
+        temporizadorDialogo += GetFrameTime();
+    }
+    // -------------------------
+
+    // 1. Definir posiciones de los botones
+    // AJUSTE DE POSICIÓN: -110.0f (Más abajo que -125)
+    float btnY = (float)Constantes::ALTO_PANTALLA - 133.0f;
+    float spacing = 30.0f;
+    float btnW = 240.0f;
+    float btnH = 80.0f;
+
+    float totalW = (btnW * 3) + (spacing * 2);
+    float startX = ((float)Constantes::ANCHO_PANTALLA - totalW) / 2.0f;
+
+    Rectangle rectReintentar = { startX, btnY, btnW, btnH };
+    Rectangle rectMenu       = { startX + btnW + spacing, btnY, btnW, btnH };
+    Rectangle rectSalir      = { startX + (btnW + spacing) * 2, btnY, btnW, btnH };
+
+    // Permitir interacción solo si ya se ve algo (opcional)
+    if (temporizadorDialogo > 0.1f) {
+        // 2. Input Teclado
+        if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) {
+            opcionMenuMuerteSeleccionada--;
+            if (opcionMenuMuerteSeleccionada < 0) opcionMenuMuerteSeleccionada = 2;
+        }
+        if (IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) {
+            opcionMenuMuerteSeleccionada++;
+            if (opcionMenuMuerteSeleccionada > 2) opcionMenuMuerteSeleccionada = 0;
+        }
+
+        // 3. Input Ratón
+        Vector2 mouse = GetMousePosition();
+        if (CheckCollisionPointRec(mouse, rectReintentar)) opcionMenuMuerteSeleccionada = 0;
+        else if (CheckCollisionPointRec(mouse, rectMenu))  opcionMenuMuerteSeleccionada = 1;
+        else if (CheckCollisionPointRec(mouse, rectSalir)) opcionMenuMuerteSeleccionada = 2;
+
+        // 4. Selección
+        bool clicked = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
+        bool enter = (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_E) || IsKeyPressed(KEY_SPACE));
+
+        bool clickValido = false;
+        if (clicked) {
+            if (opcionMenuMuerteSeleccionada == 0 && CheckCollisionPointRec(mouse, rectReintentar)) clickValido = true;
+            else if (opcionMenuMuerteSeleccionada == 1 && CheckCollisionPointRec(mouse, rectMenu)) clickValido = true;
+            else if (opcionMenuMuerteSeleccionada == 2 && CheckCollisionPointRec(mouse, rectSalir)) clickValido = true;
+        }
+
+        if (enter || clickValido)
+        {
+            if (opcionMenuMuerteSeleccionada == 0) reiniciarJuego();
+            else if (opcionMenuMuerteSeleccionada == 1) CloseWindow();
+            else if (opcionMenuMuerteSeleccionada == 2) CloseWindow();
+        }
+    }
+}
+
+void Juego::dibujarMenuMuerte(float alpha)
+{
+    // 1. Fondo
+    Rectangle sourceBg = { 0.0f, 0.0f, (float)texPantallaMuerte.width, (float)texPantallaMuerte.height };
+    Rectangle destBg = { 0.0f, 0.0f, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA };
+    DrawTexturePro(texPantallaMuerte, sourceBg, destBg, {0,0}, 0.0f, Fade(WHITE, alpha));
+
+    // 2. Posiciones (Coinciden con actualizar: -110.0f)
+    float btnY = (float)Constantes::ALTO_PANTALLA - 133.0f;
+    float spacing = 30.0f;
+    float btnW = 240.0f;
+    float btnH = 80.0f;
+    float totalW = (btnW * 3) + (spacing * 2);
+    float startX = ((float)Constantes::ANCHO_PANTALLA - totalW) / 2.0f;
+
+    // 3. Dibujar Botones
+
+    // --- REINTENTAR ---
+    Texture2D texDrawReintentar = (opcionMenuMuerteSeleccionada == 0) ? texReintentarSel : texReintentar;
+    Rectangle srcR = { 0.0f, 0.0f, (float)texDrawReintentar.width, (float)texDrawReintentar.height };
+    Rectangle destR = { startX, btnY, btnW, btnH };
+    DrawTexturePro(texDrawReintentar, srcR, destR, {0,0}, 0.0f, Fade(WHITE, alpha));
+
+    // --- MENU ---
+    Texture2D texDrawMenu = (opcionMenuMuerteSeleccionada == 1) ? texMenuSel : texMenu;
+    Rectangle srcM = { 0.0f, 0.0f, (float)texDrawMenu.width, (float)texDrawMenu.height };
+    Rectangle destM = { startX + btnW + spacing, btnY, btnW, btnH };
+    DrawTexturePro(texDrawMenu, srcM, destM, {0,0}, 0.0f, Fade(WHITE, alpha));
+
+    // --- SALIR ---
+    Texture2D texDrawSalir = (opcionMenuMuerteSeleccionada == 2) ? texSalirSel : texSalir;
+    Rectangle srcS = { 0.0f, 0.0f, (float)texDrawSalir.width, (float)texDrawSalir.height };
+    Rectangle destS = { startX + (btnW + spacing) * 2, btnY, btnW, btnH };
+    DrawTexturePro(texDrawSalir, srcS, destS, {0,0}, 0.0f, Fade(WHITE, alpha));
 }
 
 
@@ -152,23 +320,15 @@ void Juego::actualizarJugando()
 {
     procesarCheats();
 
-    // --- MODIFICACIÓN DE MUERTE CON ANIMACIÓN ---
     if (!jugador.estaVivo()) {
-        // Si el jugador murió, seguimos actualizando SU lógica interna
-        // para que se dibuje el frame de muerte y corra el timer.
-        // Pasamos dirección {0,0} para que no se mueva.
         jugador.actualizarInterno(renderizador.getCamera(), {0, 0});
 
-        // Verificamos si la animación de 2 segundos ya terminó
         if (jugador.haFinalizadoAnimacionMuerte()) {
             estadoActual = EstadoJuego::FIN_JUEGO_MUERTO;
+            temporizadorDialogo = 0.0f;
         }
-
-        // IMPORTANTE: Hacemos return aquí para que NO se ejecute movimiento,
-        // colisiones, ni IA de enemigos mientras estamos en "agonía".
         return;
     }
-    // -------------------------------------------
 
     if (!jefeHaSpawned && miMapa.estaPuertaAbierta())
     {
@@ -551,7 +711,7 @@ void Juego::dibujarIniciandoJefe()
 void Juego::dibujarLeyendoNota()
 {
     renderizador.dibujarTodo(jugador, miMapa, gestor);
-    DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.85f));
+    DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.8f));
     Rectangle frame = {
         Constantes::ANCHO_PANTALLA * 0.1f,
         Constantes::ALTO_PANTALLA * 0.15f,
@@ -796,7 +956,7 @@ void Juego::dibujarDialogoDecisionFinal()
 void Juego::dibujarFinJuego()
 {
     renderizador.dibujarTodo(jugador, miMapa, gestor);
-    DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.85f));
+    DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.8f));
 
     if (estadoActual == EstadoJuego::FIN_JUEGO_SACRIFICIO)
     {
@@ -815,13 +975,6 @@ void Juego::dibujarFinJuego()
                          "Y el Vortice odia el vacio.";
         DibujarTextoGlitch(t1, Constantes::ANCHO_PANTALLA / 2 - MeasureText(t1, 40) / 2, Constantes::ALTO_PANTALLA / 2 - 60, 40, RED);
         DibujarTextoGlitch(t2, Constantes::ANCHO_PANTALLA / 2 - MeasureText(t2, 20) / 2, Constantes::ALTO_PANTALLA / 2 + 20, 20, GRAY);
-    }
-    else
-    {
-        const char* t1 = "TE HAS UNIDO AL ECO";
-        const char* t2 = "Tu luz se apaga. Tu alma se une a los gritos del Nexo.";
-        DibujarTextoGlitch(t1, Constantes::ANCHO_PANTALLA / 2 - MeasureText(t1, 50) / 2, Constantes::ALTO_PANTALLA / 2 - 40, 50, RED);
-        DibujarTextoGlitch(t2, Constantes::ANCHO_PANTALLA / 2 - MeasureText(t2, 20) / 2, Constantes::ALTO_PANTALLA / 2 + 40, 20, GRAY);
     }
 }
 

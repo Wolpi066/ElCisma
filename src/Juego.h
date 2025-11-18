@@ -5,38 +5,32 @@
 #include "Mapa.h"
 #include "GestorEntidades.h"
 #include "SistemaRender.h"
-#include "MotorColisiones.h"
-#include "MotorFisica.h"
 #include "SistemaInput.h"
+#include "MotorFisica.h"
+#include "MotorColisiones.h"
 #include "Constantes.h"
+#include <vector>
+#include <list>
 
+// Estados del juego
 enum class EstadoJuego {
-    JUGANDO,
-    LEYENDO_NOTA,
+    JUGANDO = 0,
     INICIANDO_JEFE,
+    LEYENDO_NOTA,
     DIALOGO_FINAL,
-
-    // --- TAREA FINAL: Nuevos estados de diálogo ---
     DIALOGO_INTRO,
     DIALOGO_PREGUNTAS,
     DIALOGO_RESPUESTA_1,
     DIALOGO_RESPUESTA_2,
     DIALOGO_DECISION_FINAL,
-
     FIN_JUEGO_SACRIFICIO,
     FIN_JUEGO_HUIR,
-    // ---------------------------------------------
-
-    FIN_JUEGO_MUERTO
+    FIN_JUEGO_MUERTO, // Animación de muerte (Fade-in)
+    MENU_MUERTE       // Menú interactivo de muerte
 };
 
 class Juego
 {
-public:
-    Juego();
-    ~Juego();
-    void run();
-
 private:
     Protagonista jugador;
     Mapa miMapa;
@@ -44,50 +38,71 @@ private:
     SistemaRender renderizador;
 
     EstadoJuego estadoActual;
+
     float temporizadorPartida;
     const float TIEMPO_LIMITE_FANTASMA = 210.0f;
-
     float temporizadorSustoFantasma;
     float proximoSustoFantasma;
-    void ResetSustoFantasma();
 
     int notaActualID;
-
     bool jefeHaSpawned;
     Rectangle triggerRectJefe;
     float temporizadorSpawnJefe;
 
-    // --- TAREA FINAL: Diálogo ---
-    int opcionDialogo; // Reutilizada para Q&A y Decisión Final
+    // Variables de diálogo
+    int opcionDialogo;
     float temporizadorDialogo;
-    // -----------------------------
+
+    // --- ASSETS PANTALLA MUERTE Y BOTONES ---
+    Texture2D texPantallaMuerte;
+
+    Texture2D texReintentar;
+    Texture2D texReintentarSel;
+    Texture2D texMenu;
+    Texture2D texMenuSel;
+    Texture2D texSalir;
+    Texture2D texSalirSel;
+    // ----------------------------------------
+
+    int opcionMenuMuerteSeleccionada; // 0: Reintentar, 1: Menú, 2: Salir
+
+    // Métodos internos
+    void ResetSustoFantasma();
+    void reiniciarJuego();
+    void procesarCheats();
 
     void actualizar();
     void dibujar();
 
+    // Métodos de Actualización por Estado
     void actualizarJugando();
-    void actualizarDialogo();
     void actualizarLeyendoNota();
     void actualizarIniciandoJefe();
-    void dibujarIniciandoJefe();
-
-    void dibujarJugando();
-    void dibujarDialogo();
-    void dibujarLeyendoNota();
-    void dibujarFinJuego();
-
-    // --- TAREA FINAL: Nuevas funciones de estado ---
+    void actualizarDialogo();
     void actualizarDialogoIntro();
     void actualizarDialogoPreguntas();
     void actualizarDialogoRespuesta();
     void actualizarDialogoDecisionFinal();
-    void actualizarFinJuego(); // ¡NUEVO!
+    void actualizarFinJuego();
+    void actualizarMenuMuerte();
 
+    // Métodos de Dibujado por Estado
+    void dibujarJugando();
+    void dibujarLeyendoNota();
+    void dibujarIniciandoJefe();
+    void dibujarDialogo();
     void dibujarDialogoIntro();
     void dibujarDialogoPreguntas();
     void dibujarDialogoRespuesta();
     void dibujarDialogoDecisionFinal();
-    // ----------------------------------------------
+    void dibujarFinJuego();
 
-    void procesarCheats();
+    // --- MODIFICADO: Acepta alpha para el fade-in ---
+    void dibujarMenuMuerte(float alpha = 1.0f);
+    // ------------------------------------------------
+
+public:
+    Juego();
+    ~Juego();
+    void run();
 };

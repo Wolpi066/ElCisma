@@ -13,7 +13,7 @@ private:
     int bateria;
     bool tieneArmadura;
 
-    // Lógica de Vista (Mouse - Linterna)
+    // Lógica de Vista
     Vector2 direccionVista;
     float anguloVista;
     float anguloCono;
@@ -38,10 +38,10 @@ private:
     // --- VISUALES ---
     Texture2D texCaminando;
     Texture2D texDisparando;
-    Texture2D texMuerto;      // Sprite muerte
+    Texture2D texMuerto;
 
     float timerVisualDisparo;
-    float timerAnimacionMuerte; // Cuenta regresiva para mostrar Game Over
+    float timerAnimacionMuerte;
     // ----------------
 
 public:
@@ -52,6 +52,7 @@ public:
 
     int intentarDisparar(bool quiereDisparar);
     void setPosicion(Vector2 nuevaPos);
+    void reset(); // <--- ¡NUEVO! Para reiniciar partida
 
     void dibujar();
     void recibirDanio(int cantidad);
@@ -71,7 +72,7 @@ public:
 
     // --- Getters ---
     bool estaVivo() const;
-    bool haFinalizadoAnimacionMuerte() const; // Indica si ya terminó la agonía
+    bool haFinalizadoAnimacionMuerte() const;
 
     Vector2 getPosicion() const;
     Vector2 getDireccionVista() const;

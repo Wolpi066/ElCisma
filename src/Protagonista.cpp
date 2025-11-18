@@ -7,7 +7,7 @@
 static const float ALCANCE_LINTERNA_MIN = 80.0f;
 static const float ANGULO_CONO_MIN = 0.1f;
 static const float DURACION_FRAME_DISPARO = 0.15f;
-static const float DURACION_ANIMACION_MUERTE = 2.0f; // 2 Segundos de agonía
+static const float DURACION_ANIMACION_MUERTE = 2.0f;
 
 Protagonista::Protagonista(Vector2 pos) :
     posicion(pos),
@@ -33,7 +33,6 @@ Protagonista::Protagonista(Vector2 pos) :
     timerVisualDisparo(0.0f),
     timerAnimacionMuerte(0.0f)
 {
-    // Cargar Assets
     texCaminando = LoadTexture("assets/Protagonista/Caminando.png");
     texDisparando = LoadTexture("assets/Protagonista/Disparando.png");
     texMuerto = LoadTexture("assets/Protagonista/Muerto.png");
@@ -46,30 +45,44 @@ Protagonista::~Protagonista()
     UnloadTexture(texMuerto);
 }
 
+void Protagonista::reset()
+{
+    vida = Constantes::VIDA_MAX_JUGADOR;
+    municion = Constantes::MUNICION_MAX;
+    bateria = Constantes::BATERIA_MAX;
+    tieneArmadura = false;
+    tieneLlave = false;
+
+    linternaEncendida = true;
+    temporizadorDisparo = 0.0f;
+    tiempoInmune = 0.0f;
+    temporizadorBateria = 0.0f;
+
+    knockbackTimer = 0.0f;
+    knockbackVelocidad = {0.0f, 0.0f};
+
+    timerAnimacionMuerte = 0.0f;
+    timerVisualDisparo = 0.0f;
+
+    bateriaCongelada = false;
+    proximoDisparoEsCheat = false;
+}
+
 void Protagonista::actualizarInterno(Camera2D camera, Vector2 direccionMovimiento)
 {
-    // --- 1. LÓGICA DE MUERTE (BLOQUEANTE) ---
     if (vida <= 0) {
-        // Correr el timer
         if (timerAnimacionMuerte > 0) {
             timerAnimacionMuerte -= GetFrameTime();
         }
-
-        // APAGAR TODO: No linterna, no movimiento.
         linternaEncendida = false;
-
-        // Retornamos AQUÍ para que el código de abajo (movimiento/rotación) NO se ejecute.
         return;
     }
-
-    // --- 2. LÓGICA DE VIDA ---
 
     if (temporizadorDisparo > 0) temporizadorDisparo -= GetFrameTime();
     if (tiempoInmune > 0) tiempoInmune -= GetFrameTime();
     if (knockbackTimer > 0) knockbackTimer -= GetFrameTime();
     if (timerVisualDisparo > 0) timerVisualDisparo -= GetFrameTime();
 
-    // Mouse y Rotación
     Vector2 posMouse = GetScreenToWorld2D(GetMousePosition(), camera);
     Vector2 dirDeseada = Vector2Normalize(Vector2Subtract(posMouse, posicion));
 
@@ -77,7 +90,6 @@ void Protagonista::actualizarInterno(Camera2D camera, Vector2 direccionMovimient
     direccionVista = Vector2Normalize(direccionVista);
     anguloVista = atan2f(direccionVista.y, direccionVista.x) * RAD2DEG;
 
-    // Batería
     if (!bateriaCongelada && IsKeyPressed(KEY_F)) {
         linternaEncendida = !linternaEncendida;
     }
@@ -103,7 +115,7 @@ void Protagonista::actualizarInterno(Camera2D camera, Vector2 direccionMovimient
 
 int Protagonista::intentarDisparar(bool quiereDisparar)
 {
-    if (vida <= 0) return 0; // Muerto no dispara
+    if (vida <= 0) return 0;
 
     if (quiereDisparar && temporizadorDisparo <= 0 && municion > 0) {
         municion--;
@@ -131,18 +143,11 @@ void Protagonista::dibujar()
     float rotacion = anguloVista + 90.0f;
 
     if (vida <= 0) {
-        // --- ESTADO MUERTO ---
         texActual = &texMuerto;
-
-        // Efecto Dramático: Se oscurece gradualmente
         float progreso = 1.0f - (timerAnimacionMuerte / DURACION_ANIMACION_MUERTE);
         progreso = Clamp(progreso, 0.0f, 1.0f);
-
-        // Se vuelve gris oscuro
         tinte = ColorLerp(WHITE, (Color){80, 80, 80, 255}, progreso);
-
     } else {
-        // --- ESTADO VIVO ---
         if (timerVisualDisparo > 0.0f) {
             texActual = &texDisparando;
         } else {
@@ -199,7 +204,6 @@ void Protagonista::matar() {
 }
 
 bool Protagonista::haFinalizadoAnimacionMuerte() const {
-    // Devuelve TRUE solo si está muerto Y el timer acabó.
     return (vida <= 0 && timerAnimacionMuerte <= 0.0f);
 }
 
@@ -210,7 +214,6 @@ void Protagonista::aplicarKnockback(Vector2 direccion, float fuerza, float durac
     knockbackTimer = duracion;
 }
 
-// --- Getters y Setters (Sin cambios) ---
 void Protagonista::recargarBateria(const int& cantidad) {
     bateria += cantidad;
     if (bateria > Constantes::BATERIA_MAX) bateria = Constantes::BATERIA_MAX;

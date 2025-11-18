@@ -1,7 +1,11 @@
 #include "BalaDeRifle.h"
 #include "Constantes.h"
+#include "raymath.h"
 
-// --- ¡¡VACA FIX 4.0!! (Velocidad en px/sec) ---
+// Inicialización estática
+Texture2D BalaDeRifle::texBalaRifle = { 0 };
+bool BalaDeRifle::texturaCargada = false;
+
 static const float VELOCIDAD_BALA_RIFLE = 1200.0f;
 static const int   DANIO_BALA_RIFLE     = 1;
 static const float RADIO_BALA_RIFLE     = 4.0f;
@@ -10,18 +14,66 @@ BalaDeRifle::BalaDeRifle(Vector2 pos, Vector2 dir, bool esCheat)
     : Bala(
         pos,
         dir,
-        VELOCIDAD_BALA_RIFLE,   // <-- 1200.0f
+        VELOCIDAD_BALA_RIFLE,
         DANIO_BALA_RIFLE,
         OrigenBala::JUGADOR,
         RADIO_BALA_RIFLE,
         esCheat
     )
 {
+    if (!texturaCargada) {
+        CargarTextura();
+    }
+}
+
+BalaDeRifle::~BalaDeRifle() {
+}
+
+void BalaDeRifle::CargarTextura() {
+    if (!texturaCargada) {
+        texBalaRifle = LoadTexture("assets/Protagonista/Bala.png");
+        texturaCargada = true;
+    }
+}
+
+void BalaDeRifle::DescargarTextura() {
+    if (texturaCargada) {
+        UnloadTexture(texBalaRifle);
+        texturaCargada = false;
+    }
+}
+
+void BalaDeRifle::actualizar(Protagonista& jugador, const Mapa& mapa)
+{
+    if (activa) {
+        float dt = GetFrameTime();
+        posicion.x += velocidad.x * dt;
+        posicion.y += velocidad.y * dt;
+    }
 }
 
 void BalaDeRifle::dibujar()
 {
     if (!activa) return;
-    Color colorBala = esCheat ? (Color){255, 0, 0, 255} : (Color){255, 255, 0, 255};
-    DrawCircleV(posicion, radio, colorBala);
+
+    if (texturaCargada) {
+        // Calcular rotación basada en la velocidad
+        float rotacion = atan2f(velocidad.y, velocidad.x) * RAD2DEG;
+
+        Rectangle sourceRec = { 0.0f, 0.0f, (float)texBalaRifle.width, (float)texBalaRifle.height };
+
+        // --- AJUSTE DE TAMAÑO ---
+        // Aumentamos el largo (ancho) y reducimos el grosor (alto)
+        float ancho = 55.0f; // Bastante más larga para dar sensación de velocidad
+        float alto = 7.0f;   // Más fina/angosta
+        // ------------------------
+
+        Rectangle destRec = { posicion.x, posicion.y, ancho, alto };
+        Vector2 origen = { ancho / 2.0f, alto / 2.0f };
+
+        DrawTexturePro(texBalaRifle, sourceRec, destRec, origen, rotacion, WHITE);
+    } else {
+        Color c = esCheat ? RED : YELLOW;
+        DrawCircleV(posicion, radio, c);
+    }
 }

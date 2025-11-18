@@ -320,7 +320,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.h
 	"raylib.h"
 
-1763403218 c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.h
+1763404451 c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.h
 	"raylib.h"
 	"Constantes.h"
 	<vector>
@@ -338,12 +338,14 @@
 	"raylib.h"
 	"raymath.h"
 
-1762636354 source:c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.cpp
+1763404930 source:c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.cpp
 	"BalaDeRifle.h"
 	"Constantes.h"
+	"raymath.h"
 
-1762636331 c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.h
+1763404730 c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.h
 	"Bala.h"
+	"raylib.h"
 
 1762636385 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.cpp
 	"BalaMonstruosa.h"
@@ -405,13 +407,14 @@
 1762748571 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
 	"Enemigo.h"
 
-1762608163 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
+1763404572 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
 	"GestorEntidades.h"
 	"Mapa.h"
 	"BalaMonstruosa.h"
 	"MinaEnemiga.h"
 	"TrozoDeCarne.h"
 	"Constantes.h"
+	"BalaDeRifle.h"
 
 1762608155 c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.h
 	<vector>
@@ -462,7 +465,7 @@
 	"TrozoDeCarne.h"
 	"BalaInfernal.h"
 
-1763403309 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1763432563 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raymath.h"
@@ -481,16 +484,18 @@
 	"Spawner.h"
 	"Jefe.h"
 
-1762833643 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
+1763431643 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
 	"raylib.h"
 	"Protagonista.h"
 	"Mapa.h"
 	"GestorEntidades.h"
 	"SistemaRender.h"
-	"MotorColisiones.h"
-	"MotorFisica.h"
 	"SistemaInput.h"
+	"MotorFisica.h"
+	"MotorColisiones.h"
 	"Constantes.h"
+	<vector>
+	<list>
 
 1762488631 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
 	"raylib.h"
@@ -607,7 +612,7 @@
 	"Nota.h"
 	"raymath.h"
 
-1763403232 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
+1763404461 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
 	"Protagonista.h"
 	"raymath.h"
 	"Constantes.h"
@@ -622,7 +627,7 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.cpp
 	"SistemaInput.h"
 
-1763390431 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
+1763403551 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
 	"SistemaRender.h"
 	"Constantes.h"
 	"Fantasma.h"

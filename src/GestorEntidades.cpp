@@ -4,13 +4,19 @@
 #include "MinaEnemiga.h"
 #include "TrozoDeCarne.h"
 #include "Constantes.h"
+#include "BalaDeRifle.h" // <-- ¡Importante! Incluir la cabecera de la bala
 
 GestorEntidades::GestorEntidades()
 {
+    // Cargar texturas estáticas (como la bala) al iniciar el gestor
+    BalaDeRifle::CargarTextura();
 }
 
 GestorEntidades::~GestorEntidades()
 {
+    limpiarTodo();
+    // Descargar texturas estáticas al destruir el gestor
+    BalaDeRifle::DescargarTextura();
 }
 
 void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& mapa)
@@ -91,7 +97,7 @@ void GestorEntidades::recolectarBasura()
     limpiarLista(enemigos);
     limpiarLista(balas);
     limpiarLista(consumibles);
-    // ��NO LIMPIAMOS AL JEFE!!
+    // 　NO LIMPIAMOS AL JEFE!!
     // limpiarLista(jefes);
 }
 
