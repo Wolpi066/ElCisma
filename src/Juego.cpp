@@ -18,6 +18,7 @@
 #include "Spawner.h"
 #include "Jefe.h"
 
+// Función auxiliar para texto con efecto glitch
 void DibujarTextoGlitch(const char* texto, int posX, int posY, int fontSize, Color colorPrincipal)
 {
     float offset = sin(GetTime() * 15.0f) * 1.0f;
@@ -32,7 +33,7 @@ Juego::Juego()
       miMapa(),
       gestor(),
       renderizador(),
-      estadoActual(EstadoJuego::JUGANDO),
+      estadoActual(EstadoJuego::MENU_INICIAL), // Inicia en el Menú
       temporizadorPartida(0.0f),
       temporizadorSustoFantasma(0.0f),
       notaActualID(0),
@@ -41,35 +42,66 @@ Juego::Juego()
       temporizadorSpawnJefe(0.0f),
       opcionDialogo(1),
       temporizadorDialogo(0.0f),
+      opcionMenuInicial(0),
       opcionMenuMuerteSeleccionada(0)
 {
+    // Precarga del mundo
     miMapa.poblarMundo(gestor);
     ResetSustoFantasma();
     renderizador.inicializarMinimapa(miMapa);
 
-    // --- CARGAR ASSETS PANTALLA MUERTE Y BOTONES ---
-    texPantallaMuerte = LoadTexture("assets/HUD/PantallaMuerte.png");
+    // ===========================================================
+    // CARGA DE ASSETS - MENU DE INICIO
+    // ===========================================================
+    // Fondo (Raíz de HUD)
+    texFondoMenuInicio = LoadTexture("assets/HUD/MenuInicio.png");
 
-    texReintentar       = LoadTexture("assets/HUD/Botones/Reintentar.png");
-    texReintentarSel    = LoadTexture("assets/HUD/Botones/ReintentarSeleccionado.png");
+    // Botones (Ruta: assets/HUD/Botones/MenuInicio/...)
+    texBtnJugar          = LoadTexture("assets/HUD/Botones/MenuInicio/Jugar.png");
+    texBtnJugarSel       = LoadTexture("assets/HUD/Botones/MenuInicio/JugarSeleccionado.png");
 
-    texMenu             = LoadTexture("assets/HUD/Botones/Menu.png");
-    texMenuSel          = LoadTexture("assets/HUD/Botones/MenuSeleccionado.png");
+    texBtnCreditos       = LoadTexture("assets/HUD/Botones/MenuInicio/Creditos.png");
+    texBtnCreditosSel    = LoadTexture("assets/HUD/Botones/MenuInicio/CreditosSeleccionado.png");
 
-    texSalir            = LoadTexture("assets/HUD/Botones/Salir.png");
-    texSalirSel         = LoadTexture("assets/HUD/Botones/SalirSeleccionado.png");
+    texBtnSalirInicio    = LoadTexture("assets/HUD/Botones/MenuInicio/Salir.png");
+    texBtnSalirInicioSel = LoadTexture("assets/HUD/Botones/MenuInicio/SalirSeleccionado.png");
+
+    // ===========================================================
+    // CARGA DE ASSETS - PANTALLA DE MUERTE
+    // ===========================================================
+    // Fondo (Raíz de HUD)
+    texFondoMuerte       = LoadTexture("assets/HUD/PantallaMuerte.png");
+
+    // Botones (Ruta: assets/HUD/Botones/PantallaMuerte/...)
+    texBtnReintentar     = LoadTexture("assets/HUD/Botones/PantallaMuerte/Reintentar.png");
+    texBtnReintentarSel  = LoadTexture("assets/HUD/Botones/PantallaMuerte/ReintentarSeleccionado.png");
+
+    texBtnMenu           = LoadTexture("assets/HUD/Botones/PantallaMuerte/Menu.png");
+    texBtnMenuSel        = LoadTexture("assets/HUD/Botones/PantallaMuerte/MenuSeleccionado.png");
+
+    texBtnSalirMuerte    = LoadTexture("assets/HUD/Botones/PantallaMuerte/Salir.png");
+    texBtnSalirMuerteSel = LoadTexture("assets/HUD/Botones/PantallaMuerte/SalirSeleccionado.png");
 }
 
 Juego::~Juego()
 {
-    UnloadTexture(texPantallaMuerte);
+    // Descargar texturas Menú Inicio
+    UnloadTexture(texFondoMenuInicio);
+    UnloadTexture(texBtnJugar);
+    UnloadTexture(texBtnJugarSel);
+    UnloadTexture(texBtnCreditos);
+    UnloadTexture(texBtnCreditosSel);
+    UnloadTexture(texBtnSalirInicio);
+    UnloadTexture(texBtnSalirInicioSel);
 
-    UnloadTexture(texReintentar);
-    UnloadTexture(texReintentarSel);
-    UnloadTexture(texMenu);
-    UnloadTexture(texMenuSel);
-    UnloadTexture(texSalir);
-    UnloadTexture(texSalirSel);
+    // Descargar texturas Pantalla Muerte
+    UnloadTexture(texFondoMuerte);
+    UnloadTexture(texBtnReintentar);
+    UnloadTexture(texBtnReintentarSel);
+    UnloadTexture(texBtnMenu);
+    UnloadTexture(texBtnMenuSel);
+    UnloadTexture(texBtnSalirMuerte);
+    UnloadTexture(texBtnSalirMuerteSel);
 
     gestor.limpiarTodo();
 }
@@ -89,6 +121,7 @@ void Juego::ResetSustoFantasma() {
 
 void Juego::reiniciarJuego()
 {
+    // Reinicio completo de variables para nueva partida
     jugador.reset();
     jugador.setPosicion({0, 500});
 
@@ -118,6 +151,12 @@ void Juego::actualizar()
 {
     switch (estadoActual)
     {
+        case EstadoJuego::MENU_INICIAL:
+            actualizarMenuInicial();
+            break;
+        case EstadoJuego::CREDITOS:
+            actualizarCreditos();
+            break;
         case EstadoJuego::JUGANDO:
             actualizarJugando();
             break;
@@ -130,7 +169,6 @@ void Juego::actualizar()
         case EstadoJuego::DIALOGO_FINAL:
             actualizarDialogo();
             break;
-
         case EstadoJuego::DIALOGO_INTRO:
             actualizarDialogoIntro();
             break;
@@ -144,20 +182,17 @@ void Juego::actualizar()
         case EstadoJuego::DIALOGO_DECISION_FINAL:
             actualizarDialogoDecisionFinal();
             break;
-
         case EstadoJuego::FIN_JUEGO_SACRIFICIO:
         case EstadoJuego::FIN_JUEGO_HUIR:
             actualizarFinJuego();
             break;
-
         case EstadoJuego::FIN_JUEGO_MUERTO:
-            // Este estado ahora es solo un "puente" rápido
+            // Transición breve
             estadoActual = EstadoJuego::MENU_MUERTE;
             temporizadorDialogo = 0.0f;
             ShowCursor();
             opcionMenuMuerteSeleccionada = 0;
             break;
-
         case EstadoJuego::MENU_MUERTE:
             actualizarMenuMuerte();
             break;
@@ -170,6 +205,12 @@ void Juego::dibujar()
         ClearBackground(BLACK);
         switch (estadoActual)
         {
+            case EstadoJuego::MENU_INICIAL:
+                dibujarMenuInicial();
+                break;
+            case EstadoJuego::CREDITOS:
+                dibujarCreditos();
+                break;
             case EstadoJuego::JUGANDO:
                 dibujarJugando();
                 break;
@@ -182,7 +223,6 @@ void Juego::dibujar()
             case EstadoJuego::DIALOGO_FINAL:
                 dibujarDialogo();
                 break;
-
             case EstadoJuego::DIALOGO_INTRO:
                 dibujarDialogoIntro();
                 break;
@@ -196,20 +236,14 @@ void Juego::dibujar()
             case EstadoJuego::DIALOGO_DECISION_FINAL:
                 dibujarDialogoDecisionFinal();
                 break;
-
             case EstadoJuego::FIN_JUEGO_SACRIFICIO:
             case EstadoJuego::FIN_JUEGO_HUIR:
                 dibujarFinJuego();
                 break;
-
             case EstadoJuego::FIN_JUEGO_MUERTO:
-                // Redundante, pero por seguridad dibujamos con fade inicial
                 dibujarMenuMuerte(0.0f);
                 break;
-
             case EstadoJuego::MENU_MUERTE:
-                actualizarMenuMuerte(); // Pequeño hack para asegurar animación
-                // Calculamos alpha aquí mismo para pasarlo
                 {
                      float alpha = Clamp(temporizadorDialogo / 2.0f, 0.0f, 1.0f);
                      dibujarMenuMuerte(alpha);
@@ -219,18 +253,190 @@ void Juego::dibujar()
     EndDrawing();
 }
 
+// ============================================================================
+// SECCION: MENU INICIAL
+// ============================================================================
+
+void Juego::actualizarMenuInicial()
+{
+    ShowCursor();
+
+    // --- TAMAÑO AJUSTADO: Mas ancho (300) y misma altura (80) ---
+    float btnW = 300.0f;
+    float btnH = 80.0f;
+    // ------------------------------------------------------------
+
+    float spacing = 25.0f;
+    // Centrado vertical en la mitad inferior
+    float startY = (float)Constantes::ALTO_PANTALLA * 0.5f;
+    float centerX = ((float)Constantes::ANCHO_PANTALLA - btnW) / 2.0f;
+
+    Rectangle rectJugar    = { centerX, startY, btnW, btnH };
+    Rectangle rectCreditos = { centerX, startY + btnH + spacing, btnW, btnH };
+    Rectangle rectSalir    = { centerX, startY + (btnH + spacing) * 2, btnW, btnH };
+
+    // 1. Teclado
+    if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
+        opcionMenuInicial--;
+        if (opcionMenuInicial < 0) opcionMenuInicial = 2;
+    }
+    if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
+        opcionMenuInicial++;
+        if (opcionMenuInicial > 2) opcionMenuInicial = 0;
+    }
+
+    // 2. Ratón (Hover)
+    Vector2 mouse = GetMousePosition();
+    if (CheckCollisionPointRec(mouse, rectJugar)) opcionMenuInicial = 0;
+    else if (CheckCollisionPointRec(mouse, rectCreditos)) opcionMenuInicial = 1;
+    else if (CheckCollisionPointRec(mouse, rectSalir)) opcionMenuInicial = 2;
+
+    // 3. Selección
+    bool clicked = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
+    bool enter = (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_E));
+    bool clickValido = false;
+
+    if (clicked) {
+        if (opcionMenuInicial == 0 && CheckCollisionPointRec(mouse, rectJugar)) clickValido = true;
+        else if (opcionMenuInicial == 1 && CheckCollisionPointRec(mouse, rectCreditos)) clickValido = true;
+        else if (opcionMenuInicial == 2 && CheckCollisionPointRec(mouse, rectSalir)) clickValido = true;
+    }
+
+    if (enter || clickValido)
+    {
+        if (opcionMenuInicial == 0) {
+            reiniciarJuego(); // JUGAR
+        }
+        else if (opcionMenuInicial == 1) {
+            estadoActual = EstadoJuego::CREDITOS;
+        }
+        else if (opcionMenuInicial == 2) {
+            CloseWindow();
+        }
+    }
+}
+
+void Juego::dibujarMenuInicial()
+{
+    // 1. Dibujar Fondo
+    if (texFondoMenuInicio.id != 0) {
+        // Escalamos el fondo para que cubra toda la pantalla
+        Rectangle src = { 0, 0, (float)texFondoMenuInicio.width, (float)texFondoMenuInicio.height };
+        Rectangle dest = { 0, 0, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA };
+        DrawTexturePro(texFondoMenuInicio, src, dest, {0,0}, 0.0f, WHITE);
+    } else {
+        ClearBackground(BLACK);
+        DibujarTextoGlitch("ERROR: FONDO NO ENCONTRADO", 50, 50, 20, RED);
+    }
+
+    // 2. Configurar Dimensiones FIJAS (Coinciden con actualizar: 300x80)
+    float btnW = 300.0f;
+    float btnH = 80.0f;
+    float spacing = 25.0f;
+    float startY = (float)Constantes::ALTO_PANTALLA * 0.5f;
+    float centerX = ((float)Constantes::ANCHO_PANTALLA - btnW) / 2.0f;
+
+    // --- TINTE OSCURO PARA LOS BOTONES ---
+    // Usamos un gris claro (180) para que el botón se vea "un poco más oscuro"
+    // que su brillo original máximo.
+    Color tinteBoton = { 180, 180, 180, 255 };
+
+    // Helper Lambda para dibujar botón escalado
+    auto DibujarBotonSeguro = [&](Texture2D& tex, int yOffset, bool seleccionado, const char* textoError) {
+        float posY = startY + yOffset * (btnH + spacing);
+
+        if (tex.id != 0) {
+            // ESCALADO: Usamos DrawTexturePro
+            Rectangle source = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
+            Rectangle dest   = { centerX, posY, btnW, btnH };
+
+            // Si esta seleccionado, lo dibujamos a full brillo (WHITE), si no, con el tinte oscuro
+            Color colorFinal = seleccionado ? WHITE : tinteBoton;
+
+            DrawTexturePro(tex, source, dest, {0,0}, 0.0f, colorFinal);
+        } else {
+            // FALLBACK
+            Color color = seleccionado ? MAGENTA : DARKGRAY;
+            DrawRectangle((int)centerX, (int)posY, (int)btnW, (int)btnH, Fade(color, 0.7f));
+            DrawRectangleLines((int)centerX, (int)posY, (int)btnW, (int)btnH, RED);
+            DrawText(textoError, (int)centerX + 10, (int)posY + 20, 20, WHITE);
+        }
+    };
+
+    // BOTÓN JUGAR
+    Texture2D tJugar = (opcionMenuInicial == 0) ? texBtnJugarSel : texBtnJugar;
+    DibujarBotonSeguro(tJugar, 0, (opcionMenuInicial == 0), "ERR: Jugar.png");
+
+    // BOTÓN CRÉDITOS
+    Texture2D tCreditos = (opcionMenuInicial == 1) ? texBtnCreditosSel : texBtnCreditos;
+    DibujarBotonSeguro(tCreditos, 1, (opcionMenuInicial == 1), "ERR: Creditos.png");
+
+    // BOTÓN SALIR
+    Texture2D tSalir = (opcionMenuInicial == 2) ? texBtnSalirInicioSel : texBtnSalirInicio;
+    DibujarBotonSeguro(tSalir, 2, (opcionMenuInicial == 2), "ERR: Salir.png");
+}
+
+void Juego::actualizarCreditos()
+{
+    if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_E) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        estadoActual = EstadoJuego::MENU_INICIAL;
+    }
+}
+
+void Juego::dibujarCreditos()
+{
+    ClearBackground(BLACK);
+
+    // Título
+    DibujarTextoGlitch("CREDITOS", 50, 50, 40, PURPLE);
+
+    int startY = 130;
+    int stepY = 35; // Espaciado vertical reducido para que entre todo
+
+    // --- DESARROLLO ---
+    DrawText("Desarrollo:", 50, startY, 20, WHITE);
+    DrawText("Mailen Acosta Vera", 50, startY + stepY, 20, GRAY);
+    DrawText("Emiliano Volpino", 50, startY + stepY * 2, 20, GRAY);
+
+    startY += 130;
+
+    // --- ARTE ---
+    DrawText("Arte:", 50, startY, 20, WHITE);
+    DrawText("Generado por IA / Assets Propios", 50, startY + stepY, 20, GRAY);
+
+    startY += 100;
+
+    // --- MOTOR ---
+    DrawText("Motor:", 50, startY, 20, WHITE);
+    DrawText("C++ & Raylib", 50, startY + stepY, 20, GRAY);
+
+    startY += 100;
+
+    // --- AGRADECIMIENTOS ---
+    DrawText("Agradecimientos Especiales:", 50, startY, 20, WHITE);
+    DrawText("A Ignacio Rodriguez y a Santi ", 50, startY + stepY, 20, GRAY);
+
+    // Pie
+    const char* msg = "Volver [E]";
+    DrawText(msg, Constantes::ANCHO_PANTALLA - MeasureText(msg, 20) - 40, Constantes::ALTO_PANTALLA - 60, 20, WHITE);
+}
+
+
+// ============================================================================
+// SECCION: PANTALLA MUERTE
+// ============================================================================
+
 void Juego::actualizarMenuMuerte()
 {
-    // --- ANIMACIÓN FADE-IN ---
     if (temporizadorDialogo < 2.0f) {
         temporizadorDialogo += GetFrameTime();
     }
-    // -------------------------
 
-    // 1. Definir posiciones de los botones
-    // AJUSTE DE POSICIÓN: -110.0f (Más abajo que -125)
-    float btnY = (float)Constantes::ALTO_PANTALLA - 133.0f;
+    // Layout
+    float btnY = (float)Constantes::ALTO_PANTALLA - 150.0f;
     float spacing = 30.0f;
+
+    // TAMAÑO FIJO PARA PANTALLA MUERTE TAMBIEN
     float btnW = 240.0f;
     float btnH = 80.0f;
 
@@ -241,9 +447,8 @@ void Juego::actualizarMenuMuerte()
     Rectangle rectMenu       = { startX + btnW + spacing, btnY, btnW, btnH };
     Rectangle rectSalir      = { startX + (btnW + spacing) * 2, btnY, btnW, btnH };
 
-    // Permitir interacción solo si ya se ve algo (opcional)
     if (temporizadorDialogo > 0.1f) {
-        // 2. Input Teclado
+        // Inputs
         if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) {
             opcionMenuMuerteSeleccionada--;
             if (opcionMenuMuerteSeleccionada < 0) opcionMenuMuerteSeleccionada = 2;
@@ -253,17 +458,15 @@ void Juego::actualizarMenuMuerte()
             if (opcionMenuMuerteSeleccionada > 2) opcionMenuMuerteSeleccionada = 0;
         }
 
-        // 3. Input Ratón
         Vector2 mouse = GetMousePosition();
         if (CheckCollisionPointRec(mouse, rectReintentar)) opcionMenuMuerteSeleccionada = 0;
         else if (CheckCollisionPointRec(mouse, rectMenu))  opcionMenuMuerteSeleccionada = 1;
         else if (CheckCollisionPointRec(mouse, rectSalir)) opcionMenuMuerteSeleccionada = 2;
 
-        // 4. Selección
         bool clicked = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
         bool enter = (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_E) || IsKeyPressed(KEY_SPACE));
-
         bool clickValido = false;
+
         if (clicked) {
             if (opcionMenuMuerteSeleccionada == 0 && CheckCollisionPointRec(mouse, rectReintentar)) clickValido = true;
             else if (opcionMenuMuerteSeleccionada == 1 && CheckCollisionPointRec(mouse, rectMenu)) clickValido = true;
@@ -273,7 +476,9 @@ void Juego::actualizarMenuMuerte()
         if (enter || clickValido)
         {
             if (opcionMenuMuerteSeleccionada == 0) reiniciarJuego();
-            else if (opcionMenuMuerteSeleccionada == 1) CloseWindow();
+            else if (opcionMenuMuerteSeleccionada == 1) {
+                estadoActual = EstadoJuego::MENU_INICIAL; // Volver al inicio
+            }
             else if (opcionMenuMuerteSeleccionada == 2) CloseWindow();
         }
     }
@@ -281,38 +486,47 @@ void Juego::actualizarMenuMuerte()
 
 void Juego::dibujarMenuMuerte(float alpha)
 {
-    // 1. Fondo
-    Rectangle sourceBg = { 0.0f, 0.0f, (float)texPantallaMuerte.width, (float)texPantallaMuerte.height };
-    Rectangle destBg = { 0.0f, 0.0f, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA };
-    DrawTexturePro(texPantallaMuerte, sourceBg, destBg, {0,0}, 0.0f, Fade(WHITE, alpha));
+    // Fondo
+    if (texFondoMuerte.id != 0) {
+        Rectangle src = { 0, 0, (float)texFondoMuerte.width, (float)texFondoMuerte.height };
+        Rectangle dest = { 0, 0, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA };
+        DrawTexturePro(texFondoMuerte, src, dest, {0,0}, 0.0f, Fade(WHITE, alpha));
+    } else {
+        ClearBackground(BLACK);
+        DibujarTextoGlitch("HAS MUERTO", 200, 200, 60, RED);
+    }
 
-    // 2. Posiciones (Coinciden con actualizar: -110.0f)
-    float btnY = (float)Constantes::ALTO_PANTALLA - 133.0f;
+    // Layout
+    float btnY = (float)Constantes::ALTO_PANTALLA - 150.0f;
     float spacing = 30.0f;
     float btnW = 240.0f;
     float btnH = 80.0f;
     float totalW = (btnW * 3) + (spacing * 2);
     float startX = ((float)Constantes::ANCHO_PANTALLA - totalW) / 2.0f;
 
-    // 3. Dibujar Botones
+    // Funcion lambda para dibujar botones de muerte de forma segura Y ESCALADA
+    auto DibujarBtnMuerte = [&](Texture2D& tex, float x, float y) {
+        if (tex.id != 0) {
+            Rectangle source = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
+            Rectangle dest   = { x, y, btnW, btnH };
+            DrawTexturePro(tex, source, dest, {0,0}, 0.0f, Fade(WHITE, alpha));
+        } else {
+            DrawRectangle((int)x, (int)y, (int)btnW, (int)btnH, Fade(RED, alpha));
+            DrawText("ERROR IMG", (int)x+10, (int)y+20, 20, WHITE);
+        }
+    };
 
-    // --- REINTENTAR ---
-    Texture2D texDrawReintentar = (opcionMenuMuerteSeleccionada == 0) ? texReintentarSel : texReintentar;
-    Rectangle srcR = { 0.0f, 0.0f, (float)texDrawReintentar.width, (float)texDrawReintentar.height };
-    Rectangle destR = { startX, btnY, btnW, btnH };
-    DrawTexturePro(texDrawReintentar, srcR, destR, {0,0}, 0.0f, Fade(WHITE, alpha));
+    // Reintentar
+    Texture2D tReintentar = (opcionMenuMuerteSeleccionada == 0) ? texBtnReintentarSel : texBtnReintentar;
+    DibujarBtnMuerte(tReintentar, startX, btnY);
 
-    // --- MENU ---
-    Texture2D texDrawMenu = (opcionMenuMuerteSeleccionada == 1) ? texMenuSel : texMenu;
-    Rectangle srcM = { 0.0f, 0.0f, (float)texDrawMenu.width, (float)texDrawMenu.height };
-    Rectangle destM = { startX + btnW + spacing, btnY, btnW, btnH };
-    DrawTexturePro(texDrawMenu, srcM, destM, {0,0}, 0.0f, Fade(WHITE, alpha));
+    // Menu
+    Texture2D tMenu = (opcionMenuMuerteSeleccionada == 1) ? texBtnMenuSel : texBtnMenu;
+    DibujarBtnMuerte(tMenu, startX + btnW + spacing, btnY);
 
-    // --- SALIR ---
-    Texture2D texDrawSalir = (opcionMenuMuerteSeleccionada == 2) ? texSalirSel : texSalir;
-    Rectangle srcS = { 0.0f, 0.0f, (float)texDrawSalir.width, (float)texDrawSalir.height };
-    Rectangle destS = { startX + (btnW + spacing) * 2, btnY, btnW, btnH };
-    DrawTexturePro(texDrawSalir, srcS, destS, {0,0}, 0.0f, Fade(WHITE, alpha));
+    // Salir
+    Texture2D tSalir = (opcionMenuMuerteSeleccionada == 2) ? texBtnSalirMuerteSel : texBtnSalirMuerte;
+    DibujarBtnMuerte(tSalir, startX + (btnW + spacing) * 2, btnY);
 }
 
 

@@ -14,7 +14,9 @@
 
 // Estados del juego
 enum class EstadoJuego {
-    JUGANDO = 0,
+    MENU_INICIAL = 0,
+    CREDITOS,
+    JUGANDO,
     INICIANDO_JEFE,
     LEYENDO_NOTA,
     DIALOGO_FINAL,
@@ -25,8 +27,8 @@ enum class EstadoJuego {
     DIALOGO_DECISION_FINAL,
     FIN_JUEGO_SACRIFICIO,
     FIN_JUEGO_HUIR,
-    FIN_JUEGO_MUERTO, // Animación de muerte (Fade-in)
-    MENU_MUERTE       // Menú interactivo de muerte
+    FIN_JUEGO_MUERTO, // Animacion de muerte (Fade-in)
+    MENU_MUERTE       // Menu interactivo de muerte
 };
 
 class Juego
@@ -49,24 +51,37 @@ private:
     Rectangle triggerRectJefe;
     float temporizadorSpawnJefe;
 
-    // Variables de diálogo
+    // Variables de dialogo
     int opcionDialogo;
     float temporizadorDialogo;
 
-    // --- ASSETS PANTALLA MUERTE Y BOTONES ---
-    Texture2D texPantallaMuerte;
+    // --- ASSETS MENU INICIO ---
+    Texture2D texFondoMenuInicio;
 
-    Texture2D texReintentar;
-    Texture2D texReintentarSel;
-    Texture2D texMenu;
-    Texture2D texMenuSel;
-    Texture2D texSalir;
-    Texture2D texSalirSel;
-    // ----------------------------------------
+    // Botones Menu Inicio (Normal y Seleccionado)
+    Texture2D texBtnJugar;
+    Texture2D texBtnJugarSel;
+    Texture2D texBtnCreditos;
+    Texture2D texBtnCreditosSel;
+    Texture2D texBtnSalirInicio;
+    Texture2D texBtnSalirInicioSel;
 
-    int opcionMenuMuerteSeleccionada; // 0: Reintentar, 1: Menú, 2: Salir
+    int opcionMenuInicial; // 0: Jugar, 1: Creditos, 2: Salir
 
-    // Métodos internos
+    // --- ASSETS PANTALLA MUERTE ---
+    Texture2D texFondoMuerte;
+
+    // Botones Menu Muerte (Normal y Seleccionado)
+    Texture2D texBtnReintentar;
+    Texture2D texBtnReintentarSel;
+    Texture2D texBtnMenu;
+    Texture2D texBtnMenuSel;
+    Texture2D texBtnSalirMuerte;
+    Texture2D texBtnSalirMuerteSel;
+
+    int opcionMenuMuerteSeleccionada; // 0: Reintentar, 1: Menu, 2: Salir
+
+    // Metodos internos
     void ResetSustoFantasma();
     void reiniciarJuego();
     void procesarCheats();
@@ -74,7 +89,9 @@ private:
     void actualizar();
     void dibujar();
 
-    // Métodos de Actualización por Estado
+    // Metodos de Actualizacion por Estado
+    void actualizarMenuInicial();
+    void actualizarCreditos();
     void actualizarJugando();
     void actualizarLeyendoNota();
     void actualizarIniciandoJefe();
@@ -86,7 +103,9 @@ private:
     void actualizarFinJuego();
     void actualizarMenuMuerte();
 
-    // Métodos de Dibujado por Estado
+    // Metodos de Dibujado por Estado
+    void dibujarMenuInicial();
+    void dibujarCreditos();
     void dibujarJugando();
     void dibujarLeyendoNota();
     void dibujarIniciandoJefe();
@@ -97,9 +116,7 @@ private:
     void dibujarDialogoDecisionFinal();
     void dibujarFinJuego();
 
-    // --- MODIFICADO: Acepta alpha para el fade-in ---
     void dibujarMenuMuerte(float alpha = 1.0f);
-    // ------------------------------------------------
 
 public:
     Juego();
