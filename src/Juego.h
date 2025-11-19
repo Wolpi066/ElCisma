@@ -27,8 +27,9 @@ enum class EstadoJuego {
     DIALOGO_DECISION_FINAL,
     FIN_JUEGO_SACRIFICIO,
     FIN_JUEGO_HUIR,
-    FIN_JUEGO_MUERTO, // Animacion de muerte (Fade-in)
-    MENU_MUERTE       // Menu interactivo de muerte
+    FIN_JUEGO_MUERTO,
+    MENU_MUERTE,
+    ITEM_OBTENIDO     // <--- NUEVO: Estado Popup de objeto
 };
 
 class Juego
@@ -55,35 +56,35 @@ private:
     int opcionDialogo;
     float temporizadorDialogo;
 
-    // --- ASSETS MENU INICIO ---
-    Texture2D texFondoMenuInicio;
+    // --- VARIABLES POP-UP ITEM ---
+    Texture2D texPopupItem;      // Textura del item actual
+    const char* nombrePopupItem; // Nombre del item
+    const char* descPopupItem;   // Descripcion
+    float escalaPopup;           // Animacion
+    // -----------------------------
 
-    // Botones Menu Inicio (Normal y Seleccionado)
+    // Assets Menu Inicio
+    Texture2D texFondoMenuInicio;
     Texture2D texBtnJugar;
     Texture2D texBtnJugarSel;
     Texture2D texBtnCreditos;
     Texture2D texBtnCreditosSel;
     Texture2D texBtnSalirInicio;
     Texture2D texBtnSalirInicioSel;
+    int opcionMenuInicial;
 
-    int opcionMenuInicial; // 0: Jugar, 1: Creditos, 2: Salir
+    // Assets Creditos
+    Texture2D texFondoCreditos;
 
-    // --- ASSETS CREDITOS (NUEVO) ---
-    Texture2D texFondoCreditos; // assets/HUD/Creditos.png
-    // -------------------------------
-
-    // --- ASSETS PANTALLA MUERTE ---
+    // Assets Muerte
     Texture2D texFondoMuerte;
-
-    // Botones Menu Muerte (Normal y Seleccionado)
     Texture2D texBtnReintentar;
     Texture2D texBtnReintentarSel;
     Texture2D texBtnMenu;
     Texture2D texBtnMenuSel;
     Texture2D texBtnSalirMuerte;
     Texture2D texBtnSalirMuerteSel;
-
-    int opcionMenuMuerteSeleccionada; // 0: Reintentar, 1: Menu, 2: Salir
+    int opcionMenuMuerteSeleccionada;
 
     // Metodos internos
     void ResetSustoFantasma();
@@ -106,6 +107,7 @@ private:
     void actualizarDialogoDecisionFinal();
     void actualizarFinJuego();
     void actualizarMenuMuerte();
+    void actualizarItemObtenido(); // <--- NUEVO
 
     // Metodos de Dibujado por Estado
     void dibujarMenuInicial();
@@ -119,8 +121,8 @@ private:
     void dibujarDialogoRespuesta();
     void dibujarDialogoDecisionFinal();
     void dibujarFinJuego();
-
     void dibujarMenuMuerte(float alpha = 1.0f);
+    void dibujarItemObtenido(); // <--- NUEVO
 
 public:
     Juego();

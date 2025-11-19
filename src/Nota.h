@@ -4,14 +4,17 @@
 class Nota : public Consumible {
 private:
     int notaID;
-    bool leida; // ¡¡NUEVO!! Para saber si debe desaparecer
+    bool leida;
 
 public:
     Nota(Vector2 pos, int id);
 
-    virtual int usar(Protagonista& jugador) override;
-    virtual void dibujar() override;
+    int usar(Protagonista& jugador) override;
+    void dibujar() override;
 
-    virtual bool esInteraccionPorTecla() const override;
-    virtual bool estaConsumido() const override; // ¡¡MODIFICADO!!
+    // Implementacion obligatoria
+    Texture2D getTextura() override;
+
+    bool esInteraccionPorTecla() const override;
+    bool estaConsumido() const override;
 };

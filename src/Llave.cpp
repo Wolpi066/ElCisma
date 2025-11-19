@@ -1,25 +1,55 @@
 #include "Llave.h"
-#include "Protagonista.h"
+#include "raymath.h"
 
-Llave::Llave(Vector2 pos) : Consumible(pos) {}
+Texture2D Llave::texLlave = { 0 };
+bool Llave::texturaCargada = false;
 
-void Llave::dibujar() {
-    if (!consumido) {
-        DrawCircleV(posicion, 8.0f, ORANGE);
-        DrawCircleLines(posicion.x, posicion.y, 8.0f, GOLD);
+void Llave::CargarTextura() {
+    if (!texturaCargada) {
+        texLlave = LoadTexture("assets/Consumibles/TarjetaDeAcceso.png");
+        texturaCargada = true;
     }
 }
 
-// --- ¡¡FIRMA ACTUALIZADA!! ---
+void Llave::DescargarTextura() {
+    if (texturaCargada) {
+        UnloadTexture(texLlave);
+        texturaCargada = false;
+    }
+}
+
+Llave::Llave(Vector2 pos) : Consumible(pos) {
+    if (!texturaCargada) CargarTextura();
+    nombreItem = "TARJETA DE ACCESO";
+    descripcionItem = "Credencial de Nivel 5. Desbloquea la sala central.";
+}
+
+Llave::~Llave() {}
+
 int Llave::usar(Protagonista& jugador) {
-    if (consumido) return 0;
-
     jugador.recibirLlave();
-
-    this->consumido = true;
-    return 0; // No suelta loot
+    consumido = true;
+    return 0;
 }
 
-bool Llave::esInteraccionPorTecla() const {
-    return true;
+void Llave::dibujar() {
+    if (consumido) return;
+
+    if (texLlave.id != 0) {
+        // --- ESCALADO INTELIGENTE ---
+        float tamanoDeseado = 30.0f; // Tamaño en pixeles en el mundo
+        float escala = tamanoDeseado / (float)texLlave.width; // Calculamos escala para que mida 30px
+
+        Vector2 posDibujo = { posicion.x - (texLlave.width * escala) / 2, posicion.y - (texLlave.height * escala) / 2 };
+
+        float flotacion = sin(GetTime() * 3.0f) * 3.0f;
+        posDibujo.y += flotacion;
+
+        DrawTextureEx(texLlave, posDibujo, 0.0f, escala, WHITE);
+        DrawCircleV(posicion, 5.0f + sin(GetTime()*5)*2.0f, Fade(SKYBLUE, 0.4f));
+    } else {
+        DrawRectangle(posicion.x-10, posicion.y-10, 20, 20, YELLOW);
+    }
 }
+
+Texture2D Llave::getTextura() { return texLlave; }

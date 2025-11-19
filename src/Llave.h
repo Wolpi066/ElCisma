@@ -1,13 +1,20 @@
 #pragma once
 #include "Consumible.h"
 
-class Llave : public Consumible {
+class Llave : public Consumible
+{
+private:
+    static Texture2D texLlave;
+    static bool texturaCargada;
+
 public:
     Llave(Vector2 pos);
+    ~Llave();
 
-    // --- ¡¡FIRMA ACTUALIZADA!! ---
-    virtual int usar(Protagonista& jugador) override;
-    virtual void dibujar() override;
+    int usar(Protagonista& jugador) override; // Cambio a int
+    void dibujar() override;
+    Texture2D getTextura() override;
 
-    virtual bool esInteraccionPorTecla() const override;
+    static void CargarTextura();
+    static void DescargarTextura();
 };

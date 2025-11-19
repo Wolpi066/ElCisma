@@ -1,7 +1,7 @@
 #include "IndicadorPuerta.h"
 
-// Constructor: Llama al constructor base
 IndicadorPuerta::IndicadorPuerta(Vector2 pos) : Consumible(pos) {
+    nombreItem = "PUERTA";
 }
 
 void IndicadorPuerta::dibujar() {
@@ -10,16 +10,14 @@ void IndicadorPuerta::dibujar() {
         Rectangle rect = getRect();
         rect.width = 10;
         rect.height = 10;
-        rect.x -= 2; // Ajustar el centro
-        rect.y -= 2; // Ajustar el centro
+        rect.x -= 2;
+        rect.y -= 2;
         DrawRectangleRec(rect, GOLD);
     }
 }
 
-// --- ¡¡FIRMA ACTUALIZADA!! ---
 int IndicadorPuerta::usar(Protagonista& jugador) {
-    // No hacer nada. Es solo visual.
-    return 0; // No suelta loot
+    return 0;
 }
 
 bool IndicadorPuerta::esInteraccionPorTecla() const {
@@ -32,6 +30,9 @@ void IndicadorPuerta::consumir()
 }
 
 bool IndicadorPuerta::estaConsumido() const {
-    // Sobrescribimos la funcion base
     return consumido;
+}
+
+Texture2D IndicadorPuerta::getTextura() {
+    return { 0 }; // Retorna textura vacia
 }

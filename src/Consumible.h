@@ -1,35 +1,40 @@
 #pragma once
 #include "raylib.h"
+#include "Protagonista.h"
 
-// Pre-declaracion de Protagonista
-class Protagonista;
-
-class Consumible {
+class Consumible
+{
 protected:
     Vector2 posicion;
     bool consumido;
 
+    // Datos para el Pop-up
+    const char* nombreItem;
+    const char* descripcionItem;
+
 public:
-    // Constructor
     Consumible(Vector2 pos);
+    virtual ~Consumible();
 
-    // Destructor virtual
-    virtual ~Consumible() {}
-
-    // --- ¡¡CAMBIO DE FIRMA!! ---
-    // Ahora devuelve un 'int' (codigo de loot).
-    // 0 = sin loot.
+    // Logica: Retorna int para compatibilidad con Cofre/Nota/Indicador (0 = default)
     virtual int usar(Protagonista& jugador) = 0;
-    // -------------------------
 
+    // Visuales
     virtual void dibujar() = 0;
+    virtual Texture2D getTextura() = 0;
 
-    virtual bool esInteraccionPorTecla() const;
+    // Getters
+    const char* getNombre() const;
+    const char* getDescripcion() const;
+
+    // Metodos Virtuales (Permite que Cofre/Indicador los sobrescriban)
     virtual bool estaConsumido() const;
-    virtual Rectangle getRect() const; // <-- ¡¡NUEVO VIRTUAL!!
-    Vector2 getPosicion() const;
+    virtual Vector2 getPosicion() const;
+    virtual Rectangle getRect() const;
+    virtual bool esInteraccionPorTecla() const;
 
-    virtual bool estaMuerto() const {
-        return false;
-    }
+    // Parche de compatibilidad para GestorEntidades
+    virtual bool estaMuerto() const;
+
+    void consumir();
 };

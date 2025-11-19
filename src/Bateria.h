@@ -1,17 +1,20 @@
 #pragma once
-#include "Consumible.h" // Herencia
+#include "Consumible.h"
 
-class Bateria : public Consumible {
+class Bateria : public Consumible
+{
+private:
+    static Texture2D texBateria;
+    static bool texturaCargada;
+
 public:
     Bateria(Vector2 pos);
+    ~Bateria();
 
-    // --- ¡¡FIRMA ACTUALIZADA!! ---
-    virtual int usar(Protagonista& jugador) override;
-    virtual void dibujar() override;
+    int usar(Protagonista& jugador) override; // Cambio a int
+    void dibujar() override;
+    Texture2D getTextura() override;
 
-    // --- ¡¡AÑADIDO!! ---
-    // Sobreescribimos para que devuelva true.
-    virtual bool esInteraccionPorTecla() const override {
-        return true; // Ahora se recoge con 'E'
-    }
+    static void CargarTextura();
+    static void DescargarTextura();
 };
