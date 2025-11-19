@@ -68,6 +68,10 @@ private:
 
     int opcionMenuInicial; // 0: Jugar, 1: Creditos, 2: Salir
 
+    // --- ASSETS CREDITOS (NUEVO) ---
+    Texture2D texFondoCreditos; // assets/HUD/Creditos.png
+    // -------------------------------
+
     // --- ASSETS PANTALLA MUERTE ---
     Texture2D texFondoMuerte;
 

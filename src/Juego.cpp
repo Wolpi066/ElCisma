@@ -18,7 +18,7 @@
 #include "Spawner.h"
 #include "Jefe.h"
 
-// Función auxiliar para texto con efecto glitch
+// Funcion auxiliar para texto con efecto glitch
 void DibujarTextoGlitch(const char* texto, int posX, int posY, int fontSize, Color colorPrincipal)
 {
     float offset = sin(GetTime() * 15.0f) * 1.0f;
@@ -33,7 +33,7 @@ Juego::Juego()
       miMapa(),
       gestor(),
       renderizador(),
-      estadoActual(EstadoJuego::MENU_INICIAL), // Inicia en el Menú
+      estadoActual(EstadoJuego::MENU_INICIAL), // Inicia en el Menu
       temporizadorPartida(0.0f),
       temporizadorSustoFantasma(0.0f),
       notaActualID(0),
@@ -53,7 +53,7 @@ Juego::Juego()
     // ===========================================================
     // CARGA DE ASSETS - MENU DE INICIO
     // ===========================================================
-    // Fondo (Raíz de HUD)
+    // Fondo (Raiz de HUD)
     texFondoMenuInicio = LoadTexture("assets/HUD/MenuInicio.png");
 
     // Botones (Ruta: assets/HUD/Botones/MenuInicio/...)
@@ -67,9 +67,14 @@ Juego::Juego()
     texBtnSalirInicioSel = LoadTexture("assets/HUD/Botones/MenuInicio/SalirSeleccionado.png");
 
     // ===========================================================
+    // CARGA DE ASSETS - PANTALLA CREDITOS (NUEVO)
+    // ===========================================================
+    texFondoCreditos = LoadTexture("assets/HUD/Creditos.png");
+
+    // ===========================================================
     // CARGA DE ASSETS - PANTALLA DE MUERTE
     // ===========================================================
-    // Fondo (Raíz de HUD)
+    // Fondo (Raiz de HUD)
     texFondoMuerte       = LoadTexture("assets/HUD/PantallaMuerte.png");
 
     // Botones (Ruta: assets/HUD/Botones/PantallaMuerte/...)
@@ -85,7 +90,7 @@ Juego::Juego()
 
 Juego::~Juego()
 {
-    // Descargar texturas Menú Inicio
+    // Descargar texturas Menu Inicio
     UnloadTexture(texFondoMenuInicio);
     UnloadTexture(texBtnJugar);
     UnloadTexture(texBtnJugarSel);
@@ -93,6 +98,9 @@ Juego::~Juego()
     UnloadTexture(texBtnCreditosSel);
     UnloadTexture(texBtnSalirInicio);
     UnloadTexture(texBtnSalirInicioSel);
+
+    // Descargar textura Creditos
+    UnloadTexture(texFondoCreditos);
 
     // Descargar texturas Pantalla Muerte
     UnloadTexture(texFondoMuerte);
@@ -187,7 +195,7 @@ void Juego::actualizar()
             actualizarFinJuego();
             break;
         case EstadoJuego::FIN_JUEGO_MUERTO:
-            // Transición breve
+            // Transicion breve
             estadoActual = EstadoJuego::MENU_MUERTE;
             temporizadorDialogo = 0.0f;
             ShowCursor();
@@ -285,13 +293,13 @@ void Juego::actualizarMenuInicial()
         if (opcionMenuInicial > 2) opcionMenuInicial = 0;
     }
 
-    // 2. Ratón (Hover)
+    // 2. Raton (Hover)
     Vector2 mouse = GetMousePosition();
     if (CheckCollisionPointRec(mouse, rectJugar)) opcionMenuInicial = 0;
     else if (CheckCollisionPointRec(mouse, rectCreditos)) opcionMenuInicial = 1;
     else if (CheckCollisionPointRec(mouse, rectSalir)) opcionMenuInicial = 2;
 
-    // 3. Selección
+    // 3. Seleccion
     bool clicked = IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
     bool enter = (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_E));
     bool clickValido = false;
@@ -337,11 +345,9 @@ void Juego::dibujarMenuInicial()
     float centerX = ((float)Constantes::ANCHO_PANTALLA - btnW) / 2.0f;
 
     // --- TINTE OSCURO PARA LOS BOTONES ---
-    // Usamos un gris claro (180) para que el botón se vea "un poco más oscuro"
-    // que su brillo original máximo.
     Color tinteBoton = { 180, 180, 180, 255 };
 
-    // Helper Lambda para dibujar botón escalado
+    // Helper Lambda para dibujar boton escalado
     auto DibujarBotonSeguro = [&](Texture2D& tex, int yOffset, bool seleccionado, const char* textoError) {
         float posY = startY + yOffset * (btnH + spacing);
 
@@ -363,15 +369,15 @@ void Juego::dibujarMenuInicial()
         }
     };
 
-    // BOTÓN JUGAR
+    // BOTON JUGAR
     Texture2D tJugar = (opcionMenuInicial == 0) ? texBtnJugarSel : texBtnJugar;
     DibujarBotonSeguro(tJugar, 0, (opcionMenuInicial == 0), "ERR: Jugar.png");
 
-    // BOTÓN CRÉDITOS
+    // BOTON CREDITOS
     Texture2D tCreditos = (opcionMenuInicial == 1) ? texBtnCreditosSel : texBtnCreditos;
     DibujarBotonSeguro(tCreditos, 1, (opcionMenuInicial == 1), "ERR: Creditos.png");
 
-    // BOTÓN SALIR
+    // BOTON SALIR
     Texture2D tSalir = (opcionMenuInicial == 2) ? texBtnSalirInicioSel : texBtnSalirInicio;
     DibujarBotonSeguro(tSalir, 2, (opcionMenuInicial == 2), "ERR: Salir.png");
 }
@@ -385,13 +391,20 @@ void Juego::actualizarCreditos()
 
 void Juego::dibujarCreditos()
 {
-    ClearBackground(BLACK);
+    // --- AQUI ES DONDE DIBUJAMOS LA IMAGEN DE FONDO ---
+    if (texFondoCreditos.id != 0) {
+        Rectangle src = { 0, 0, (float)texFondoCreditos.width, (float)texFondoCreditos.height };
+        Rectangle dest = { 0, 0, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA };
+        DrawTexturePro(texFondoCreditos, src, dest, {0,0}, 0.0f, WHITE);
+    } else {
+        ClearBackground(BLACK);
+        // Si no hay imagen, dibujamos el titulo manual
+        DibujarTextoGlitch("CREDITOS", 50, 50, 40, PURPLE);
+    }
 
-    // Título
-    DibujarTextoGlitch("CREDITOS", 50, 50, 40, PURPLE);
-
-    int startY = 130;
-    int stepY = 35; // Espaciado vertical reducido para que entre todo
+    // Ajustamos la posicion Y para que no pise el titulo de la imagen
+    int startY = 220;
+    int stepY = 35;
 
     // --- DESARROLLO ---
     DrawText("Desarrollo:", 50, startY, 20, WHITE);
@@ -414,7 +427,7 @@ void Juego::dibujarCreditos()
 
     // --- AGRADECIMIENTOS ---
     DrawText("Agradecimientos Especiales:", 50, startY, 20, WHITE);
-    DrawText("A Ignacio Rodriguez y a Santi ", 50, startY + stepY, 20, GRAY);
+    DrawText("A nuestros profesores y testers", 50, startY + stepY, 20, GRAY);
 
     // Pie
     const char* msg = "Volver [E]";
