@@ -1,10 +1,70 @@
 #include "Zombie.h"
 #include "Constantes.h"
 #include "raymath.h"
-#include "Protagonista.h" // ¡¡Importante!!
-#include "Mapa.h"         // ¡¡AÑADIDO!!
+#include <string>
+#include "Protagonista.h"
 
-// --- CORREGIDO: Constructor llama a 8 args ---
+// Inicialización de estáticos
+std::vector<Texture2D> Zombie::animIdle;
+std::vector<Texture2D> Zombie::animCaminando;
+std::vector<Texture2D> Zombie::animAtaque;
+std::vector<Texture2D> Zombie::animMuerte;
+bool Zombie::texturasCargadas = false;
+
+const float VELOCIDAD_ANIM_ZOMBIE = 10.0f;
+const float VELOCIDAD_ANIM_MUERTE = 5.0f;
+
+void Zombie::CargarTexturas()
+{
+    if (!texturasCargadas)
+    {
+        // 1. Idle
+        animIdle.push_back(LoadTexture("assets/Zombie/ZombieIdle.png"));
+
+        // 2. Caminando (6 frames + FIX FLUIDEZ)
+        for (int i = 1; i <= 6; i++) {
+            std::string path = "assets/Zombie/ZombieCaminando" + std::to_string(i) + ".png";
+            animCaminando.push_back(LoadTexture(path.c_str()));
+        }
+        // Duplicamos frames intermedios al final para ciclo suave
+        if (animCaminando.size() >= 4) {
+            animCaminando.push_back(animCaminando[2]);
+            animCaminando.push_back(animCaminando[3]);
+        }
+
+        // 3. Ataque
+        for (int i = 1; i <= 5; i++) {
+            std::string path = "assets/Zombie/ZombieAtaque" + std::to_string(i) + ".png";
+            animAtaque.push_back(LoadTexture(path.c_str()));
+        }
+
+        // 4. Muriendo
+        for (int i = 1; i <= 3; i++) {
+            std::string path = "assets/Zombie/ZombieMuriendo" + std::to_string(i) + ".png";
+            animMuerte.push_back(LoadTexture(path.c_str()));
+        }
+
+        texturasCargadas = true;
+    }
+}
+
+void Zombie::DescargarTexturas()
+{
+    if (texturasCargadas)
+    {
+        for (auto& t : animIdle) UnloadTexture(t);
+        for (auto& t : animCaminando) UnloadTexture(t);
+        for (auto& t : animAtaque) UnloadTexture(t);
+        for (auto& t : animMuerte) UnloadTexture(t);
+
+        animIdle.clear();
+        animCaminando.clear();
+        animAtaque.clear();
+        animMuerte.clear();
+        texturasCargadas = false;
+    }
+}
+
 Zombie::Zombie(Vector2 pos)
     : Enemigo(pos,
               Constantes::VIDA_ZOMBIE,
@@ -13,147 +73,220 @@ Zombie::Zombie(Vector2 pos)
               Constantes::RADIO_ZOMBIE,
               Constantes::RANGO_VISUAL_ZOMBIE,
               Constantes::ANGULO_CONO_ZOMBIE,
-              Constantes::RANGO_AUDIO_ZOMBIE)
+              Constantes::RANGO_AUDIO_ZOMBIE),
+      frameActual(0),
+      tiempoAnimacion(0.0f),
+      estaMuriendo(false),
+      animacionMuerteTerminada(false),
+      animacionActual(&animIdle)
 {
-    // --- ¡¡VALORES MODIFICADOS!! ---
-    this->rangoAtaque = 40.0f;
-    this->rangoDmg = 60.0f;  // Alcance aumentado
+    if (!texturasCargadas) CargarTexturas();
 }
 
-// --- ¡¡LÓGICA DE IA CON FSM DE 3 ESTADOS!! ---
-void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
+Zombie::~Zombie() {}
 
-    // --- 0. ACTUALIZAR TIMERS ---
-    // (el temporizadorDanio se actualiza en actualizarBase())
-    if (temporizadorAtaque > 0.0f) {
-        temporizadorAtaque -= GetFrameTime();
-    }
-    if (temporizadorPausaAtaque > 0.0f) {
-        temporizadorPausaAtaque -= GetFrameTime();
-    }
+void Zombie::recibirDanio(int cantidad)
+{
+    if (estaMuriendo) return;
 
-    // --- 1. TRANSICIONES DE ESTADO ---
-    bool jugadorDetectado = puedeVearAlJugador(posJugador) || puedeEscucharAlJugador(posJugador);
-    float distancia = Vector2Distance(posicion, posJugador);
+    Enemigo::recibirDanio(cantidad);
 
-    switch (estadoActual)
+    if (vida <= 0)
     {
-        case EstadoIA::PATRULLANDO:
+        vida = 0;
+        estaMuriendo = true;
+        frameActual = 0;
+        tiempoAnimacion = 0.0f;
+        animacionActual = &animMuerte;
+    }
+}
+
+bool Zombie::estaMuerto() const
+{
+    return animacionMuerteTerminada;
+}
+
+void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
+{
+    float dt = GetFrameTime();
+
+    // --- 1. LÓGICA DE MUERTE ---
+    if (estaMuriendo)
+    {
+        tiempoAnimacion += dt;
+        if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_MUERTE))
         {
-            if (jugadorDetectado) {
+            tiempoAnimacion = 0.0f;
+            if (frameActual < (int)animMuerte.size() - 1) {
+                frameActual++;
+            } else {
+                // Mantenemos el cadáver un instante y luego marcamos para borrar
+                animacionMuerteTerminada = true;
+            }
+        }
+        return;
+    }
+
+    // --- 2. LÓGICA DE COMPORTAMIENTO ---
+    Vector2 velocidadMov = {0, 0};
+
+    // Detección
+    bool veJugador = puedeVearAlJugador(posJugador);
+    bool escuchaJugador = puedeEscucharAlJugador(posJugador);
+
+    if (veJugador || escuchaJugador) {
+        estadoActual = EstadoIA::PERSIGUIENDO;
+    }
+
+    // Ajuste de Rango de Ataque visual (Radio + margen)
+    // Como el zombie es visualmente grande (3.8x), aumentamos el rango efectivo
+    float distanciaAtaque = 50.0f; // Aumentado de 25.0f a 50.0f
+
+    if (estadoActual == EstadoIA::PERSIGUIENDO)
+    {
+        Vector2 dirHaciaJugador = Vector2Normalize(Vector2Subtract(posJugador, posicion));
+
+        // Comprobar rango de ataque corregido
+        if (Vector2Distance(posicion, posJugador) <= distanciaAtaque)
+        {
+             // Solo entramos en ataque si no estamos en cooldown
+             if (temporizadorPausaAtaque <= 0) {
+                 estadoActual = EstadoIA::ATACANDO;
+                 frameActual = 0;
+                 tiempoAnimacion = 0.0f;
+             }
+             // Si estamos en cooldown, nos quedamos quietos mirando al jugador
+             else {
+                 setDireccion(dirHaciaJugador);
+             }
+        }
+        else
+        {
+             // Perseguir
+             velocidadMov = Vector2Scale(dirHaciaJugador, velocidad);
+             setDireccion(dirHaciaJugador);
+        }
+    }
+    else if (estadoActual == EstadoIA::PATRULLANDO)
+    {
+        if (temporizadorPatrulla > 0) {
+            temporizadorPatrulla -= dt;
+        } else {
+             // Moviéndose en patrulla
+             Vector2 dirPatrulla = Vector2Normalize(Vector2Subtract(destinoPatrulla, posicion));
+
+             if (Vector2Distance(posicion, destinoPatrulla) < 10.0f) {
+                 elegirNuevoDestinoPatrulla(mapa);
+             } else {
+                 velocidadMov = Vector2Scale(dirPatrulla, velocidad * 0.5f);
+                 setDireccion(dirPatrulla);
+             }
+        }
+    }
+
+    // Cooldown del ataque
+    if (temporizadorPausaAtaque > 0) {
+        temporizadorPausaAtaque -= dt;
+    }
+
+    // Aplicar dirección (si hay movimiento)
+    if (estadoActual != EstadoIA::ATACANDO && Vector2Length(velocidadMov) > 0) {
+        setDireccion(Vector2Normalize(velocidadMov));
+    }
+
+    // --- 3. SELECCIÓN DE ANIMACIÓN ---
+    std::vector<Texture2D>* animAnterior = animacionActual;
+
+    if (estadoActual == EstadoIA::ATACANDO)
+    {
+        animacionActual = &animAtaque;
+        tiempoAnimacion += dt;
+        // Ataque fluido
+        if (tiempoAnimacion >= (1.0f / 12.0f)) {
+            tiempoAnimacion = 0.0f;
+            frameActual++;
+
+            // Momento del daño (ej: frame 2 o 3)
+            if (frameActual == 2) {
+                 // Aquí aplicamos el daño justo cuando la animación golpea
+                 if (Vector2Distance(posicion, posJugador) <= distanciaAtaque + 10.0f) {
+                    atacar(const_cast<Protagonista&>(*reinterpret_cast<Protagonista*>(0)));
+                 }
+            }
+
+            if (frameActual >= (int)animAtaque.size()) {
+                // Fin del ataque
                 estadoActual = EstadoIA::PERSIGUIENDO;
+                temporizadorPausaAtaque = 1.0f; // Cooldown de 1s
+                frameActual = 0;
             }
-            break;
-        }
-        case EstadoIA::PERSIGUIENDO:
-        {
-            // Transicion a ATACAR
-            if (jugadorDetectado && distancia <= this->rangoAtaque && temporizadorAtaque <= 0.0f) {
-                estadoActual = EstadoIA::ATACANDO;
-                temporizadorPausaAtaque = 0.2f; // Pausa unificada y rapida
-                this->direccion = {0, 0}; // ¡Se frena!
-            }
-            // Transicion a PATRULLAR
-            else if (!jugadorDetectado && distancia > rangoVision * 1.5f) {
-                estadoActual = EstadoIA::PATRULLANDO;
-                temporizadorPatrulla = 0.0f;
-            }
-            break;
-        }
-        case EstadoIA::ATACANDO:
-        {
-            // La transicion de salida (ATACANDO -> PERSIGUIENDO)
-            // ocurre en el metodo atacar()
-            break;
         }
     }
-
-    // --- 2. ACCIONES DE ESTADO ---
-    Vector2 objetivo = posicion; // Por defecto, quedarse quieto
-
-    switch (estadoActual)
+    else
     {
-        case EstadoIA::PATRULLANDO:
+        // --- FIX "PATRULLA PATINANDO" ---
+        // Si hay velocidad real, caminamos. Si no, idle.
+        if (Vector2Length(velocidadMov) > 0.1f) {
+            animacionActual = &animCaminando;
+        } else {
+            animacionActual = &animIdle;
+        }
+
+        // Loop normal
+        tiempoAnimacion += dt;
+        if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_ZOMBIE))
         {
-            temporizadorPatrulla -= GetFrameTime();
-            if (temporizadorPatrulla <= 0.0f || Vector2Distance(posicion, destinoPatrulla) < radio * 2.0f) {
-                elegirNuevoDestinoPatrulla(mapa);
+            tiempoAnimacion = 0.0f;
+            frameActual++;
+            if (frameActual >= (int)animacionActual->size()) {
+                frameActual = 0;
             }
-            objetivo = destinoPatrulla;
-            break;
-        }
-        case EstadoIA::PERSIGUIENDO:
-        {
-            objetivo = posJugador;
-            break;
-        }
-        case EstadoIA::ATACANDO:
-        {
-            // Se queda quieto
-            break;
         }
     }
 
-    // --- 3. ACTUALIZAR DIRECCIÓN (para MotorFisica) ---
-    Vector2 vectorHaciaObjetivo = Vector2Subtract(objetivo, this->posicion);
-
-    if (estadoActual == EstadoIA::ATACANDO) {
-        this->direccion = {0, 0}; // Forzar freno
-    } else if (Vector2LengthSqr(vectorHaciaObjetivo) > 10.0f) {
-        this->direccion = Vector2Normalize(vectorHaciaObjetivo);
+    // Reset de frame al cambiar de tipo de animación (para que no empiece a caminar en el frame 5)
+    if (animAnterior != animacionActual && estadoActual != EstadoIA::ATACANDO) {
+        frameActual = 0;
+        tiempoAnimacion = 0.0f;
     }
 }
 
-void Zombie::dibujar() {
-    // --- ¡¡LÓGICA DE DIBUJO MODIFICADA!! ---
-    Color color = GREEN;
-
-    // ¡NUEVO! Parpadea en ROJO al recibir daño
-    if (this->temporizadorDanio > 0.0f) {
-        // Hacemos que parpadee rojo/verde en lugar de ser un color solido
-        if ( (int)(this->temporizadorDanio * 20) % 2 == 0) {
-             color = RED;
-        }
-    }
-    // ----------------------------------------
-
-    DrawCircleV(this->posicion, this->radio, color);
-
-    Vector2 posCara = Vector2Add(this->posicion, Vector2Scale(this->direccion, this->radio));
-    DrawRectangle(posCara.x - 3, posCara.y - 3, 6, 6, DARKGREEN);
+void Zombie::atacar(Protagonista& jugador)
+{
+    // El control de cooldown ya se hace arriba, aquí aplicamos el efecto
+    jugador.recibirDanio(this->danio);
 }
 
-// --- ¡¡LÓGICA DE DAÑO "LUNGE"!! ---
-void Zombie::atacar(Protagonista& jugador) {
-    // Esta funcion es llamada por MotorColisiones cuando
-    // estaListoParaAtacar() devuelve true.
-
-    float distancia = Vector2Distance(this->posicion, jugador.getPosicion());
-
-    // Si el jugador esta dentro del rango de golpeo
-    if (distancia <= this->rangoDmg)
+void Zombie::dibujar()
+{
+    if (!texturasCargadas || !animacionActual || animacionActual->empty())
     {
-        float tiempoInmuneAntes = jugador.getTiempoInmune();
-
-        jugador.recibirDanio(this->danio); // ¡Golpe!
-
-        float tiempoInmuneDespues = jugador.getTiempoInmune();
-
-        // Si el golpe fue exitoso (no estaba inmune), aplicar knockback
-        if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
-        {
-            Vector2 dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), this->posicion));
-            if (Vector2LengthSqr(dirKnockback) == 0.0f) {
-                dirKnockback = {1.0f, 0.0f};
-            }
-            // Valores ajustados (lento y fluido)
-            float fuerza = 3.0f;
-            float duracion = 0.2f;
-            jugador.aplicarKnockback(dirKnockback, fuerza, duracion);
-        }
+        DrawCircleV(posicion, radio, DARKGREEN);
+        return;
     }
 
-    // --- IMPORTANTE: Resetear la IA ---
-    this->temporizadorAtaque = 2.0f; // Cooldown de 2s
-    this->estadoActual = EstadoIA::PERSIGUIENDO;
+    if (frameActual < 0) frameActual = 0;
+    if (frameActual >= (int)animacionActual->size()) frameActual = 0;
+
+    Texture2D tex = (*animacionActual)[frameActual];
+    float rotacion = atan2f(direccion.y, direccion.x) * RAD2DEG;
+
+    // --- FIX "ENCOGIMIENTO AL MORIR" ---
+    // Usamos siempre la textura IDLE como referencia para calcular la escala.
+    // Así, si la textura de muerte es más ancha, no afectará la escala.
+    Texture2D texReferencia = animIdle[0];
+
+    // Escala grande (3.8x respecto al radio físico)
+    float escala = (radio * 3.8f) / (float)texReferencia.width;
+
+    Rectangle sourceRec = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
+
+    // El destino usa el tamaño de la textura actual multiplicado por la escala constante
+    Rectangle destRec = { posicion.x, posicion.y, (float)tex.width * escala, (float)tex.height * escala };
+    Vector2 origen = { destRec.width / 2.0f, destRec.height / 2.0f };
+
+    Color colorFinal = WHITE;
+    if (temporizadorDanio > 0) colorFinal = RED;
+
+    DrawTexturePro(tex, sourceRec, destRec, origen, rotacion, colorFinal);
 }

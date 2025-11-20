@@ -575,8 +575,10 @@
 	"Cofre.h"
 	"Nota.h"
 
-1762445336 c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.h
+1763615761 c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.h
 	"Enemigo.h"
+	<vector>
+	<string>
 
 1762445349 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
 	"Enemigo.h"
