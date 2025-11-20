@@ -4,18 +4,16 @@
 #include "MinaEnemiga.h"
 #include "TrozoDeCarne.h"
 #include "Constantes.h"
-#include "BalaDeRifle.h" // <-- ¡Importante! Incluir la cabecera de la bala
+#include "BalaDeRifle.h"
 
 GestorEntidades::GestorEntidades()
 {
-    // Cargar texturas estáticas (como la bala) al iniciar el gestor
     BalaDeRifle::CargarTextura();
 }
 
 GestorEntidades::~GestorEntidades()
 {
     limpiarTodo();
-    // Descargar texturas estáticas al destruir el gestor
     BalaDeRifle::DescargarTextura();
 }
 
@@ -24,7 +22,9 @@ void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& m
     Vector2 posJugador = jugador.getPosicion();
 
     for (Enemigo* enemigo : enemigos) {
-        if (enemigo->estaVivo()) {
+        // --- CORRECCIÓN CLAVE: Usamos !estaMuerto() en vez de estaVivo() ---
+        // Esto permite que el Zombie se actualice mientras hace su animación de muerte.
+        if (!enemigo->estaMuerto()) {
             enemigo->actualizarBase();
             enemigo->actualizarIA(posJugador, mapa);
         }
@@ -76,7 +76,8 @@ void GestorEntidades::dibujarEntidades()
     }
 
     for (Enemigo* enemigo : enemigos) {
-        if (enemigo->estaVivo()) {
+        // --- CORRECCIÓN CLAVE: Dibujamos aunque tenga 0 vida (si está muriendo) ---
+        if (!enemigo->estaMuerto()) {
             enemigo->dibujar();
         }
     }
@@ -97,8 +98,6 @@ void GestorEntidades::recolectarBasura()
     limpiarLista(enemigos);
     limpiarLista(balas);
     limpiarLista(consumibles);
-    // 　NO LIMPIAMOS AL JEFE!!
-    // limpiarLista(jefes);
 }
 
 void GestorEntidades::limpiarTodo()

@@ -7,7 +7,6 @@ class Zombie : public Enemigo
 {
 private:
     // --- SISTEMA DE ANIMACIÓN ---
-    static std::vector<Texture2D> animIdle;
     static std::vector<Texture2D> animCaminando;
     static std::vector<Texture2D> animAtaque;
     static std::vector<Texture2D> animMuerte;
@@ -20,6 +19,10 @@ private:
     // Control de Muerte
     bool estaMuriendo;
     bool animacionMuerteTerminada;
+    float temporizadorCadaver;
+
+    // Control de Ataque
+    bool haDaniadoEnEsteAtaque;
 
     // Puntero a la animación activa
     std::vector<Texture2D>* animacionActual;
@@ -37,6 +40,5 @@ public:
     void atacar(Protagonista& jugador) override;
     void recibirDanio(int cantidad) override;
 
-    // CRÍTICO: Esto evita que el Gestor lo borre antes de tiempo
     bool estaMuerto() const override;
 };

@@ -5,40 +5,37 @@
 #include "Protagonista.h"
 
 // Inicialización de estáticos
-std::vector<Texture2D> Zombie::animIdle;
 std::vector<Texture2D> Zombie::animCaminando;
 std::vector<Texture2D> Zombie::animAtaque;
 std::vector<Texture2D> Zombie::animMuerte;
 bool Zombie::texturasCargadas = false;
 
 const float VELOCIDAD_ANIM_ZOMBIE = 10.0f;
-const float VELOCIDAD_ANIM_MUERTE = 5.0f;
+const float VELOCIDAD_ANIM_ATAQUE = 10.0f;
+const float VELOCIDAD_ANIM_MUERTE = 6.0f;
+const float TIEMPO_CADAVER_EN_PISO = 5.0f; // Tiempo que se queda el cuerpo (5 seg)
 
 void Zombie::CargarTexturas()
 {
     if (!texturasCargadas)
     {
-        // 1. Idle
-        animIdle.push_back(LoadTexture("assets/Zombie/ZombieIdle.png"));
-
-        // 2. Caminando (6 frames + FIX FLUIDEZ)
+        // 1. Caminando
         for (int i = 1; i <= 6; i++) {
             std::string path = "assets/Zombie/ZombieCaminando" + std::to_string(i) + ".png";
             animCaminando.push_back(LoadTexture(path.c_str()));
         }
-        // Duplicamos frames intermedios al final para ciclo suave
         if (animCaminando.size() >= 4) {
             animCaminando.push_back(animCaminando[2]);
             animCaminando.push_back(animCaminando[3]);
         }
 
-        // 3. Ataque
+        // 2. Ataque
         for (int i = 1; i <= 5; i++) {
             std::string path = "assets/Zombie/ZombieAtaque" + std::to_string(i) + ".png";
             animAtaque.push_back(LoadTexture(path.c_str()));
         }
 
-        // 4. Muriendo
+        // 3. Muriendo
         for (int i = 1; i <= 3; i++) {
             std::string path = "assets/Zombie/ZombieMuriendo" + std::to_string(i) + ".png";
             animMuerte.push_back(LoadTexture(path.c_str()));
@@ -52,12 +49,10 @@ void Zombie::DescargarTexturas()
 {
     if (texturasCargadas)
     {
-        for (auto& t : animIdle) UnloadTexture(t);
         for (auto& t : animCaminando) UnloadTexture(t);
         for (auto& t : animAtaque) UnloadTexture(t);
         for (auto& t : animMuerte) UnloadTexture(t);
 
-        animIdle.clear();
         animCaminando.clear();
         animAtaque.clear();
         animMuerte.clear();
@@ -78,7 +73,9 @@ Zombie::Zombie(Vector2 pos)
       tiempoAnimacion(0.0f),
       estaMuriendo(false),
       animacionMuerteTerminada(false),
-      animacionActual(&animIdle)
+      temporizadorCadaver(0.0f),
+      haDaniadoEnEsteAtaque(false),
+      animacionActual(&animCaminando)
 {
     if (!texturasCargadas) CargarTexturas();
 }
@@ -98,11 +95,13 @@ void Zombie::recibirDanio(int cantidad)
         frameActual = 0;
         tiempoAnimacion = 0.0f;
         animacionActual = &animMuerte;
+        temporizadorCadaver = TIEMPO_CADAVER_EN_PISO;
     }
 }
 
 bool Zombie::estaMuerto() const
 {
+    // Solo devolvemos true (para borrarlo) cuando termina TODA la secuencia
     return animacionMuerteTerminada;
 }
 
@@ -113,24 +112,63 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
     // --- 1. LÓGICA DE MUERTE ---
     if (estaMuriendo)
     {
-        tiempoAnimacion += dt;
-        if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_MUERTE))
+        // Si aún no terminamos los frames de caer...
+        if (frameActual < (int)animMuerte.size() - 1)
         {
-            tiempoAnimacion = 0.0f;
-            if (frameActual < (int)animMuerte.size() - 1) {
+            tiempoAnimacion += dt;
+            if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_MUERTE))
+            {
+                tiempoAnimacion = 0.0f;
                 frameActual++;
+            }
+        }
+        // Si ya cayó al suelo...
+        else
+        {
+            frameActual = (int)animMuerte.size() - 1; // Mantener frame final
+
+            if (temporizadorCadaver > 0) {
+                temporizadorCadaver -= dt;
             } else {
-                // Mantenemos el cadáver un instante y luego marcamos para borrar
-                animacionMuerteTerminada = true;
+                animacionMuerteTerminada = true; // Ahora sí, adiós.
             }
         }
         return;
     }
 
-    // --- 2. LÓGICA DE COMPORTAMIENTO ---
+
+    // --- 2. LÓGICA DE ATAQUE ---
+    if (estadoActual == EstadoIA::ATACANDO)
+    {
+        animacionActual = &animAtaque;
+        tiempoAnimacion += dt;
+
+        if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_ATAQUE))
+        {
+            tiempoAnimacion = 0.0f;
+            frameActual++;
+
+            // Nota: El daño ya no se llama aquí para evitar el crash.
+            // Se maneja en 'atacar()' que es llamado por MotorColisiones.
+
+            if (frameActual >= (int)animAtaque.size()) {
+                // Fin animación ataque
+                estadoActual = EstadoIA::PERSIGUIENDO;
+                temporizadorPausaAtaque = 1.2f; // Cooldown
+                frameActual = 0;
+                haDaniadoEnEsteAtaque = false;
+            }
+        }
+        return; // Bloqueamos movimiento mientras ataca
+    }
+
+
+    // --- 3. LÓGICA DE MOVIMIENTO ---
+
+    if (temporizadorPausaAtaque > 0) temporizadorPausaAtaque -= dt;
+
     Vector2 velocidadMov = {0, 0};
 
-    // Detección
     bool veJugador = puedeVearAlJugador(posJugador);
     bool escuchaJugador = puedeEscucharAlJugador(posJugador);
 
@@ -138,31 +176,29 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         estadoActual = EstadoIA::PERSIGUIENDO;
     }
 
-    // Ajuste de Rango de Ataque visual (Radio + margen)
-    // Como el zombie es visualmente grande (3.8x), aumentamos el rango efectivo
-    float distanciaAtaque = 50.0f; // Aumentado de 25.0f a 50.0f
+    float distanciaAtaque = 50.0f;
 
     if (estadoActual == EstadoIA::PERSIGUIENDO)
     {
         Vector2 dirHaciaJugador = Vector2Normalize(Vector2Subtract(posJugador, posicion));
 
-        // Comprobar rango de ataque corregido
         if (Vector2Distance(posicion, posJugador) <= distanciaAtaque)
         {
-             // Solo entramos en ataque si no estamos en cooldown
              if (temporizadorPausaAtaque <= 0) {
+                 // Iniciar ataque
                  estadoActual = EstadoIA::ATACANDO;
                  frameActual = 0;
                  tiempoAnimacion = 0.0f;
+                 haDaniadoEnEsteAtaque = false;
+                 return;
              }
-             // Si estamos en cooldown, nos quedamos quietos mirando al jugador
              else {
+                 // Esperando cooldown
                  setDireccion(dirHaciaJugador);
              }
         }
         else
         {
-             // Perseguir
              velocidadMov = Vector2Scale(dirHaciaJugador, velocidad);
              setDireccion(dirHaciaJugador);
         }
@@ -172,9 +208,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         if (temporizadorPatrulla > 0) {
             temporizadorPatrulla -= dt;
         } else {
-             // Moviéndose en patrulla
              Vector2 dirPatrulla = Vector2Normalize(Vector2Subtract(destinoPatrulla, posicion));
-
              if (Vector2Distance(posicion, destinoPatrulla) < 10.0f) {
                  elegirNuevoDestinoPatrulla(mapa);
              } else {
@@ -184,77 +218,33 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         }
     }
 
-    // Cooldown del ataque
-    if (temporizadorPausaAtaque > 0) {
-        temporizadorPausaAtaque -= dt;
-    }
-
-    // Aplicar dirección (si hay movimiento)
-    if (estadoActual != EstadoIA::ATACANDO && Vector2Length(velocidadMov) > 0) {
+    if (Vector2Length(velocidadMov) > 0) {
         setDireccion(Vector2Normalize(velocidadMov));
     }
 
-    // --- 3. SELECCIÓN DE ANIMACIÓN ---
-    std::vector<Texture2D>* animAnterior = animacionActual;
+    // --- 4. ANIMACIÓN MOVIMIENTO ---
+    animacionActual = &animCaminando;
 
-    if (estadoActual == EstadoIA::ATACANDO)
+    tiempoAnimacion += dt;
+    if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_ZOMBIE))
     {
-        animacionActual = &animAtaque;
-        tiempoAnimacion += dt;
-        // Ataque fluido
-        if (tiempoAnimacion >= (1.0f / 12.0f)) {
-            tiempoAnimacion = 0.0f;
-            frameActual++;
-
-            // Momento del daño (ej: frame 2 o 3)
-            if (frameActual == 2) {
-                 // Aquí aplicamos el daño justo cuando la animación golpea
-                 if (Vector2Distance(posicion, posJugador) <= distanciaAtaque + 10.0f) {
-                    atacar(const_cast<Protagonista&>(*reinterpret_cast<Protagonista*>(0)));
-                 }
-            }
-
-            if (frameActual >= (int)animAtaque.size()) {
-                // Fin del ataque
-                estadoActual = EstadoIA::PERSIGUIENDO;
-                temporizadorPausaAtaque = 1.0f; // Cooldown de 1s
-                frameActual = 0;
-            }
-        }
-    }
-    else
-    {
-        // --- FIX "PATRULLA PATINANDO" ---
-        // Si hay velocidad real, caminamos. Si no, idle.
-        if (Vector2Length(velocidadMov) > 0.1f) {
-            animacionActual = &animCaminando;
-        } else {
-            animacionActual = &animIdle;
-        }
-
-        // Loop normal
-        tiempoAnimacion += dt;
-        if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_ZOMBIE))
-        {
-            tiempoAnimacion = 0.0f;
-            frameActual++;
-            if (frameActual >= (int)animacionActual->size()) {
-                frameActual = 0;
-            }
-        }
-    }
-
-    // Reset de frame al cambiar de tipo de animación (para que no empiece a caminar en el frame 5)
-    if (animAnterior != animacionActual && estadoActual != EstadoIA::ATACANDO) {
-        frameActual = 0;
         tiempoAnimacion = 0.0f;
+        frameActual++;
+        if (frameActual >= (int)animacionActual->size()) {
+            frameActual = 0;
+        }
     }
 }
 
 void Zombie::atacar(Protagonista& jugador)
 {
-    // El control de cooldown ya se hace arriba, aquí aplicamos el efecto
-    jugador.recibirDanio(this->danio);
+    // Esta función es llamada por MotorColisiones cada frame si estamos ATACANDO
+    // Solo aplicamos daño en el frame 2
+    if (frameActual == 2 && !haDaniadoEnEsteAtaque)
+    {
+        jugador.recibirDanio(this->danio);
+        haDaniadoEnEsteAtaque = true;
+    }
 }
 
 void Zombie::dibujar()
@@ -271,22 +261,21 @@ void Zombie::dibujar()
     Texture2D tex = (*animacionActual)[frameActual];
     float rotacion = atan2f(direccion.y, direccion.x) * RAD2DEG;
 
-    // --- FIX "ENCOGIMIENTO AL MORIR" ---
-    // Usamos siempre la textura IDLE como referencia para calcular la escala.
-    // Así, si la textura de muerte es más ancha, no afectará la escala.
-    Texture2D texReferencia = animIdle[0];
-
-    // Escala grande (3.8x respecto al radio físico)
+    // Usamos la textura base para la escala constante (EVITA ENCOGIMIENTO)
+    Texture2D texReferencia = animCaminando[0];
     float escala = (radio * 3.8f) / (float)texReferencia.width;
 
     Rectangle sourceRec = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
-
-    // El destino usa el tamaño de la textura actual multiplicado por la escala constante
     Rectangle destRec = { posicion.x, posicion.y, (float)tex.width * escala, (float)tex.height * escala };
     Vector2 origen = { destRec.width / 2.0f, destRec.height / 2.0f };
 
     Color colorFinal = WHITE;
     if (temporizadorDanio > 0) colorFinal = RED;
+
+    // Desvanecimiento solo al final del tiempo de cadáver
+    if (estaMuriendo && temporizadorCadaver < 1.0f) {
+        colorFinal = Fade(WHITE, temporizadorCadaver);
+    }
 
     DrawTexturePro(tex, sourceRec, destRec, origen, rotacion, colorFinal);
 }
