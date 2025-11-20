@@ -1,11 +1,20 @@
 #pragma once
 #include "Enemigo.h"
+#include "raylib.h" // Necesario para Texture2D
 
-class Mapa; // <-- ¡AÑADIDO!
+class Mapa;
 
 class Fantasma : public Enemigo {
 private:
     Vector2 movimientoRecursivo(int profundidad);
+
+    // --- Texturas Estáticas (Para cargar solo una vez) ---
+    static Texture2D texNormalDer;
+    static Texture2D texNormalIzq;
+    static Texture2D texAtaqueDer;
+    static Texture2D texAtaqueIzq;
+    static bool texturasCargadas;
+    // ----------------------------------------------------
 
 public:
     // Variables de estado del Fantasma
@@ -13,26 +22,28 @@ public:
     static bool modoFuria;   // Para aura roja
     static bool modoDialogo; // Para no atacar
 
-    // --- TAREA 1: Lógica del Fantasma ---
-    static bool jefeEnCombate; // ¡NUEVO! Se activa cuando el jefe spawnea
-    // ------------------------------------
+    // Logica del Fantasma
+    static bool jefeEnCombate;
 
     // --- Estado de "Susto" ---
-    static bool estaAsustando;       // True si esta en el evento de susto
-    static float temporizadorSusto;  // Cuanto dura el susto
-    static Vector2 posSustoInicio;   // Posicion inicial del susto
-    static Vector2 posSustoFin;      // Posicion final del susto
+    static bool estaAsustando;
+    static float temporizadorSusto;
+    static Vector2 posSustoInicio;
+    static Vector2 posSustoFin;
 
-    // --- ¡¡NUEVO!!: Estado "Despertando" ---
+    // --- Estado "Despertando" ---
     static bool estaDespertando;
     static float temporizadorDespertar;
-    // -----------------------------------
 
-    // --- CORREGIDO: Llama al constructor de 8 args de Enemigo ---
     Fantasma(Vector2 pos);
+    // Destructor para asegurar limpieza si fuera necesario (aunque usamos estaticas)
+    virtual ~Fantasma() {}
 
-    // --- CORREGIDO: Firma de la funcion ---
-    // ¡¡MODIFICADO!! Añadido 'const Mapa& mapa'
+    // --- Métodos Estáticos de Gestión de Assets ---
+    static void CargarTexturas();
+    static void DescargarTexturas();
+    // ---------------------------------------------
+
     virtual void actualizarIA(Vector2 posJugador, const Mapa& mapa) override;
     virtual void dibujar() override;
     virtual void atacar(Protagonista& jugador) override;

@@ -368,7 +368,7 @@
 1763575044 c:\users\volpi\onedrive\escritorio\elcisma\src\botiquin.h
 	"Consumible.h"
 
-1763576331 source:c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.cpp
+1763590852 source:c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.cpp
 	"CajaDeMuniciones.h"
 	"raymath.h"
 
@@ -396,15 +396,16 @@
 	<vector>
 	"raymath.h"
 
-1762748704 source:c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.cpp
+1763596439 source:c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.cpp
 	"Fantasma.h"
 	"Constantes.h"
 	"raymath.h"
 	"Protagonista.h"
 	"Mapa.h"
 
-1762748571 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
+1763595666 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
 	"Enemigo.h"
+	"raylib.h"
 
 1763404572 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
 	"GestorEntidades.h"
@@ -464,7 +465,7 @@
 	"TrozoDeCarne.h"
 	"BalaInfernal.h"
 
-1763574889 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1763590859 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raymath.h"
@@ -538,7 +539,7 @@
 	<stdexcept>
 	<new>
 
-1763576312 source:c:\users\volpi\onedrive\escritorio\elcisma\src\llave.cpp
+1763591002 source:c:\users\volpi\onedrive\escritorio\elcisma\src\llave.cpp
 	"Llave.h"
 	"raymath.h"
 
