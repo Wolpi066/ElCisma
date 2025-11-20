@@ -1,159 +1,265 @@
 #include "MonstruoObeso.h"
 #include "Constantes.h"
 #include "raymath.h"
-#include "Protagonista.h" // ¡¡Importante!!
-#include "Mapa.h"         // ¡¡AÑADIDO!!
+#include <string>
+#include "Protagonista.h"
 
-// --- CORREGIDO: Constructor llama a 8 args ---
+// Inicialización de estáticos
+std::vector<Texture2D> MonstruoObeso::animCaminando;
+std::vector<Texture2D> MonstruoObeso::animAtaque;
+std::vector<Texture2D> MonstruoObeso::animMuerte;
+bool MonstruoObeso::texturasCargadas = false;
+
+// CONFIGURACIÓN DE "PESO"
+const float VELOCIDAD_ANIM_OBESO = 8.0f;
+const float VELOCIDAD_ANIM_ATAQUE_OBESO = 9.0f;
+const float VELOCIDAD_ANIM_MUERTE_OBESO = 6.0f;
+const float TIEMPO_CADAVER_OBESO = 10.0f;
+
+void MonstruoObeso::CargarTexturas()
+{
+    if (!texturasCargadas)
+    {
+        // 1. Caminando (Frames 1 a 7)
+        for (int i = 1; i <= 7; i++) {
+            std::string path = "assets/Obeso/ObesoCaminando" + std::to_string(i) + ".png";
+            animCaminando.push_back(LoadTexture(path.c_str()));
+        }
+
+        // 2. Ataque (Frames 1 a 6)
+        for (int i = 1; i <= 6; i++) {
+            std::string path = "assets/Obeso/ObesoAtacando" + std::to_string(i) + ".png";
+            animAtaque.push_back(LoadTexture(path.c_str()));
+        }
+
+        // 3. Muriendo (Frames 1 a 3)
+        for (int i = 1; i <= 3; i++) {
+            std::string path = "assets/Obeso/ObesoMuriendo" + std::to_string(i) + ".png";
+            animMuerte.push_back(LoadTexture(path.c_str()));
+        }
+
+        texturasCargadas = true;
+    }
+}
+
+void MonstruoObeso::DescargarTexturas()
+{
+    if (texturasCargadas)
+    {
+        for (auto& t : animCaminando) UnloadTexture(t);
+        for (auto& t : animAtaque) UnloadTexture(t);
+        for (auto& t : animMuerte) UnloadTexture(t);
+
+        animCaminando.clear();
+        animAtaque.clear();
+        animMuerte.clear();
+        texturasCargadas = false;
+    }
+}
+
 MonstruoObeso::MonstruoObeso(Vector2 pos)
     : Enemigo(pos,
               Constantes::VIDA_OBESO,
               Constantes::DANIO_OBESO,
               Constantes::VELOCIDAD_OBESO,
               Constantes::RADIO_OBESO,
-              Constantes::RANGO_VISUAL_ZOMBIE * 0.8f,
-              Constantes::ANGULO_CONO_ZOMBIE * 0.8f,
-              Constantes::RANGO_AUDIO_ZOMBIE * 1.2f)
+              Constantes::RANGO_VISUAL_ZOMBIE,
+              Constantes::ANGULO_CONO_ZOMBIE,
+              Constantes::RANGO_AUDIO_ZOMBIE),
+      frameActual(0),
+      tiempoAnimacion(0.0f),
+      estaMuriendo(false),
+      animacionMuerteTerminada(false),
+      temporizadorCadaver(0.0f),
+      haDaniadoEnEsteAtaque(false),
+      animacionActual(&animCaminando)
 {
-    // --- ¡¡VALORES MODIFICADOS!! ---
-    this->rangoAtaque = 60.0f;
-    this->rangoDmg = 85.0f;  // Alcance aumentado
+    if (!texturasCargadas) CargarTexturas();
 }
 
-// --- ¡¡LÓGICA DE IA CON FSM DE 3 ESTADOS!! ---
-void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
+MonstruoObeso::~MonstruoObeso() {}
 
-    // --- 0. ACTUALIZAR TIMERS ---
-    // (el temporizadorDanio se actualiza en actualizarBase())
-    if (temporizadorAtaque > 0.0f) {
-        temporizadorAtaque -= GetFrameTime();
-    }
-    if (temporizadorPausaAtaque > 0.0f) {
-        temporizadorPausaAtaque -= GetFrameTime();
-    }
+void MonstruoObeso::recibirDanio(int cantidad)
+{
+    if (estaMuriendo) return;
 
-    // --- 1. TRANSICIONES DE ESTADO ---
-    bool jugadorDetectado = puedeVearAlJugador(posJugador) || puedeEscucharAlJugador(posJugador);
-    float distancia = Vector2Distance(posicion, posJugador);
+    Enemigo::recibirDanio(cantidad);
 
-    switch (estadoActual)
+    if (vida <= 0)
     {
-        case EstadoIA::PATRULLANDO:
+        vida = 0;
+        estaMuriendo = true;
+        frameActual = 0;
+        tiempoAnimacion = 0.0f;
+        animacionActual = &animMuerte;
+        temporizadorCadaver = TIEMPO_CADAVER_OBESO;
+    }
+}
+
+bool MonstruoObeso::estaMuerto() const
+{
+    return animacionMuerteTerminada;
+}
+
+void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
+{
+    float dt = GetFrameTime();
+
+    // --- 1. MUERTE ---
+    if (estaMuriendo)
+    {
+        if (frameActual < (int)animMuerte.size() - 1)
         {
-            if (jugadorDetectado) {
+            tiempoAnimacion += dt;
+            if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_MUERTE_OBESO))
+            {
+                tiempoAnimacion = 0.0f;
+                frameActual++;
+            }
+        }
+        else
+        {
+            frameActual = (int)animMuerte.size() - 1;
+            if (temporizadorCadaver > 0) {
+                temporizadorCadaver -= dt;
+            } else {
+                animacionMuerteTerminada = true;
+            }
+        }
+        return;
+    }
+
+    // --- 2. ATAQUE (Bloqueante y SEGURO) ---
+    if (estadoActual == EstadoIA::ATACANDO)
+    {
+        animacionActual = &animAtaque;
+        tiempoAnimacion += dt;
+
+        if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_ATAQUE_OBESO))
+        {
+            tiempoAnimacion = 0.0f;
+            frameActual++;
+
+            if (frameActual >= (int)animAtaque.size()) {
                 estadoActual = EstadoIA::PERSIGUIENDO;
+                temporizadorPausaAtaque = 1.8f;
+                frameActual = 0;
+                haDaniadoEnEsteAtaque = false;
             }
-            break;
         }
-        case EstadoIA::PERSIGUIENDO:
-        {
-            // Transicion a ATACAR
-            if (jugadorDetectado && distancia <= this->rangoAtaque && temporizadorAtaque <= 0.0f) {
-                estadoActual = EstadoIA::ATACANDO;
-                temporizadorPausaAtaque = 0.2f; // Pausa unificada y rapida
-                this->direccion = {0, 0}; // ¡Se frena!
-            }
-            // Transicion a PATRULLAR
-            else if (!jugadorDetectado && distancia > rangoVision * 1.5f) {
-                estadoActual = EstadoIA::PATRULLANDO;
-                temporizadorPatrulla = 0.0f;
-            }
-            break;
-        }
-        case EstadoIA::ATACANDO:
-        {
-            // La transicion de salida (ATACANDO -> PERSIGUIENDO)
-            // ocurre en el metodo atacar()
-            break;
-        }
+        return; // Bloqueamos movimiento
     }
 
-    // --- 2. ACCIONES DE ESTADO ---
-    Vector2 objetivo = posicion; // Por defecto, quedarse quieto
+    // --- 3. MOVIMIENTO ---
+    if (temporizadorPausaAtaque > 0) temporizadorPausaAtaque -= dt;
 
-    switch (estadoActual)
+    Vector2 velocidadMov = {0, 0};
+
+    bool veJugador = puedeVearAlJugador(posJugador);
+    bool escuchaJugador = puedeEscucharAlJugador(posJugador);
+
+    if (veJugador || escuchaJugador) {
+        estadoActual = EstadoIA::PERSIGUIENDO;
+    }
+
+    float distanciaAtaque = getRadio() + 40.0f;
+
+    if (estadoActual == EstadoIA::PERSIGUIENDO)
     {
-        case EstadoIA::PATRULLANDO:
+        Vector2 dirHaciaJugador = Vector2Normalize(Vector2Subtract(posJugador, posicion));
+
+        if (Vector2Distance(posicion, posJugador) <= distanciaAtaque)
         {
-            temporizadorPatrulla -= GetFrameTime();
-            if (temporizadorPatrulla <= 0.0f || Vector2Distance(posicion, destinoPatrulla) < radio * 2.0f) {
-                elegirNuevoDestinoPatrulla(mapa);
-            }
-            objetivo = destinoPatrulla;
-            break;
+             if (temporizadorPausaAtaque <= 0) {
+                 estadoActual = EstadoIA::ATACANDO;
+                 frameActual = 0;
+                 tiempoAnimacion = 0.0f;
+                 haDaniadoEnEsteAtaque = false;
+                 return;
+             }
+             else {
+                 setDireccion(dirHaciaJugador);
+             }
         }
-        case EstadoIA::PERSIGUIENDO:
+        else
         {
-            objetivo = posJugador;
-            break;
+             velocidadMov = Vector2Scale(dirHaciaJugador, velocidad);
+             setDireccion(dirHaciaJugador);
         }
-        case EstadoIA::ATACANDO:
-        {
-            // Se queda quieto
-            break;
+    }
+    else if (estadoActual == EstadoIA::PATRULLANDO)
+    {
+        if (temporizadorPatrulla > 0) {
+            temporizadorPatrulla -= dt;
+        } else {
+             Vector2 dirPatrulla = Vector2Normalize(Vector2Subtract(destinoPatrulla, posicion));
+             if (Vector2Distance(posicion, destinoPatrulla) < 10.0f) {
+                 elegirNuevoDestinoPatrulla(mapa);
+             } else {
+                 velocidadMov = Vector2Scale(dirPatrulla, velocidad * 0.5f);
+                 setDireccion(dirPatrulla);
+             }
         }
     }
 
-    // --- 3. ACTUALIZAR DIRECCIÓN (para MotorFisica) ---
-    Vector2 vectorHaciaObjetivo = Vector2Subtract(objetivo, this->posicion);
+    if (Vector2Length(velocidadMov) > 0) {
+        setDireccion(Vector2Normalize(velocidadMov));
+    }
 
-    if (estadoActual == EstadoIA::ATACANDO) {
-        this->direccion = {0, 0}; // Forzar freno
-    } else if (Vector2LengthSqr(vectorHaciaObjetivo) > 10.0f) {
-        this->direccion = Vector2Normalize(vectorHaciaObjetivo);
+    // --- 4. ANIMACIÓN MOVIMIENTO ---
+    animacionActual = &animCaminando;
+
+    tiempoAnimacion += dt;
+    if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_OBESO))
+    {
+        tiempoAnimacion = 0.0f;
+        frameActual++;
+        if (frameActual >= (int)animacionActual->size()) {
+            frameActual = 0;
+        }
     }
 }
 
-void MonstruoObeso::dibujar() {
-    // --- ¡¡LÓGICA DE DIBUJO MODIFICADA!! ---
-    Color color = DARKGREEN;
-
-    // ¡NUEVO! Parpadea en ROJO al recibir daño
-    if (this->temporizadorDanio > 0.0f) {
-        // Hacemos que parpadee rojo/verde oscuro en lugar de ser un color solido
-        if ( (int)(this->temporizadorDanio * 20) % 2 == 0) {
-             color = RED;
-        }
+void MonstruoObeso::atacar(Protagonista& jugador)
+{
+    // Sincronizamos el daño con el Frame 3
+    if (frameActual == 3 && !haDaniadoEnEsteAtaque)
+    {
+        jugador.recibirDanio(this->danio);
+        haDaniadoEnEsteAtaque = true;
     }
-    // ----------------------------------------
-
-    DrawCircleV(this->posicion, this->radio, color);
-
-    Vector2 posCara = Vector2Add(this->posicion, Vector2Scale(this->direccion, this->radio));
-    DrawRectangle(posCara.x - 5, posCara.y - 5, 10, 10, GREEN);
 }
 
-// --- ¡¡LÓGICA DE DAÑO "LUNGE"!! ---
-void MonstruoObeso::atacar(Protagonista& jugador) {
-    // Esta funcion es llamada por MotorColisiones cuando
-    // estaListoParaAtacar() devuelve true.
-
-    float distancia = Vector2Distance(this->posicion, jugador.getPosicion());
-
-    // Si el jugador esta dentro del rango de golpeo
-    if (distancia <= this->rangoDmg)
+void MonstruoObeso::dibujar()
+{
+    if (!texturasCargadas || !animacionActual || animacionActual->empty())
     {
-        float tiempoInmuneAntes = jugador.getTiempoInmune();
-
-        jugador.recibirDanio(this->danio); // ¡Golpe!
-
-        float tiempoInmuneDespues = jugador.getTiempoInmune();
-
-        // Si el golpe fue exitoso (no estaba inmune), aplicar knockback
-        if (tiempoInmuneAntes <= 0.0f && tiempoInmuneDespues > 0.0f)
-        {
-            Vector2 dirKnockback = Vector2Normalize(Vector2Subtract(jugador.getPosicion(), this->posicion));
-            if (Vector2LengthSqr(dirKnockback) == 0.0f) {
-                dirKnockback = {1.0f, 0.0f};
-            }
-            // Valores ajustados (lento y fluido)
-            float fuerza = 3.0f;
-            float duracion = 0.2f;
-            jugador.aplicarKnockback(dirKnockback, fuerza, duracion);
-        }
+        DrawCircleV(posicion, radio, MAROON);
+        return;
     }
 
-    // --- IMPORTANTE: Resetear la IA ---
-    this->temporizadorAtaque = 2.5f; // Cooldown mas largo
-    this->estadoActual = EstadoIA::PERSIGUIENDO;
+    if (frameActual < 0) frameActual = 0;
+    if (frameActual >= (int)animacionActual->size()) frameActual = 0;
+
+    Texture2D tex = (*animacionActual)[frameActual];
+    float rotacion = atan2f(direccion.y, direccion.x) * RAD2DEG;
+
+    Texture2D texReferencia = animCaminando[0];
+
+    // --- VISUAL AUMENTADA (OBESO) ---
+    // Escalado 3.8x (Antes 3.0)
+    float escala = (radio * 3.8f) / (float)texReferencia.width;
+
+    Rectangle sourceRec = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
+    Rectangle destRec = { posicion.x, posicion.y, (float)tex.width * escala, (float)tex.height * escala };
+    Vector2 origen = { destRec.width / 2.0f, destRec.height / 2.0f };
+
+    Color colorFinal = WHITE;
+    if (temporizadorDanio > 0) colorFinal = RED;
+
+    if (estaMuriendo && temporizadorCadaver < 2.0f) {
+        colorFinal = Fade(WHITE, temporizadorCadaver / 2.0f);
+    }
+
+    DrawTexturePro(tex, sourceRec, destRec, origen, rotacion, colorFinal);
 }

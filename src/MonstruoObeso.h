@@ -1,16 +1,44 @@
 #pragma once
 #include "Enemigo.h"
+#include <vector>
+#include <string>
 
-class Mapa; // <-- ¡AÑADIDO!
+class MonstruoObeso : public Enemigo
+{
+private:
+    // --- SISTEMA DE ANIMACIÓN ---
+    static std::vector<Texture2D> animCaminando;
+    static std::vector<Texture2D> animAtaque;
+    static std::vector<Texture2D> animMuerte;
+    static bool texturasCargadas;
 
-class MonstruoObeso : public Enemigo {
+    // Estado visual individual
+    int frameActual;
+    float tiempoAnimacion;
+
+    // Control de Muerte
+    bool estaMuriendo;
+    bool animacionMuerteTerminada;
+    float temporizadorCadaver;
+
+    // Control de Ataque
+    bool haDaniadoEnEsteAtaque;
+
+    // Puntero a la animación activa
+    std::vector<Texture2D>* animacionActual;
+
 public:
-    // --- CORREGIDO: Llama al constructor de 8 args de Enemigo ---
     MonstruoObeso(Vector2 pos);
+    virtual ~MonstruoObeso();
 
-    // --- CORREGIDO: Firma de la función ---
-    // ¡MODIFICADO!
-    virtual void actualizarIA(Vector2 posJugador, const Mapa& mapa) override;
-    virtual void dibujar() override;
-    virtual void atacar(Protagonista& jugador) override;
+    static void CargarTexturas();
+    static void DescargarTexturas();
+
+    // Overrides
+    void actualizarIA(Vector2 posJugador, const Mapa& mapa) override;
+    void dibujar() override;
+    void atacar(Protagonista& jugador) override;
+    void recibirDanio(int cantidad) override;
+
+    bool estaMuerto() const override;
 };

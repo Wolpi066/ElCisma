@@ -552,7 +552,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.h
 	<string>
 
-1763647020 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
+1763668964 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
 	"Mapa.h"
 	"Constantes.h"
 	"raymath.h"
@@ -580,8 +580,10 @@
 	<vector>
 	<string>
 
-1762445349 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
+1763670519 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
 	"Enemigo.h"
+	<vector>
+	<string>
 
 1762461337 source:c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.cpp
 	"MonstruoObeso.h"
@@ -629,7 +631,7 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.cpp
 	"SistemaInput.h"
 
-1763643659 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
+1763668977 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
 	"SistemaRender.h"
 	"Constantes.h"
 	"Fantasma.h"
