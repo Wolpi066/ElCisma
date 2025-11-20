@@ -16,17 +16,13 @@ private:
     RenderTexture2D nieblaMinimapa;
     float minimapaZoom;
     Vector2 minimapaOffset;
-    // -------------------------
 
-    // --- ¡¡FIRMA CORREGIDA!! ---
-    // (Ahora recibe el Rectangle de la cámara, no la cámara entera)
+    // Renderizado del mundo
     void dibujarMundo(const Rectangle& cameraView, Mapa& mapa, GestorEntidades& gestor, Protagonista& jugador);
     void dibujarHUD(Protagonista& jugador);
 
-    // --- ¡¡NUEVA FUNCIÓN HELPER!! ---
-    // (Calcula el rectángulo de la vista de la cámara para el culling)
+    // Helper
     Rectangle getCameraViewRect(const Camera2D& cam);
-    // ---------------------------------
 
 public:
     SistemaRender();

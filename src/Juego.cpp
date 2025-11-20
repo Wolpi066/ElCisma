@@ -52,7 +52,6 @@ Juego::Juego()
     ResetSustoFantasma();
     renderizador.inicializarMinimapa(miMapa);
 
-    // --- MENU INICIO ---
     texFondoMenuInicio = LoadTexture("assets/HUD/MenuInicio.png");
     texBtnJugar = LoadTexture("assets/HUD/Botones/MenuInicio/Jugar.png");
     texBtnJugarSel = LoadTexture("assets/HUD/Botones/MenuInicio/JugarSeleccionado.png");
@@ -61,10 +60,8 @@ Juego::Juego()
     texBtnSalirInicio = LoadTexture("assets/HUD/Botones/MenuInicio/Salir.png");
     texBtnSalirInicioSel = LoadTexture("assets/HUD/Botones/MenuInicio/SalirSeleccionado.png");
 
-    // --- CREDITOS ---
     texFondoCreditos = LoadTexture("assets/HUD/Creditos.png");
 
-    // --- MUERTE ---
     texFondoMuerte = LoadTexture("assets/HUD/PantallaMuerte.png");
     texBtnReintentar = LoadTexture("assets/HUD/Botones/PantallaMuerte/Reintentar.png");
     texBtnReintentarSel = LoadTexture("assets/HUD/Botones/PantallaMuerte/ReintentarSeleccionado.png");
@@ -122,7 +119,9 @@ void Juego::reiniciarJuego()
     jefeHaSpawned = false;
     temporizadorSpawnJefe = 0.0f;
 
-    miMapa.abrirPuerta();
+    // --- CORRECCIÓN CRÍTICA: La puerta empieza cerrada ---
+    miMapa.cerrarPuerta();
+    // ---------------------------------------------------
 
     ResetSustoFantasma();
     Fantasma::despertado = false;
@@ -189,7 +188,6 @@ void Juego::dibujar()
     EndDrawing();
 }
 
-// --- LOGICA POP-UP ITEM ---
 void Juego::actualizarItemObtenido()
 {
     if (escalaPopup < 1.0f) escalaPopup += GetFrameTime() * 3.0f;
@@ -261,7 +259,6 @@ void Juego::dibujarItemObtenido()
     }
 }
 
-// --- MENUS ---
 void Juego::actualizarMenuInicial()
 {
     ShowCursor();
@@ -353,16 +350,13 @@ void Juego::dibujarCreditos() {
     DrawText("C++ & Raylib", 50, startY + stepY, 20, GRAY);
     startY += 100;
 
-    // --- MODIFICACION CREDITOS SOLICITADA ---
     DrawText("Agradecimientos Especiales:", 50, startY, 20, WHITE);
     DrawText("A Ignacio Rodriguez y Santi", 50, startY + stepY, 20, GRAY);
-    // ----------------------------------------
 
     const char* msg = "Volver [E]";
     DrawText(msg, Constantes::ANCHO_PANTALLA - MeasureText(msg, 20) - 40, Constantes::ALTO_PANTALLA - 60, 20, WHITE);
 }
 
-// --- ACTUALIZAR JUGANDO (CORREGIDO PARA DETECTAR TODOS LOS ITEMS) ---
 void Juego::actualizarJugando()
 {
     procesarCheats();
@@ -374,6 +368,10 @@ void Juego::actualizarJugando()
         }
         return;
     }
+
+    // --- CORRECCIÓN: Animación de la puerta ---
+    miMapa.actualizar(GetFrameTime());
+    // ------------------------------------------
 
     if (!jefeHaSpawned && miMapa.estaPuertaAbierta()) {
         if (CheckCollisionRecs(jugador.getRect(), triggerRectJefe)) {
@@ -403,8 +401,6 @@ void Juego::actualizarJugando()
         float distMasCercana = 9999.0f;
 
         for (Consumible* item : gestor.getConsumibles()) {
-            // --- CORRECCION CRITICA: Quitamos el filtro esInteraccionPorTecla() ---
-            // Ahora detectamos cualquier item cercano valido para ser agarrado.
             if (!item->estaConsumido()) {
                 Rectangle itemRect = item->getRect();
                 Vector2 itemCenter = { itemRect.x + itemRect.width / 2, itemRect.y + itemRect.height / 2 };
@@ -443,7 +439,6 @@ void Juego::actualizarJugando()
                 this->estadoActual = EstadoJuego::LEYENDO_NOTA;
             }
             else {
-                // ITEMS (Botiquin, Municion, etc.)
                 texPopupItem = itemMasCercano->getTextura();
                 nombrePopupItem = itemMasCercano->getNombre();
                 descPopupItem = itemMasCercano->getDescripcion();
@@ -451,7 +446,6 @@ void Juego::actualizarJugando()
 
                 int usado = itemMasCercano->usar(jugador);
 
-                // Solo mostramos popup si el objeto se consumio (se pudo agarrar)
                 if (itemMasCercano->estaConsumido()) {
                      estadoActual = EstadoJuego::ITEM_OBTENIDO;
                 }

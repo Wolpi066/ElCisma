@@ -5,7 +5,6 @@
 #include <cmath>
 
 static const float ALCANCE_LINTERNA_MIN = 80.0f;
-static const float ANGULO_CONO_MIN = 0.1f;
 static const float DURACION_FRAME_DISPARO = 0.15f;
 static const float DURACION_ANIMACION_MUERTE = 2.0f;
 
@@ -25,7 +24,8 @@ Protagonista::Protagonista(Vector2 pos) :
     alcanceLinterna(Constantes::ALCANCE_LINTERNA * 0.8f),
     radio(16.0f),
     linternaEncendida(true),
-    temporizadorFlicker(0.0f),
+    luzApagadaPorFlicker(false),
+    timerFlicker(0.0f),
     knockbackVelocidad({0.0f, 0.0f}),
     knockbackTimer(0.0f),
     proximoDisparoEsCheat(false),
@@ -63,6 +63,9 @@ void Protagonista::reset()
 
     timerAnimacionMuerte = 0.0f;
     timerVisualDisparo = 0.0f;
+
+    luzApagadaPorFlicker = false;
+    timerFlicker = 0.0f;
 
     bateriaCongelada = false;
     proximoDisparoEsCheat = false;
@@ -103,12 +106,34 @@ void Protagonista::actualizarInterno(Camera2D camera, Vector2 direccionMovimient
     }
     if (bateria <= 0) linternaEncendida = false;
 
-    if (linternaEncendida && bateria < Constantes::BATERIA_FLICKER_THRESHOLD) {
-        temporizadorFlicker -= GetFrameTime();
-        if (temporizadorFlicker < 0.0f) {
-            float ratio = (float)bateria / Constantes::BATERIA_FLICKER_THRESHOLD;
-            temporizadorFlicker = (float)GetRandomValue(0, 100) / 100.0f * (0.1f + ratio * 0.4f);
+    // --- FLICKER RÁPIDO (Estilo Terror) ---
+    float umbralCritico = 30.0f;
+    if (linternaEncendida && bateria <= umbralCritico)
+    {
+        timerFlicker -= GetFrameTime();
+
+        if (timerFlicker <= 0.0f)
+        {
+            luzApagadaPorFlicker = !luzApagadaPorFlicker;
+
+            if (luzApagadaPorFlicker) {
+                // TIEMPO APAGADO: Muy corto (micro-corte)
+                // 0.02s a 0.08s
+                timerFlicker = (float)GetRandomValue(2, 8) / 100.0f;
+            } else {
+                // TIEMPO ENCENDIDO: Corto y errático
+                float factorSalud = (float)bateria / umbralCritico;
+
+                // Min 0.05s (casi muriendo), Max 0.25s (batería 30)
+                int minTime = 5 + (int)(10 * factorSalud);
+                int maxTime = 15 + (int)(30 * factorSalud);
+                timerFlicker = (float)GetRandomValue(minTime, maxTime) / 100.0f;
+            }
         }
+    }
+    else
+    {
+        luzApagadaPorFlicker = false;
     }
 }
 
@@ -251,19 +276,39 @@ Vector2 Protagonista::getVelocidadKnockback() const { return knockbackVelocidad;
 float Protagonista::getAnguloCono() const
 {
     if (!linternaEncendida) return 0.0f;
-    float bateriaNorm = (float)bateria / (float)Constantes::BATERIA_MAX;
-    bateriaNorm = Clamp(bateriaNorm, 0.0f, 1.0f);
-    float anguloCalculado = ANGULO_CONO_MIN + (anguloCono - ANGULO_CONO_MIN) * bateriaNorm;
-    if (bateria < Constantes::BATERIA_FLICKER_THRESHOLD && temporizadorFlicker < 0.05f) return anguloCalculado * 0.7f;
-    return anguloCalculado;
+    if (luzApagadaPorFlicker) return 0.0f;
+
+    float umbralCritico = 30.0f;
+    float escalaFinal = 1.0f;
+
+    if (bateria > umbralCritico) {
+        float rangoBateria = (float)Constantes::BATERIA_MAX - umbralCritico;
+        float progreso = (float)(bateria - umbralCritico) / rangoBateria;
+        escalaFinal = 0.6f + (0.4f * progreso);
+    }
+    else {
+        escalaFinal = 0.6f;
+    }
+
+    return anguloCono * escalaFinal;
 }
 
 float Protagonista::getAlcanceLinterna() const
 {
     if (!linternaEncendida) return 0.0f;
-    float bateriaNorm = (float)bateria / (float)Constantes::BATERIA_MAX;
-    bateriaNorm = Clamp(bateriaNorm, 0.0f, 1.0f);
-    float alcanceCalculado = ALCANCE_LINTERNA_MIN + (alcanceLinterna - ALCANCE_LINTERNA_MIN) * bateriaNorm;
-    if (bateria < Constantes::BATERIA_FLICKER_THRESHOLD && temporizadorFlicker < 0.05f) return alcanceCalculado * 0.8f;
-    return alcanceCalculado;
+    if (luzApagadaPorFlicker) return 0.0f;
+
+    float umbralCritico = 30.0f;
+    float escalaFinal = 1.0f;
+
+    if (bateria > umbralCritico) {
+        float rangoBateria = (float)Constantes::BATERIA_MAX - umbralCritico;
+        float progreso = (float)(bateria - umbralCritico) / rangoBateria;
+        escalaFinal = 0.6f + (0.4f * progreso);
+    }
+    else {
+        escalaFinal = 0.6f;
+    }
+
+    return alcanceLinterna * escalaFinal;
 }

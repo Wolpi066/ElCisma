@@ -3,19 +3,16 @@
 #include "rlgl.h"
 #include "Protagonista.h"
 
-// --- DEFINICIONES DEL EJEMPLO ---
-#ifndef RLGL_SRC_ALPHA
-    #define RLGL_SRC_ALPHA 0x0302
+// --- DEFINICIONES DE SEGURIDAD (Para compatibilidad con Raylib 5.0+) ---
+#ifndef RL_SRC_ALPHA
+    #define RL_SRC_ALPHA 0x0302
 #endif
-#ifndef RLGL_MIN
-    #define RLGL_MIN 0x8007
+#ifndef RL_MIN
+    #define RL_MIN 0x8007
 #endif
-#ifndef RLGL_MAX
-    #define RLGL_MAX 0x8008
+#ifndef RL_MAX
+    #define RL_MAX 0x8008
 #endif
-// ---------------------------------
-
-// --- Implementacion de los metodos de Iluminacion ---
 
 void Iluminacion::ComputeShadowVolumeForEdge(LightInfo* light, Vector2 sp, Vector2 ep)
 {
@@ -35,41 +32,34 @@ void Iluminacion::ComputeShadowVolumeForEdge(LightInfo* light, Vector2 sp, Vecto
 void Iluminacion::DrawLightMask(LightInfo* light, Camera2D& camera, Protagonista& jugador)
 {
     BeginTextureMode(light->mask);
-        ClearBackground(WHITE); // 1. La máscara es "oscuridad" opaca
+        ClearBackground(WHITE);
         BeginMode2D(camera);
 
-            // --- 2. PERFORAR LUZ ---
-            // Usamos BLEND_MIN para "restar" de la máscara blanca, creando agujeros transparentes
-            rlSetBlendFactors(RLGL_SRC_ALPHA, RLGL_SRC_ALPHA, RLGL_MIN);
+            // 1. PERFORAR LUZ (Usando macros corregidas RL_)
+            rlSetBlendFactors(RL_SRC_ALPHA, RL_SRC_ALPHA, RL_MIN);
             rlSetBlendMode(BLEND_CUSTOM);
 
             if (light->valid)
             {
-                // Perfora el Halo (un gradiente de transparente a blanco)
                 float radioHalo = 80.0f;
                 DrawCircleGradient((int)light->position.x, (int)light->position.y, radioHalo, ColorAlpha(WHITE, 0), WHITE);
 
-                // Perfora el Cono (un sector transparente)
                 float anguloVista = jugador.getAnguloVista();
                 float anguloCono = jugador.getAnguloCono();
                 float alcance = jugador.getAlcanceLinterna();
 
                 float bateriaPct = (float)jugador.getBateria() / (float)Constantes::BATERIA_MAX;
-                // Ajustamos el alpha del "agujero" (menos batería = agujero menos transparente = menos luz)
                 unsigned char alphaCono = (unsigned char)Lerp(180, 0, bateriaPct);
                 DrawCircleSector(light->position, alcance, anguloVista - anguloCono, anguloVista + anguloCono, 32, ColorAlpha(WHITE, (float)alphaCono / 255.0f));
 
                 rlDrawRenderBatchActive();
             }
 
-            // --- 3. DIBUJAR SOMBRAS ---
-            // ¡¡ARREGLO!! Reseteamos a BLEND_ALPHA normal
+            // 2. DIBUJAR SOMBRAS
             rlSetBlendMode(BLEND_ALPHA);
 
-            // Dibujamos las sombras con BLACK.
-            // Esto "rellena" los agujeros de luz que acabamos de hacer.
             for (int i = 0; i < light->shadowCount; i++) {
-                DrawTriangleFan(light->shadows[i].vertices, 4, BLACK); // <-- ¡¡ARREGLO!! (Debe ser BLACK)
+                DrawTriangleFan(light->shadows[i].vertices, 4, BLACK);
             }
             rlDrawRenderBatchActive();
 
@@ -96,16 +86,19 @@ void Iluminacion::UpdateLightShadows(
             break;
         }
     }
-    if (light->valid && !puertaEstaAbierta && CheckCollisionPointRec(light->position, puerta)) {
-        light->valid = false;
+    if (light->valid && !puertaEstaAbierta) {
+        if (CheckCollisionPointRec(light->position, puerta)) {
+            light->valid = false;
+        }
     }
 
     if (light->valid)
     {
-        // Procesar Muros
+        // A. Muros Normales
         for (const auto& box : muros)
         {
             if (!CheckCollisionRecs(light->bounds, box)) continue;
+
             Vector2 sp = { box.x, box.y };
             Vector2 ep = { box.x + box.width, box.y };
             if (light->position.y > ep.y) ComputeShadowVolumeForEdge(light, sp, ep);
@@ -128,29 +121,38 @@ void Iluminacion::UpdateLightShadows(
             }
         }
 
-        // Procesar Puerta (si esta cerrada)
+        // B. SOMBRA DE PUERTA (CON TRUCO DE PROFUNDIDAD)
         if (!puertaEstaAbierta)
         {
-            if (CheckCollisionRecs(light->bounds, puerta))
+            Rectangle sombraPuerta = puerta;
+
+            // Desplazamiento hacia "atrás" para que la sombra nazca detrás del sprite
+            sombraPuerta.y -= 130.0f;
+            sombraPuerta.height = 5.0f;
+            sombraPuerta.x += 10.0f;
+            sombraPuerta.width -= 20.0f;
+
+            if (CheckCollisionRecs(light->bounds, sombraPuerta))
             {
-                Vector2 sp = { puerta.x, puerta.y };
-                Vector2 ep = { puerta.x + puerta.width, puerta.y };
+                Rectangle box = sombraPuerta;
+                Vector2 sp = { box.x, box.y };
+                Vector2 ep = { box.x + box.width, box.y };
                 if (light->position.y > ep.y) ComputeShadowVolumeForEdge(light, sp, ep);
                 sp = ep;
-                ep.y += puerta.height;
+                ep.y += box.height;
                 if (light->position.x < ep.x) ComputeShadowVolumeForEdge(light, sp, ep);
                 sp = ep;
-                ep.x -= puerta.width;
+                ep.x -= box.width;
                 if (light->position.y < ep.y) ComputeShadowVolumeForEdge(light, sp, ep);
                 sp = ep;
-                ep.y -= puerta.height;
+                ep.y -= box.height;
                 if (light->position.x > ep.x) ComputeShadowVolumeForEdge(light, sp, ep);
 
                 if (light->shadowCount < MAX_SHADOWS) {
-                    light->shadows[light->shadowCount].vertices[0] = (Vector2){ puerta.x, puerta.y };
-                    light->shadows[light->shadowCount].vertices[1] = (Vector2){ puerta.x, puerta.y + puerta.height };
-                    light->shadows[light->shadowCount].vertices[2] = (Vector2){ puerta.x + puerta.width, puerta.y + puerta.height };
-                    light->shadows[light->shadowCount].vertices[3] = (Vector2){ puerta.x + puerta.width, puerta.y };
+                    light->shadows[light->shadowCount].vertices[0] = (Vector2){ box.x, box.y };
+                    light->shadows[light->shadowCount].vertices[1] = (Vector2){ box.x, box.y + box.height };
+                    light->shadows[light->shadowCount].vertices[2] = (Vector2){ box.x + box.width, box.y + box.height };
+                    light->shadows[light->shadowCount].vertices[3] = (Vector2){ box.x + box.width, box.y };
                     light->shadowCount++;
                 }
             }

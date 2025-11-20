@@ -37,7 +37,6 @@ Rectangle SistemaRender::getCameraViewRect(const Camera2D& cam)
     return { topLeft.x, topLeft.y, viewWidth, viewHeight };
 }
 
-
 void SistemaRender::inicializarMinimapa(Mapa& mapa)
 {
     Camera2D minimapaCamera = { 0 };
@@ -56,15 +55,10 @@ void SistemaRender::inicializarMinimapa(Mapa& mapa)
                 DrawRectangleRec(caja, DARKBROWN);
             }
 
-            if (!mapa.estaPuertaAbierta())
-            {
-                Rectangle puerta = mapa.getPuertaJefe();
-                float handleSize = 10;
-                Rectangle picaporteIzq = { puerta.x + (puerta.width/2) - handleSize - 5, puerta.y + (puerta.height / 2) - (handleSize / 2), handleSize, handleSize };
-                Rectangle picaporteDer = { puerta.x + (puerta.width/2) + 5, puerta.y + (puerta.height / 2) - (handleSize / 2), handleSize, handleSize };
-                DrawRectangleRec(picaporteIzq, GOLD);
-                DrawRectangleRec(picaporteDer, GOLD);
-            }
+            // Puerta en minimapa
+            Rectangle p = mapa.getPuertaJefe();
+            if (!mapa.estaPuertaAbierta()) DrawRectangleRec(p, GOLD);
+            else DrawRectangleLinesEx(p, 1.0f, GREEN);
 
         EndMode2D();
     EndTextureMode();
@@ -86,13 +80,11 @@ void SistemaRender::actualizarNieblaMinimapa(const Protagonista& jugador)
 
             float radioProximidad = 100.0f;
             DrawCircleV(jugador.getPosicion(), radioProximidad, Fade(WHITE, 0.05f));
-
             float alcance = jugador.getAlcanceLinterna();
             if (alcance > 0.0f)
             {
                 float angulo = jugador.getAnguloCono();
                 float anguloVista = jugador.getAnguloVista();
-
                 DrawRing(
                     jugador.getPosicion(),
                     radioProximidad * 0.8f,
@@ -103,16 +95,11 @@ void SistemaRender::actualizarNieblaMinimapa(const Protagonista& jugador)
                     Fade(WHITE, 0.05f)
                 );
             }
-
         EndMode2D();
     EndTextureMode();
 }
 
-
-Camera2D SistemaRender::getCamera() const
-{
-    return camera;
-}
+Camera2D SistemaRender::getCamera() const { return camera; }
 
 void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidades& gestor)
 {
@@ -123,8 +110,7 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     float radioHalo = 80.0f;
     linterna.radius = (alcanceCono > radioHalo) ? alcanceCono : radioHalo;
 
-    Rectangle cameraView = getCameraViewRect(camera);
-
+    // 1. CALCULAR SOMBRAS (Actualiza la máscara en background)
     Iluminacion::UpdateLightShadows(
         &linterna,
         mapa.getMuros(),
@@ -134,24 +120,30 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
         jugador
     );
 
+    // 2. DIBUJAR MUNDO Y ENTIDADES (Base iluminada)
     BeginMode2D(camera);
-        dibujarMundo(cameraView, mapa, gestor, jugador);
+        // Dibujamos el mapa completo (Piso, Muros, PUERTA CON SPRITE)
+        mapa.dibujar();
+
+        // Dibujamos entidades (Enemigos, Items, Balas)
+        gestor.dibujarEntidades();
+
+        // Dibujamos al jugador
+        jugador.dibujar();
     EndMode2D();
 
+    // 3. APLICAR MÁSCARA DE LUZ (Oscuridad sobre el mundo)
+    // Esto oscurece todo lo dibujado arriba, excepto donde hay "agujeros" de luz
     BeginBlendMode(BLEND_ALPHA);
     DrawTextureRec(
         linterna.mask.texture,
         (Rectangle){0, 0, (float)linterna.mask.texture.width, (float)-linterna.mask.texture.height},
         Vector2Zero(),
-        BLACK
+        BLACK // El color de la sombra
     );
     EndBlendMode();
 
-    BeginMode2D(camera);
-        jugador.dibujar();
-    EndMode2D();
-
-
+    // 4. HUD Y EFECTOS POST-PROCESADO (Siempre visibles)
     int vidaActual = jugador.getVida();
     if (vidaActual <= 5 && jugador.estaVivo())
     {
@@ -164,50 +156,25 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
         DrawRectangle(offset, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade((Color){255, 0, 100, 255}, 0.05f + (intensidad * 0.1f)));
         DrawRectangle(-offset, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade((Color){0, 255, 200, 255}, 0.05f + (intensidad * 0.1f)));
         EndBlendMode();
-
-        if (vidaActual <= 2)
-        {
-            if (GetRandomValue(0, 100) > 90)
-            {
-                int numGlitches = GetRandomValue(1, 4);
-                for (int i = 0; i < numGlitches; i++)
-                {
-                    int x = GetRandomValue(0, Constantes::ANCHO_PANTALLA);
-                    int y = GetRandomValue(0, Constantes::ALTO_PANTALLA);
-                    int w = GetRandomValue(20, 100);
-                    int h = GetRandomValue(5, 30);
-                    Color c = (GetRandomValue(0, 1) == 0) ? RED : (Color){0, 255, 128, 255};
-                    DrawRectangle(x, y, w, h, Fade(c, 0.8f));
-                }
-            }
-        }
     }
 
+    // Fantasma (Susto) - Se dibuja encima de la oscuridad para resaltar
     BeginMode2D(camera);
-    for (Enemigo* enemigo : gestor.getEnemigos())
-    {
-        if (dynamic_cast<Fantasma*>(enemigo))
-        {
-            if (Fantasma::estaAsustando && !Fantasma::despertado)
-            {
-                enemigo->dibujar();
-            }
-            if (Fantasma::estaDespertando)
-            {
-                enemigo->dibujar();
-            }
+    for (Enemigo* enemigo : gestor.getEnemigos()) {
+        if (dynamic_cast<Fantasma*>(enemigo)) {
+            if (Fantasma::estaAsustando && !Fantasma::despertado) enemigo->dibujar();
+            if (Fantasma::estaDespertando) enemigo->dibujar();
         }
     }
     EndMode2D();
 
-
+    // Minimapa
     DrawTextureRec(
         minimapaTextura.texture,
         (Rectangle){ 0, 0, (float)minimapaTextura.texture.width, (float)-minimapaTextura.texture.height },
         minimapaOffset,
         WHITE
     );
-
     BeginBlendMode(BLEND_MULTIPLIED);
     DrawTextureRec(
         nieblaMinimapa.texture,
@@ -216,54 +183,21 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
         WHITE
     );
     EndBlendMode();
-
-    DrawRectangleLinesEx(
-        (Rectangle){minimapaOffset.x, minimapaOffset.y, (float)minimapaTextura.texture.width, (float)minimapaTextura.texture.height},
-        1.0f,
-        GRAY
-    );
+    DrawRectangleLinesEx((Rectangle){minimapaOffset.x, minimapaOffset.y, (float)minimapaTextura.texture.width, (float)minimapaTextura.texture.height}, 1.0f, GRAY);
 
     Vector2 posJugadorEnMapa = Vector2Scale(jugador.getPosicion(), minimapaZoom);
     Vector2 centroMinimapa = { (3200 * minimapaZoom) / 2, (3200 * minimapaZoom) / 2 };
     Vector2 posFinalJugador = Vector2Add(Vector2Add(posJugadorEnMapa, centroMinimapa), minimapaOffset);
-
     DrawCircleV(posFinalJugador, 3.0f, RED);
-
-    float tiempoInmune = jugador.getTiempoInmune();
-    if (tiempoInmune > 0.0f)
-    {
-        float alpha = tiempoInmune * 0.8f;
-        Color colorBorde = Fade(MAROON, alpha);
-        Color colorCentro = Fade(BLANK, 0.0f);
-        int grosorBorde = 200;
-
-        DrawRectangleGradientV(0, 0, Constantes::ANCHO_PANTALLA, grosorBorde, colorBorde, colorCentro);
-        DrawRectangleGradientV(0, Constantes::ALTO_PANTALLA - grosorBorde, Constantes::ANCHO_PANTALLA, grosorBorde, colorCentro, colorBorde);
-        DrawRectangleGradientH(0, 0, grosorBorde, Constantes::ALTO_PANTALLA, colorBorde, colorCentro);
-        DrawRectangleGradientH(Constantes::ANCHO_PANTALLA - grosorBorde, 0, grosorBorde, Constantes::ALTO_PANTALLA, colorCentro, colorBorde);
-    }
 
     dibujarHUD(jugador);
 }
 
-
+// Método legacy por si se llama desde otro lado, redirige a la lógica central
 void SistemaRender::dibujarMundo(const Rectangle& cameraView, Mapa& mapa, GestorEntidades& gestor, Protagonista& jugador)
 {
-    mapa.dibujarPiso();
-
-    for (const auto& muro : mapa.getMuros()) {
-        if (CheckCollisionRecs(cameraView, muro)) {
-            DrawRectangleRec(muro, DARKGRAY);
-        }
-    }
-    for (const auto& caja : mapa.getCajas()) {
-        if (CheckCollisionRecs(cameraView, caja)) {
-            DrawRectangleRec(caja, DARKBROWN);
-        }
-    }
-
+    mapa.dibujar();
     gestor.dibujarEntidades();
-
 }
 
 void SistemaRender::dibujarHUD(Protagonista& jugador)

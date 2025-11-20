@@ -27,7 +27,11 @@ private:
     float radio;
 
     bool linternaEncendida;
-    float temporizadorFlicker;
+
+    // --- LINTERNA REALISTA ---
+    bool luzApagadaPorFlicker; // Estado del parpadeo
+    float timerFlicker;        // Tiempo para el siguiente cambio
+    // -------------------------
 
     Vector2 knockbackVelocidad;
     float knockbackTimer;
@@ -42,7 +46,6 @@ private:
 
     float timerVisualDisparo;
     float timerAnimacionMuerte;
-    // ----------------
 
 public:
     Protagonista(Vector2 pos);
@@ -52,7 +55,7 @@ public:
 
     int intentarDisparar(bool quiereDisparar);
     void setPosicion(Vector2 nuevaPos);
-    void reset(); // <--- ¡NUEVO! Para reiniciar partida
+    void reset();
 
     void dibujar();
     void recibirDanio(int cantidad);

@@ -35,12 +35,16 @@ int Botiquin::usar(Protagonista& jugador) {
     return 0;
 }
 
+// --- CORRECCIÓN: Ahora se puede agarrar con la 'E' ---
+bool Botiquin::esInteraccionPorTecla() const {
+    return true;
+}
+
 void Botiquin::dibujar() {
     if (consumido) return;
 
     if (texBotiquin.id != 0) {
-        // --- ESCALADO INTELIGENTE ---
-        float tamanoDeseado = 35.0f; // Un poco mas grande que la llave
+        float tamanoDeseado = 35.0f;
         float escala = tamanoDeseado / (float)texBotiquin.width;
 
         Vector2 posDibujo = { posicion.x - (texBotiquin.width * escala) / 2, posicion.y - (texBotiquin.height * escala) / 2 };
