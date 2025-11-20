@@ -436,7 +436,7 @@
 	"Protagonista.h"
 	"BalaInfernal.h"
 
-1763643942 source:c:\users\volpi\onedrive\escritorio\elcisma\src\iluminacion.cpp
+1763668605 source:c:\users\volpi\onedrive\escritorio\elcisma\src\iluminacion.cpp
 	"Iluminacion.h"
 	"Constantes.h"
 	"rlgl.h"
@@ -497,7 +497,7 @@
 	<vector>
 	<list>
 
-1763643247 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
+1763668586 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
 	"raylib.h"
 	<vector>
 	<list>

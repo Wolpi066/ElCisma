@@ -4,6 +4,7 @@
 #include <list>
 #include "Cofre.h"
 
+// Pre-declaraciones
 class Enemigo;
 class Consumible;
 class Jefe;
@@ -14,7 +15,6 @@ struct SpawnCofre {
     CofreOrientacion orient;
 };
 
-// --- ESTADOS PUERTA ---
 enum class EstadoPuerta {
     CERRADA,
     ABRIENDO,
@@ -30,12 +30,10 @@ private:
     Texture2D pisoTexture;
     Rectangle mundoRect;
 
-    // --- VISUALES PUERTA ---
     Texture2D texPuertaCerrada;
     Texture2D texPuertaAbriendose;
     Texture2D texPuertaAbierta;
 
-    // --- LÓGICA PUERTA ---
     Rectangle puertaJefe;
     EstadoPuerta estadoPuerta;
     float temporizadorAnimacionPuerta;
@@ -52,9 +50,14 @@ public:
     Mapa();
     ~Mapa();
 
-    void actualizar(float dt); // Para animaciones
+    void actualizar(float dt);
+
     void dibujarPiso();
-    void dibujar(); // Dibuja todo (muros, cajas y puerta)
+    void dibujar();
+
+    // --- MODIFICADO: Recibe alpha para efecto de luz ---
+    void dibujarPuerta(float alpha = 1.0f);
+    // --------------------------------------------------
 
     void poblarMundo(GestorEntidades& gestor);
     Vector2 getPosicionSpawnValida(Rectangle zona);

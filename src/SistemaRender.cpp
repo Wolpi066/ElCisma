@@ -55,7 +55,6 @@ void SistemaRender::inicializarMinimapa(Mapa& mapa)
                 DrawRectangleRec(caja, DARKBROWN);
             }
 
-            // Puerta en minimapa
             Rectangle p = mapa.getPuertaJefe();
             if (!mapa.estaPuertaAbierta()) DrawRectangleRec(p, GOLD);
             else DrawRectangleLinesEx(p, 1.0f, GREEN);
@@ -80,11 +79,13 @@ void SistemaRender::actualizarNieblaMinimapa(const Protagonista& jugador)
 
             float radioProximidad = 100.0f;
             DrawCircleV(jugador.getPosicion(), radioProximidad, Fade(WHITE, 0.05f));
+
             float alcance = jugador.getAlcanceLinterna();
             if (alcance > 0.0f)
             {
                 float angulo = jugador.getAnguloCono();
                 float anguloVista = jugador.getAnguloVista();
+
                 DrawRing(
                     jugador.getPosicion(),
                     radioProximidad * 0.8f,
@@ -101,6 +102,41 @@ void SistemaRender::actualizarNieblaMinimapa(const Protagonista& jugador)
 
 Camera2D SistemaRender::getCamera() const { return camera; }
 
+// --- CÁLCULO DE LUZ (ESTRICTO: SOLO CONO) ---
+float CalcularIntensidadLuzEnObjeto(const Protagonista& jugador, Rectangle objeto)
+{
+    float alcance = jugador.getAlcanceLinterna();
+    float anguloCono = jugador.getAnguloCono();
+
+    if (alcance <= 0.1f || anguloCono <= 0.01f) return 0.0f;
+
+    Vector2 centroObjeto = { objeto.x + objeto.width/2, objeto.y + objeto.height/2 };
+    Vector2 vectorHaciaObjeto = Vector2Subtract(centroObjeto, jugador.getPosicion());
+    float distancia = Vector2Length(vectorHaciaObjeto);
+
+    if (distancia > alcance) return 0.0f;
+
+    // NOTA: Eliminado el check de Halo (proximidad) para que sea oscuridad total si no apuntas.
+
+    // Check Ángulo
+    Vector2 dirHaciaObjeto = Vector2Normalize(vectorHaciaObjeto);
+    Vector2 dirVista = jugador.getDireccionVista();
+
+    float dot = Vector2DotProduct(dirVista, dirHaciaObjeto);
+
+    // Convertimos ángulo (radianes) a umbral de coseno
+    float umbralAngulo = cosf(anguloCono);
+
+    if (dot >= umbralAngulo) {
+        // Factor de atenuación en los bordes del cono para suavizar
+        float factorBorde = (dot - umbralAngulo) / (1.0f - umbralAngulo);
+        if (factorBorde > 1.0f) factorBorde = 1.0f;
+        return factorBorde;
+    }
+
+    return 0.0f;
+}
+
 void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidades& gestor)
 {
     camera.target = jugador.getPosicion();
@@ -110,7 +146,7 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     float radioHalo = 80.0f;
     linterna.radius = (alcanceCono > radioHalo) ? alcanceCono : radioHalo;
 
-    // 1. CALCULAR SOMBRAS (Actualiza la máscara en background)
+    // 1. CALCULAR SOMBRAS
     Iluminacion::UpdateLightShadows(
         &linterna,
         mapa.getMuros(),
@@ -120,30 +156,38 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
         jugador
     );
 
-    // 2. DIBUJAR MUNDO Y ENTIDADES (Base iluminada)
+    // 2. CAPA MUNDO BASE
     BeginMode2D(camera);
-        // Dibujamos el mapa completo (Piso, Muros, PUERTA CON SPRITE)
         mapa.dibujar();
-
-        // Dibujamos entidades (Enemigos, Items, Balas)
         gestor.dibujarEntidades();
-
-        // Dibujamos al jugador
-        jugador.dibujar();
+        // (Jugador no se dibuja aquí)
     EndMode2D();
 
-    // 3. APLICAR MÁSCARA DE LUZ (Oscuridad sobre el mundo)
-    // Esto oscurece todo lo dibujado arriba, excepto donde hay "agujeros" de luz
+    // 3. APLICAR MÁSCARA DE LUZ
     BeginBlendMode(BLEND_ALPHA);
     DrawTextureRec(
         linterna.mask.texture,
         (Rectangle){0, 0, (float)linterna.mask.texture.width, (float)-linterna.mask.texture.height},
         Vector2Zero(),
-        BLACK // El color de la sombra
+        BLACK
     );
     EndBlendMode();
 
-    // 4. HUD Y EFECTOS POST-PROCESADO (Siempre visibles)
+    // 4. CAPA OVERLAY (Solo iluminados)
+    BeginMode2D(camera);
+
+        // Lógica "Sandwich": Solo dibujamos la puerta si el cono la ilumina
+        float intensidadPuerta = CalcularIntensidadLuzEnObjeto(jugador, mapa.getPuertaJefe());
+
+        if (intensidadPuerta > 0.0f) {
+            mapa.dibujarPuerta(intensidadPuerta);
+        }
+
+        jugador.dibujar();
+    EndMode2D();
+
+
+    // 5. HUD Y EFECTOS
     int vidaActual = jugador.getVida();
     if (vidaActual <= 5 && jugador.estaVivo())
     {
@@ -158,17 +202,17 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
         EndBlendMode();
     }
 
-    // Fantasma (Susto) - Se dibuja encima de la oscuridad para resaltar
     BeginMode2D(camera);
-    for (Enemigo* enemigo : gestor.getEnemigos()) {
-        if (dynamic_cast<Fantasma*>(enemigo)) {
+    for (Enemigo* enemigo : gestor.getEnemigos())
+    {
+        if (dynamic_cast<Fantasma*>(enemigo))
+        {
             if (Fantasma::estaAsustando && !Fantasma::despertado) enemigo->dibujar();
             if (Fantasma::estaDespertando) enemigo->dibujar();
         }
     }
     EndMode2D();
 
-    // Minimapa
     DrawTextureRec(
         minimapaTextura.texture,
         (Rectangle){ 0, 0, (float)minimapaTextura.texture.width, (float)-minimapaTextura.texture.height },
@@ -193,7 +237,6 @@ void SistemaRender::dibujarTodo(Protagonista& jugador, Mapa& mapa, GestorEntidad
     dibujarHUD(jugador);
 }
 
-// Método legacy por si se llama desde otro lado, redirige a la lógica central
 void SistemaRender::dibujarMundo(const Rectangle& cameraView, Mapa& mapa, GestorEntidades& gestor, Protagonista& jugador)
 {
     mapa.dibujar();

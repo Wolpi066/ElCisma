@@ -3,7 +3,6 @@
 #include "rlgl.h"
 #include "Protagonista.h"
 
-// --- DEFINICIONES DE SEGURIDAD (Para compatibilidad con Raylib 5.0+) ---
 #ifndef RL_SRC_ALPHA
     #define RL_SRC_ALPHA 0x0302
 #endif
@@ -35,7 +34,6 @@ void Iluminacion::DrawLightMask(LightInfo* light, Camera2D& camera, Protagonista
         ClearBackground(WHITE);
         BeginMode2D(camera);
 
-            // 1. PERFORAR LUZ (Usando macros corregidas RL_)
             rlSetBlendFactors(RL_SRC_ALPHA, RL_SRC_ALPHA, RL_MIN);
             rlSetBlendMode(BLEND_CUSTOM);
 
@@ -51,13 +49,10 @@ void Iluminacion::DrawLightMask(LightInfo* light, Camera2D& camera, Protagonista
                 float bateriaPct = (float)jugador.getBateria() / (float)Constantes::BATERIA_MAX;
                 unsigned char alphaCono = (unsigned char)Lerp(180, 0, bateriaPct);
                 DrawCircleSector(light->position, alcance, anguloVista - anguloCono, anguloVista + anguloCono, 32, ColorAlpha(WHITE, (float)alphaCono / 255.0f));
-
                 rlDrawRenderBatchActive();
             }
 
-            // 2. DIBUJAR SOMBRAS
             rlSetBlendMode(BLEND_ALPHA);
-
             for (int i = 0; i < light->shadowCount; i++) {
                 DrawTriangleFan(light->shadows[i].vertices, 4, BLACK);
             }
@@ -66,7 +61,6 @@ void Iluminacion::DrawLightMask(LightInfo* light, Camera2D& camera, Protagonista
         EndMode2D();
     EndTextureMode();
 }
-
 
 void Iluminacion::UpdateLightShadows(
     LightInfo* light,
@@ -94,8 +88,12 @@ void Iluminacion::UpdateLightShadows(
 
     if (light->valid)
     {
-        // A. Muros Normales
-        for (const auto& box : muros)
+        std::vector<Rectangle> bloqueadores = muros;
+        if (!puertaEstaAbierta) {
+            bloqueadores.push_back(puerta);
+        }
+
+        for (const auto& box : bloqueadores)
         {
             if (!CheckCollisionRecs(light->bounds, box)) continue;
 
@@ -118,43 +116,6 @@ void Iluminacion::UpdateLightShadows(
                 light->shadows[light->shadowCount].vertices[2] = (Vector2){ box.x + box.width, box.y + box.height };
                 light->shadows[light->shadowCount].vertices[3] = (Vector2){ box.x + box.width, box.y };
                 light->shadowCount++;
-            }
-        }
-
-        // B. SOMBRA DE PUERTA (CON TRUCO DE PROFUNDIDAD)
-        if (!puertaEstaAbierta)
-        {
-            Rectangle sombraPuerta = puerta;
-
-            // Desplazamiento hacia "atrás" para que la sombra nazca detrás del sprite
-            sombraPuerta.y -= 130.0f;
-            sombraPuerta.height = 5.0f;
-            sombraPuerta.x += 10.0f;
-            sombraPuerta.width -= 20.0f;
-
-            if (CheckCollisionRecs(light->bounds, sombraPuerta))
-            {
-                Rectangle box = sombraPuerta;
-                Vector2 sp = { box.x, box.y };
-                Vector2 ep = { box.x + box.width, box.y };
-                if (light->position.y > ep.y) ComputeShadowVolumeForEdge(light, sp, ep);
-                sp = ep;
-                ep.y += box.height;
-                if (light->position.x < ep.x) ComputeShadowVolumeForEdge(light, sp, ep);
-                sp = ep;
-                ep.x -= box.width;
-                if (light->position.y < ep.y) ComputeShadowVolumeForEdge(light, sp, ep);
-                sp = ep;
-                ep.y -= box.height;
-                if (light->position.x > ep.x) ComputeShadowVolumeForEdge(light, sp, ep);
-
-                if (light->shadowCount < MAX_SHADOWS) {
-                    light->shadows[light->shadowCount].vertices[0] = (Vector2){ box.x, box.y };
-                    light->shadows[light->shadowCount].vertices[1] = (Vector2){ box.x, box.y + box.height };
-                    light->shadows[light->shadowCount].vertices[2] = (Vector2){ box.x + box.width, box.y + box.height };
-                    light->shadows[light->shadowCount].vertices[3] = (Vector2){ box.x + box.width, box.y };
-                    light->shadowCount++;
-                }
             }
         }
     }
