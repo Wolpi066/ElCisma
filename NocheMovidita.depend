@@ -505,12 +505,13 @@
 	<list>
 	"Cofre.h"
 
-1763643651 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
+1763757622 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
 	"raylib.h"
 	"Iluminacion.h"
 	"Protagonista.h"
 	"Mapa.h"
 	"GestorEntidades.h"
+	<vector>
 
 1762477943 c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.h
 	"Protagonista.h"
