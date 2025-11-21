@@ -5,6 +5,7 @@
 #include <random>
 #include <chrono>
 #include <numeric>
+#include <string>
 #include "GestorEntidades.h"
 #include "Spawner.h"
 #include "Zombie.h"
@@ -29,10 +30,15 @@ Mapa::Mapa()
     pisoTexture = LoadTextureFromImage(img);
     UnloadImage(img);
 
-    // --- CARGA DE TEXTURAS ---
     texPuertaCerrada = LoadTexture("assets/PuertaCerrada.png");
     texPuertaAbriendose = LoadTexture("assets/PuertaAbriendose.png");
     texPuertaAbierta = LoadTexture("assets/PuertaAbierta.png");
+
+    // Carga de texturas de cajas (1 a 5)
+    for (int i = 1; i <= 5; i++) {
+        std::string path = "assets/Caja" + std::to_string(i) + ".png";
+        texturasCajas.push_back(LoadTexture(path.c_str()));
+    }
 
     cargarMapa();
 }
@@ -43,6 +49,10 @@ Mapa::~Mapa()
     UnloadTexture(texPuertaCerrada);
     UnloadTexture(texPuertaAbriendose);
     UnloadTexture(texPuertaAbierta);
+
+    for (auto& tex : texturasCajas) {
+        UnloadTexture(tex);
+    }
 }
 
 void Mapa::actualizar(float dt)
@@ -56,36 +66,26 @@ void Mapa::actualizar(float dt)
     }
 }
 
-// --- DIBUJO AJUSTADO ---
 void Mapa::dibujarPuerta(float alpha)
 {
     Texture2D* texPuerta = &texPuertaCerrada;
-
     if (estadoPuerta == EstadoPuerta::ABRIENDO) texPuerta = &texPuertaAbriendose;
     else if (estadoPuerta == EstadoPuerta::ABIERTA) texPuerta = &texPuertaAbierta;
 
     if (texPuerta->id != 0) {
         float aspect = (float)texPuerta->width / (float)texPuerta->height;
-
-        // Ajuste lateral para tapar rendijas
         float extraWidth = 45.0f;
         float finalW = puertaJefe.width + extraWidth;
         float finalH = finalW / aspect;
-
-        // Posicionamos: Centrado en X, Base en Y
         float posX = puertaJefe.x - (extraWidth / 2.0f);
         float posY = (puertaJefe.y + puertaJefe.height) - finalH;
         posY += 2.0f;
 
         Rectangle dest = { posX, posY, finalW, finalH };
         Rectangle source = {0, 0, (float)texPuerta->width, (float)texPuerta->height};
-
         DrawTexturePro(*texPuerta, source, dest, {0,0}, 0.0f, Fade(WHITE, alpha));
     } else {
-        // Fallback
-        if (estadoPuerta != EstadoPuerta::ABIERTA) {
-             DrawRectangleRec(puertaJefe, Fade(GOLD, alpha));
-        }
+        if (estadoPuerta != EstadoPuerta::ABIERTA) DrawRectangleRec(puertaJefe, Fade(GOLD, alpha));
     }
 }
 
@@ -93,15 +93,48 @@ void Mapa::dibujar()
 {
     dibujarPiso();
 
+    // Dibujar Muros
     for (const auto& muro : muros) {
         DrawRectangleRec(muro, DARKGRAY);
     }
 
-    for (const auto& caja : cajas) {
-        DrawRectangleRec(caja, DARKBROWN);
-    }
+    // Dibujar Cajas Decorativas
+    for (size_t i = 0; i < cajas.size(); i++)
+    {
+        int idVisual = -1;
+        if (i < tiposVisualesCajas.size()) idVisual = tiposVisualesCajas[i];
 
-    // No dibujamos la puerta en la capa base
+        // Solo dibujamos si tiene ID válido (Cofres tienen -1 y se ignoran aquí)
+        if (idVisual != -1 && idVisual < (int)texturasCajas.size())
+        {
+            Rectangle cajaRect = cajas[i];
+            Texture2D tex = texturasCajas[idVisual];
+
+            if (tex.id != 0) {
+                float aspect = (float)tex.width / (float)tex.height;
+                float visualW = cajaRect.width;
+                float visualH = visualW / aspect;
+
+                // Ajuste de altura mínima para cubrir la hitbox
+                if (visualH < cajaRect.height) {
+                    visualH = cajaRect.height;
+                }
+
+                // Posicionamiento: Centrado en X, Base en Y (sin offset negativo)
+                float drawX = cajaRect.x + (cajaRect.width - visualW) / 2.0f;
+                float drawY = (cajaRect.y + cajaRect.height) - visualH;
+
+                Rectangle dest = { drawX, drawY, visualW, visualH };
+                Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
+
+                DrawTexturePro(tex, source, dest, {0,0}, 0.0f, WHITE);
+            }
+            else {
+                // Fallback por si no carga la imagen
+                DrawRectangleRec(cajaRect, DARKBROWN);
+            }
+        }
+    }
 }
 
 const std::vector<Rectangle>& Mapa::getMuros() const { return muros; }
@@ -113,71 +146,72 @@ void Mapa::abrirPuerta() {
         temporizadorAnimacionPuerta = 0.5f;
     }
 }
-
-void Mapa::cerrarPuerta() {
-    estadoPuerta = EstadoPuerta::CERRADA;
-}
-
-bool Mapa::estaPuertaAbierta() const {
-    return estadoPuerta == EstadoPuerta::ABIERTA;
-}
-
+void Mapa::cerrarPuerta() { estadoPuerta = EstadoPuerta::CERRADA; }
+bool Mapa::estaPuertaAbierta() const { return estadoPuerta == EstadoPuerta::ABIERTA; }
 Rectangle Mapa::getPuertaJefe() const { return puertaJefe; }
-
-void Mapa::dibujarPiso()
-{
-    float tileW = (float)pisoTexture.width;
-    float tileH = (float)pisoTexture.height;
-    Rectangle sourceRect = { 0, 0, tileW, tileH };
-
+void Mapa::dibujarPiso() {
+    float tileW = (float)pisoTexture.width; float tileH = (float)pisoTexture.height; Rectangle sourceRect = { 0, 0, tileW, tileH };
     for (float y = mundoRect.y; y < mundoRect.y + mundoRect.height; y += tileH)
-    {
         for (float x = mundoRect.x; x < mundoRect.x + mundoRect.width; x += tileW)
-        {
             DrawTextureRec(pisoTexture, sourceRect, (Vector2){x, y}, WHITE);
-        }
-    }
 }
+
+// --- FUNCIÓN CLAVE: Agrega a Activas y Estáticas ---
+void Mapa::agregarCajaDecorativa(float x, float y, float w, float h)
+{
+    // 1. Física (Hitbox)
+    cajasEstaticas.push_back({x, y, w, h});
+    cajas.push_back({x, y, w, h});
+
+    // 2. Visual (Selección inteligente según forma)
+    int idTextura = 0;
+    float ratio = w / h;
+
+    if (ratio > 1.2f) {
+        // Horizontal: Caja4 o Caja5 (Indices 3, 4)
+        idTextura = GetRandomValue(3, 4);
+    }
+    else if (ratio < 0.8f) {
+        // Vertical: Fallback a cuadradas (0, 1, 2)
+        idTextura = GetRandomValue(0, 2);
+    }
+    else {
+        // Cuadrada: Caja1, 2, 3 (Indices 0, 1, 2)
+        idTextura = GetRandomValue(0, 2);
+    }
+
+    tiposVisualesCajasEstaticos.push_back(idTextura);
+    tiposVisualesCajas.push_back(idTextura);
+}
+
 
 void Mapa::cargarMapa()
 {
     muros.clear();
     cajas.clear();
+    cajasEstaticas.clear();
+    tiposVisualesCajas.clear();
+    tiposVisualesCajasEstaticos.clear();
 
-    float mundoW = 1500;
-    float mundoH = 1500;
-    float doorW = 100;
-    float halfDoor = doorW / 2;
-    float pasilloW = 150;
+    float mundoW = 1500; float mundoH = 1500; float doorW = 100; float halfDoor = doorW / 2; float pasilloW = 150;
 
-    // Paredes exteriores
+    // Muros exteriores
     muros.push_back({ -mundoW, -mundoH, mundoW*2, 20 });
     muros.push_back({ -mundoW, mundoH-20, mundoW*2, 20 });
     muros.push_back({ -mundoW, -mundoH, 20, mundoH*2 });
     muros.push_back({ mundoW-20, -mundoH, 20, mundoH*2 });
 
-    // --- ZONA JEFE: PAREDES MASIVAS (x3) ---
-    float bossW = 800;
-    float bossH = 800;
-    float halfBossW = bossW / 2;
-    float halfBossH = bossH / 2;
-
-    // --- CAMBIO: Pared 3 veces más gruesa (180px) ---
+    // Zona Jefe (Paredes gordas)
+    float bossW = 800; float bossH = 800; float halfBossW = bossW / 2; float halfBossH = bossH / 2;
     float bossWallThickness = 180.0f;
-
-    muros.push_back({ -halfBossW, -halfBossH, bossW, 20 }); // Norte
-    muros.push_back({ -halfBossW, -halfBossH, 20, bossH }); // Oeste
-    muros.push_back({ halfBossW-20, -halfBossH, 20, bossH }); // Este
-
-    // Pared Sur (Izquierda y Derecha de la puerta) - MASIVA
-    // Ajustamos la Y para que crezca hacia "arriba" (adentro de la sala)
+    muros.push_back({ -halfBossW, -halfBossH, bossW, 20 });
+    muros.push_back({ -halfBossW, -halfBossH, 20, bossH });
+    muros.push_back({ halfBossW-20, -halfBossH, 20, bossH });
     muros.push_back({ -halfBossW, halfBossH-bossWallThickness, halfBossW - halfDoor, bossWallThickness });
     muros.push_back({ halfDoor, halfBossH-bossWallThickness, halfBossW - halfDoor, bossWallThickness });
-
-    // Puerta lógica (se mantiene alineada al borde exterior)
     puertaJefe = { -halfDoor, halfBossH - 20, doorW, 20 };
 
-    // --- Resto del mapa (igual que antes) ---
+    // Muros Internos
     float anilloExt = 600;
     muros.push_back({ -anilloExt, -anilloExt, anilloExt - halfDoor, 20 });
     muros.push_back({ halfDoor, -anilloExt, anilloExt - halfDoor, 20 });
@@ -188,10 +222,7 @@ void Mapa::cargarMapa()
     muros.push_back({ anilloExt-20, -anilloExt, 20, anilloExt - halfDoor });
     muros.push_back({ anilloExt-20, halfDoor, 20, anilloExt - halfDoor });
 
-    float salaW = 600;
-    float salaH = 600;
-    float salaX = 900;
-    float salaY = 900;
+    float salaW = 600; float salaH = 600; float salaX = 900; float salaY = 900;
     muros.push_back({ -salaX-salaW, -salaY-salaH, salaW, 20 });
     muros.push_back({ -salaX-salaW, -salaY-salaH, 20, salaH });
     muros.push_back({ -salaX-salaW, -salaY, (salaW-doorW)/2, 20 });
@@ -216,7 +247,6 @@ void Mapa::cargarMapa()
     muros.push_back({ salaX+(salaW+doorW)/2, salaY, (salaW-doorW)/2, 20 });
     muros.push_back({ salaX, salaY, 20, (salaH-doorW)/2 });
     muros.push_back({ salaX, salaY+(salaH+doorW)/2, 20, (salaH-doorW)/2 });
-
     muros.push_back({ -salaX, -salaY, pasilloW, salaY - (bossH/2) });
     muros.push_back({ -salaX, (bossH/2), pasilloW, salaY - (bossH/2) });
     muros.push_back({ salaX-pasilloW, -salaY, pasilloW, salaY - (bossH/2) });
@@ -226,96 +256,111 @@ void Mapa::cargarMapa()
     muros.push_back({ -salaX, salaY-pasilloW, salaX - (bossW/2), pasilloW });
     muros.push_back({ (bossW/2), salaY-pasilloW, salaX - (bossW/2), pasilloW });
 
+    // --- OBJETOS CON SPRITES (Decoración) ---
+
     muros.push_back({ -1480, -1400, 20, 400 });
     muros.push_back({ -1430, -1400, 20, 400 });
     muros.push_back({ -1250, -1300, 20, 300 });
     muros.push_back({ -1100, -1300, 20, 300 });
-    cajas.push_back({ -1350, -1450, 80, 80 });
-    cajas.push_back({ -1150, -1050, 40, 40 });
-    cajas.push_back({ -1050, -1450, 40, 40 });
+
+    agregarCajaDecorativa(-1350, -1450, 60, 60);
+    agregarCajaDecorativa(-1150, -1050, 40, 40);
+    agregarCajaDecorativa(-1050, -1450, 40, 40);
 
     muros.push_back({ 1000, -1400, 20, 150 });
     muros.push_back({ 1000, -1200, 20, 150 });
-    cajas.push_back({ 1050, -1350, 100, 100 });
-    cajas.push_back({ 1200, -1100, 150, 40 });
-    cajas.push_back({ 1200, -1150, 150, 40 });
+    agregarCajaDecorativa(1050, -1350, 80, 80);
+    agregarCajaDecorativa(1200, -1100, 100, 40);
+    agregarCajaDecorativa(1200, -1150, 100, 40);
     muros.push_back({ 1350, -1450, 100, 20 });
     muros.push_back({ 1350, -1300, 100, 20 });
-    cajas.push_back({ 1430, -1350, 40, 40 });
+    agregarCajaDecorativa(1430, -1350, 40, 40);
 
     muros.push_back({ -1200, 1000, 300, 20 });
     muros.push_back({ -1200, 1150, 300, 20 });
     muros.push_back({ -1200, 1300, 300, 20 });
-    cajas.push_back({ -1400, 1400, 50, 50});
-    cajas.push_back({ -1100, 1220, 50, 50});
-    cajas.push_back({ -1450, 1050, 80, 40 });
-    cajas.push_back({ -1450, 1200, 80, 40 });
-    cajas.push_back({ -1450, 1350, 80, 40 });
-    cajas.push_back({ -1300, 950, 40, 40 });
-    cajas.push_back({ -1300, 1100, 40, 40 });
-    cajas.push_back({ -1300, 1250, 40, 40 });
+    agregarCajaDecorativa(-1400, 1400, 50, 50);
+    agregarCajaDecorativa(-1100, 1220, 50, 50);
+    agregarCajaDecorativa(-1450, 1050, 80, 40);
+    agregarCajaDecorativa(-1450, 1200, 80, 40);
+    agregarCajaDecorativa(-1450, 1350, 80, 40);
+    agregarCajaDecorativa(-1300, 950, 40, 40);
+    agregarCajaDecorativa(-1300, 1100, 40, 40);
+    agregarCajaDecorativa(-1300, 1250, 40, 40);
     muros.push_back({ -1480, 1150, 100, 20 });
-    cajas.push_back({ -1300, 1050, 80, 40 });
-    cajas.push_back({ -1150, 1400, 40, 80 });
+    agregarCajaDecorativa(-1300, 1050, 80, 40);
+    agregarCajaDecorativa(-1150, 1400, 40, 80);
 
-    cajas.push_back({ 1000, 1000, 150, 60 });
-    cajas.push_back({ 1000, 1200, 150, 60 });
-    cajas.push_back({ 1200, 1000, 150, 60 });
-    cajas.push_back({ 1200, 1200, 150, 60 });
+    agregarCajaDecorativa(1000, 1000, 100, 50);
+    agregarCajaDecorativa(1000, 1200, 100, 50);
+    agregarCajaDecorativa(1200, 1000, 100, 50);
+    agregarCajaDecorativa(1200, 1200, 100, 50);
     muros.push_back({ 1400, 1000, 30, 150 });
     muros.push_back({ 1440, 1000, 30, 150 });
     muros.push_back({ 1400, 1200, 30, 150 });
     muros.push_back({ 1440, 1200, 30, 150 });
-    cajas.push_back({ 1000, 1400, 60, 60 });
-    cajas.push_back({ 1200, 1400, 60, 60 });
-    cajas.push_back({ 1150, 1100, 100, 60 });
-    cajas.push_back({ 1130, 1090, 40, 40 });
-    cajas.push_back({ 1270, 1110, 40, 40 });
+    agregarCajaDecorativa(1000, 1400, 60, 60);
+    agregarCajaDecorativa(1200, 1400, 60, 60);
+    agregarCajaDecorativa(1150, 1100, 80, 50);
+    agregarCajaDecorativa(1130, 1090, 40, 40);
+    agregarCajaDecorativa(1270, 1110, 40, 40);
 
+    // Pasillos con cajas decorativas corregidas (60x60 en vez de 100x20)
     muros.push_back({ -850, -100, 100, 20 });
     muros.push_back({ -850, 100, 100, 20 });
     muros.push_back({ -850, -100, 20, 220 });
-    cajas.push_back({ -830, -10, 60, 20 });
+    agregarCajaDecorativa(-830, -10, 40, 40);
     muros.push_back({ 850, -75, 20, 150 });
     muros.push_back({ 830, -75, 20, 20 });
     muros.push_back({ 830, 55, 20, 20 });
-    cajas.push_back({ 830, -55, 20, 110 });
-    cajas.push_back({ -150, 580, 100, 20 });
-    cajas.push_back({ 50, 580, 100, 20 });
+    agregarCajaDecorativa(830, -55, 40, 40);
+
+    agregarCajaDecorativa(-150, 580, 60, 60);
+    agregarCajaDecorativa(50, 580, 60, 60);
+
     muros.push_back({ -200, -750, 400, 20 });
-    cajas.push_back({ -220, -780, 40, 40 });
-    cajas.push_back({ 220, -720, 40, 40 });
+    agregarCajaDecorativa(-220, -780, 40, 40);
+    agregarCajaDecorativa(220, -720, 40, 40);
 
     muros.push_back({ -700, -1300, 20, 300 });
     muros.push_back({ -400, -1300, 20, 300 });
     muros.push_back({ -700, -1400, 320, 20 });
     muros.push_back({ -700, -1300, 100, 20 });
     muros.push_back({ -480, -1300, 80, 20 });
-    cajas.push_back({ -680, -1380, 100, 40 });
+    agregarCajaDecorativa(-680, -1380, 100, 40);
     muros.push_back({ -420, -1380, 20, 60 });
-    cajas.push_back({ 500, -1100, 150, 150 });
+    agregarCajaDecorativa(500, -1100, 100, 100);
     muros.push_back({ -250, 1200, 500, 20 });
-    cajas.push_back({ -200, 1160, 40, 40 });
-    cajas.push_back({ 100, 1160, 40, 40 });
-    cajas.push_back({ -150, 1240, 100, 40 });
-    cajas.push_back({ 50, 1240, 100, 40 });
-    cajas.push_back({ -50, 1300, 40, 40 });
+    agregarCajaDecorativa(-200, 1160, 40, 40);
+    agregarCajaDecorativa(100, 1160, 40, 40);
+    agregarCajaDecorativa(-150, 1240, 100, 40);
+    agregarCajaDecorativa(50, 1240, 100, 40);
+    agregarCajaDecorativa(-50, 1300, 40, 40);
     muros.push_back({ -1200, -300, 150, 40 });
     muros.push_back({ -1400, 100, 40, 200 });
-    cajas.push_back({ -1180, -280, 40, 40 });
-    cajas.push_back({ -1380, 300, 60, 60 });
-    cajas.push_back({ -1100, 400, 80, 40 });
+    agregarCajaDecorativa(-1180, -280, 40, 40);
+    agregarCajaDecorativa(-1380, 300, 60, 60);
+    agregarCajaDecorativa(-1100, 400, 80, 40);
     muros.push_back({ 1100, -200, 20, 400 });
     muros.push_back({ 1300, -200, 20, 150 });
     muros.push_back({ 1300, 50, 20, 150 });
     muros.push_back({ 1100, -200, 200, 20 });
     muros.push_back({ 1100, 200, 200, 20 });
     muros.push_back({ 1120, -100, 20, 200 });
-    cajas.push_back({ 1150, 0, 80, 80 });
+    agregarCajaDecorativa(1150, 0, 80, 80);
+
+    // Inicialización
+    cajas = cajasEstaticas;
+    tiposVisualesCajas = tiposVisualesCajasEstaticos;
 }
 
 void Mapa::poblarMundo(GestorEntidades& gestor)
 {
+    // --- RESET SEGURO ---
+    // Restauramos las cajas base para no duplicar ni perder las estáticas
+    cajas = cajasEstaticas;
+    tiposVisualesCajas = tiposVisualesCajasEstaticos;
+
     spawnsCofres.clear();
 
     auto registrarCofreConColision = [&](GestorEntidades& gestor, const SpawnCofre& spawn, int lootID) {
@@ -326,9 +371,13 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
         } else {
             cofreRect = { spawn.pos.x - 7.5f, spawn.pos.y - 12.5f, 15, 25 };
         }
+
+        // Agregamos hitbox y ID -1 (invisible para mapa)
         this->cajas.push_back(cofreRect);
+        this->tiposVisualesCajas.push_back(-1);
     };
 
+    // ... (Resto de la función idéntica) ...
     Rectangle zonaAlmacen = { -1480, -1480, 580, 580 };
     Rectangle zonaElectrica = { 920, -1480, 580, 580 };
     Rectangle zonaOficinas = { -1480, 920, 580, 580 };
@@ -344,8 +393,8 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     Rectangle corredorBordeE = { 900, -900, 600, 1800 };
     Rectangle habSeguridadN = { -680, -1380, 260, 80 };
     Rectangle zonaBarricadaS = { -200, 1220, 300, 100 };
-    Rectangle zonaColapsoO = { -1400, -300, 200, 600 };
     Rectangle habObservacionE = { 1120, -180, 160, 360 };
+    Rectangle zonaColapsoO = { -1400, -300, 200, 600 };
     Rectangle zonaAlcoveOeste = { -830, -80, 60, 160 };
     Rectangle puestoSeguridadE = { 830, -55, 20, 110 };
 

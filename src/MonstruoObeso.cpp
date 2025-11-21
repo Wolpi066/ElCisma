@@ -10,7 +10,6 @@ std::vector<Texture2D> MonstruoObeso::animAtaque;
 std::vector<Texture2D> MonstruoObeso::animMuerte;
 bool MonstruoObeso::texturasCargadas = false;
 
-// CONFIGURACIÓN DE "PESO"
 const float VELOCIDAD_ANIM_OBESO = 8.0f;
 const float VELOCIDAD_ANIM_ATAQUE_OBESO = 9.0f;
 const float VELOCIDAD_ANIM_MUERTE_OBESO = 6.0f;
@@ -20,24 +19,20 @@ void MonstruoObeso::CargarTexturas()
 {
     if (!texturasCargadas)
     {
-        // 1. Caminando (Frames 1 a 7)
         for (int i = 1; i <= 7; i++) {
             std::string path = "assets/Obeso/ObesoCaminando" + std::to_string(i) + ".png";
             animCaminando.push_back(LoadTexture(path.c_str()));
         }
 
-        // 2. Ataque (Frames 1 a 6)
         for (int i = 1; i <= 6; i++) {
             std::string path = "assets/Obeso/ObesoAtacando" + std::to_string(i) + ".png";
             animAtaque.push_back(LoadTexture(path.c_str()));
         }
 
-        // 3. Muriendo (Frames 1 a 3)
         for (int i = 1; i <= 3; i++) {
             std::string path = "assets/Obeso/ObesoMuriendo" + std::to_string(i) + ".png";
             animMuerte.push_back(LoadTexture(path.c_str()));
         }
-
         texturasCargadas = true;
     }
 }
@@ -129,7 +124,7 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         return;
     }
 
-    // --- 2. ATAQUE (Bloqueante y SEGURO) ---
+    // --- 2. ATAQUE ---
     if (estadoActual == EstadoIA::ATACANDO)
     {
         animacionActual = &animAtaque;
@@ -140,6 +135,8 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
             tiempoAnimacion = 0.0f;
             frameActual++;
 
+            // CRASH FIX: No llamamos a atacar() aquí.
+
             if (frameActual >= (int)animAtaque.size()) {
                 estadoActual = EstadoIA::PERSIGUIENDO;
                 temporizadorPausaAtaque = 1.8f;
@@ -147,7 +144,7 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
                 haDaniadoEnEsteAtaque = false;
             }
         }
-        return; // Bloqueamos movimiento
+        return;
     }
 
     // --- 3. MOVIMIENTO ---
@@ -206,7 +203,6 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         setDireccion(Vector2Normalize(velocidadMov));
     }
 
-    // --- 4. ANIMACIÓN MOVIMIENTO ---
     animacionActual = &animCaminando;
 
     tiempoAnimacion += dt;
@@ -222,7 +218,7 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
 
 void MonstruoObeso::atacar(Protagonista& jugador)
 {
-    // Sincronizamos el daño con el Frame 3
+    // Seguridad: Solo daña en el frame 3 (golpe visual)
     if (frameActual == 3 && !haDaniadoEnEsteAtaque)
     {
         jugador.recibirDanio(this->danio);
@@ -245,9 +241,6 @@ void MonstruoObeso::dibujar()
     float rotacion = atan2f(direccion.y, direccion.x) * RAD2DEG;
 
     Texture2D texReferencia = animCaminando[0];
-
-    // --- VISUAL AUMENTADA (OBESO) ---
-    // Escalado 3.8x (Antes 3.0)
     float escala = (radio * 3.8f) / (float)texReferencia.width;
 
     Rectangle sourceRec = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };

@@ -12,11 +12,12 @@
 #include <vector>
 #include <list>
 
-// Estados del juego
 enum class EstadoJuego {
     MENU_INICIAL = 0,
     CREDITOS,
+    INTRO_CINEMATICA, // <--- NUEVO ESTADO
     JUGANDO,
+    PAUSA,
     INICIANDO_JEFE,
     LEYENDO_NOTA,
     DIALOGO_FINAL,
@@ -29,7 +30,7 @@ enum class EstadoJuego {
     FIN_JUEGO_HUIR,
     FIN_JUEGO_MUERTO,
     MENU_MUERTE,
-    ITEM_OBTENIDO     // <--- NUEVO: Estado Popup de objeto
+    ITEM_OBTENIDO
 };
 
 class Juego
@@ -52,18 +53,36 @@ private:
     Rectangle triggerRectJefe;
     float temporizadorSpawnJefe;
 
-    // Variables de dialogo
     int opcionDialogo;
     float temporizadorDialogo;
 
-    // --- VARIABLES POP-UP ITEM ---
-    Texture2D texPopupItem;      // Textura del item actual
-    const char* nombrePopupItem; // Nombre del item
-    const char* descPopupItem;   // Descripcion
-    float escalaPopup;           // Animacion
-    // -----------------------------
+    // --- VARIABLES CINEMÁTICA INTRO (NUEVO) ---
+    Texture2D texIntro;
+    float timerIntro;
+    int faseIntro; // 0: Texto Boot, 1: Imagen Fade In, 2: Imagen Hold, 3: Fade Out
+    int letrasIntroMostradas;
+    float timerEscrituraIntro;
+    // ------------------------------------------
 
-    // Assets Menu Inicio
+    // --- VARIABLES EFECTO DESPERTAR (IN-GAME) ---
+    float timerDespertar; // Para el zoom y fade inicial al jugar
+    // --------------------------------------------
+
+    // --- VARIABLES CINEMÁTICA FINAL ---
+    Texture2D texFinalSacrificio;
+    Texture2D texFinalHuir;
+    float alphaFinal;
+    float timerEscritura;
+    int letrasMostradas;
+    int faseFinal;
+
+    // --- POP-UP ---
+    Texture2D texPopupItem;
+    const char* nombrePopupItem;
+    const char* descPopupItem;
+    float escalaPopup;
+
+    // --- MENÚS ---
     Texture2D texFondoMenuInicio;
     Texture2D texBtnJugar;
     Texture2D texBtnJugarSel;
@@ -73,10 +92,8 @@ private:
     Texture2D texBtnSalirInicioSel;
     int opcionMenuInicial;
 
-    // Assets Creditos
     Texture2D texFondoCreditos;
 
-    // Assets Muerte
     Texture2D texFondoMuerte;
     Texture2D texBtnReintentar;
     Texture2D texBtnReintentarSel;
@@ -86,6 +103,8 @@ private:
     Texture2D texBtnSalirMuerteSel;
     int opcionMenuMuerteSeleccionada;
 
+    int opcionMenuPausa;
+
     // Metodos internos
     void ResetSustoFantasma();
     void reiniciarJuego();
@@ -94,10 +113,12 @@ private:
     void actualizar();
     void dibujar();
 
-    // Metodos de Actualizacion por Estado
+    // Metodos de Estado
     void actualizarMenuInicial();
     void actualizarCreditos();
+    void actualizarIntro(); // <--- NUEVO
     void actualizarJugando();
+    void actualizarPausa();
     void actualizarLeyendoNota();
     void actualizarIniciandoJefe();
     void actualizarDialogo();
@@ -107,12 +128,14 @@ private:
     void actualizarDialogoDecisionFinal();
     void actualizarFinJuego();
     void actualizarMenuMuerte();
-    void actualizarItemObtenido(); // <--- NUEVO
+    void actualizarItemObtenido();
 
-    // Metodos de Dibujado por Estado
+    // Metodos de Dibujado
     void dibujarMenuInicial();
     void dibujarCreditos();
+    void dibujarIntro(); // <--- NUEVO
     void dibujarJugando();
+    void dibujarPausa();
     void dibujarLeyendoNota();
     void dibujarIniciandoJefe();
     void dibujarDialogo();
@@ -122,7 +145,7 @@ private:
     void dibujarDialogoDecisionFinal();
     void dibujarFinJuego();
     void dibujarMenuMuerte(float alpha = 1.0f);
-    void dibujarItemObtenido(); // <--- NUEVO
+    void dibujarItemObtenido();
 
 public:
     Juego();

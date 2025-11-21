@@ -4,13 +4,12 @@
 #include <string>
 #include "Protagonista.h"
 
-// Inicialización de vectores estáticos
+// Inicialización de estáticos
 std::vector<Texture2D> Zombie::animCaminando;
 std::vector<Texture2D> Zombie::animAtaque;
 std::vector<Texture2D> Zombie::animMuerte;
 bool Zombie::texturasCargadas = false;
 
-// Configuración de Velocidades
 const float VELOCIDAD_ANIM_ZOMBIE = 10.0f;
 const float VELOCIDAD_ANIM_ATAQUE = 9.0f;
 const float VELOCIDAD_ANIM_MUERTE = 8.0f;
@@ -20,29 +19,24 @@ void Zombie::CargarTexturas()
 {
     if (!texturasCargadas)
     {
-        // 1. Caminando (Base)
         for (int i = 1; i <= 6; i++) {
             std::string path = "assets/Zombie/ZombieCaminando" + std::to_string(i) + ".png";
             animCaminando.push_back(LoadTexture(path.c_str()));
         }
-        // Tweak de fluidez
         if (animCaminando.size() >= 4) {
             animCaminando.push_back(animCaminando[2]);
             animCaminando.push_back(animCaminando[3]);
         }
 
-        // 2. Ataque
         for (int i = 1; i <= 5; i++) {
             std::string path = "assets/Zombie/ZombieAtaque" + std::to_string(i) + ".png";
             animAtaque.push_back(LoadTexture(path.c_str()));
         }
 
-        // 3. Muriendo
         for (int i = 1; i <= 3; i++) {
             std::string path = "assets/Zombie/ZombieMuriendo" + std::to_string(i) + ".png";
             animMuerte.push_back(LoadTexture(path.c_str()));
         }
-
         texturasCargadas = true;
     }
 }
@@ -67,7 +61,7 @@ Zombie::Zombie(Vector2 pos)
               Constantes::VIDA_ZOMBIE,
               Constantes::DANIO_ZOMBIE,
               Constantes::VELOCIDAD_ZOMBIE,
-              Constantes::RADIO_ZOMBIE * 1.3f, // <--- HITBOX AUMENTADA (30% más grande)
+              Constantes::RADIO_ZOMBIE * 1.3f,
               Constantes::RANGO_VISUAL_ZOMBIE,
               Constantes::ANGULO_CONO_ZOMBIE,
               Constantes::RANGO_AUDIO_ZOMBIE),
@@ -110,7 +104,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
 {
     float dt = GetFrameTime();
 
-    // --- 1. LÓGICA DE MUERTE ---
+    // --- 1. MUERTE ---
     if (estaMuriendo)
     {
         if (frameActual < (int)animMuerte.size() - 1)
@@ -125,7 +119,6 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         else
         {
             frameActual = (int)animMuerte.size() - 1;
-
             if (temporizadorCadaver > 0) {
                 temporizadorCadaver -= dt;
             } else {
@@ -135,7 +128,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         return;
     }
 
-    // --- 2. LÓGICA DE ATAQUE ---
+    // --- 2. ATAQUE ---
     if (estadoActual == EstadoIA::ATACANDO)
     {
         animacionActual = &animAtaque;
@@ -146,14 +139,8 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
             tiempoAnimacion = 0.0f;
             frameActual++;
 
-            // MOMENTO DEL GOLPE
-            if (frameActual == 2 && !haDaniadoEnEsteAtaque)
-            {
-                 if (Vector2Distance(posicion, posJugador) <= (getRadio() + 55.0f)) {
-                    atacar(const_cast<Protagonista&>(*reinterpret_cast<Protagonista*>(0)));
-                    haDaniadoEnEsteAtaque = true;
-                 }
-            }
+            // NOTA: El daño ya no se llama aquí para evitar el crash.
+            // Se verifica en el método 'atacar()' llamado por colisiones.
 
             if (frameActual >= (int)animAtaque.size()) {
                 estadoActual = EstadoIA::PERSIGUIENDO;
@@ -165,7 +152,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         return;
     }
 
-    // --- 3. LÓGICA DE MOVIMIENTO ---
+    // --- 3. MOVIMIENTO ---
     if (temporizadorPausaAtaque > 0) temporizadorPausaAtaque -= dt;
 
     Vector2 velocidadMov = {0, 0};
@@ -221,7 +208,6 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         setDireccion(Vector2Normalize(velocidadMov));
     }
 
-    // --- 4. ANIMACIÓN ---
     animacionActual = &animCaminando;
 
     tiempoAnimacion += dt;
@@ -237,7 +223,13 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
 
 void Zombie::atacar(Protagonista& jugador)
 {
-    jugador.recibirDanio(this->danio);
+    // El MotorColisiones llama a esto cuando chocan.
+    // Solo aplicamos daño si la animación está en el frame correcto.
+    if (frameActual == 2 && !haDaniadoEnEsteAtaque)
+    {
+        jugador.recibirDanio(this->danio);
+        haDaniadoEnEsteAtaque = true;
+    }
 }
 
 void Zombie::dibujar()
@@ -254,8 +246,6 @@ void Zombie::dibujar()
     Texture2D tex = (*animacionActual)[frameActual];
     float rotacion = atan2f(direccion.y, direccion.x) * RAD2DEG;
 
-    // --- VISUAL AUMENTADA ---
-    // Escalado 4.2x (Antes 3.8)
     Texture2D texReferencia = animCaminando[0];
     float escala = (radio * 4.2f) / (float)texReferencia.width;
 
