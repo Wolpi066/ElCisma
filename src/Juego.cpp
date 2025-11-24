@@ -20,7 +20,7 @@
 #include "Spawner.h"
 #include "Jefe.h"
 
-// --- Helper Visual ---
+// --- Helpers Visuales ---
 void DibujarTextoGlitch(const char* texto, int posX, int posY, int fontSize, Color colorPrincipal)
 {
     float offset = sin(GetTime() * 15.0f) * 1.0f;
@@ -30,7 +30,16 @@ void DibujarTextoGlitch(const char* texto, int posX, int posY, int fontSize, Col
     DrawText(texto, posX, posY, fontSize, colorPrincipal);
 }
 
-// Helper para caja de dialogo
+// Helper para dibujar texto con borde negro grueso
+void DibujarTextoConBorde(const char* texto, int x, int y, int fontSize, Color color) {
+    int offset = 2;
+    DrawText(texto, x - offset, y - offset, fontSize, BLACK);
+    DrawText(texto, x + offset, y - offset, fontSize, BLACK);
+    DrawText(texto, x - offset, y + offset, fontSize, BLACK);
+    DrawText(texto, x + offset, y + offset, fontSize, BLACK);
+    DrawText(texto, x, y, fontSize, color);
+}
+
 void DibujarCajaDialogo() {
     DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.85f));
     Rectangle frame = { Constantes::ANCHO_PANTALLA * 0.1f, Constantes::ALTO_PANTALLA * 0.25f, Constantes::ANCHO_PANTALLA * 0.8f, Constantes::ALTO_PANTALLA * 0.5f };
@@ -461,14 +470,77 @@ void Juego::actualizarFinJuego() {
     }
     else if (faseFinal == 3) { if (IsKeyPressed(KEY_E) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) { estadoActual = EstadoJuego::MENU_INICIAL; } }
 }
+
 void Juego::dibujarFinJuego() {
     if (faseFinal == 0) { renderizador.dibujarTodo(jugador, miMapa, gestor); DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, alphaFinal)); return; }
-    ClearBackground(BLACK); Texture2D* texFinal = nullptr; const char* titulo = ""; const char* desc = ""; Color colorTitulo = WHITE;
-    if (estadoActual == EstadoJuego::FIN_JUEGO_SACRIFICIO) { texFinal = &texFinalSacrificio; titulo = "EL NUEVO ARQUITECTO"; desc = "Aceptas el trono. El Nexo se estabiliza, pero te conviertes\nen su nuevo corazon. Las almas estan atrapadas, pero en calma.\n\n...esperando al proximo Remanente."; colorTitulo = (Color){0, 255, 255, 255}; }
-    else { texFinal = &texFinalHuir; titulo = "EL CICLO SE REPITE"; desc = "Escapas del Vortice. Detras de ti, el Nexo ruge y Elana grita.\nEl Cisma ha muerto, pero el trono esta vacio...\n\nY el Vortice odia el vacio."; colorTitulo = RED; }
-    float alphaImg = (faseFinal == 1) ? alphaFinal : 1.0f; if (texFinal && texFinal->id != 0) { Rectangle src = {0, 0, (float)texFinal->width, (float)texFinal->height}; Rectangle dest = {0, 0, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA}; DrawTexturePro(*texFinal, src, dest, {0,0}, 0.0f, Fade(WHITE, alphaImg)); } else { DrawRectangleGradientV(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, BLACK, Fade(colorTitulo, 0.2f * alphaImg)); }
-    if (faseFinal >= 2) { int wTit = MeasureText(titulo, 50); DrawText(titulo, Constantes::ANCHO_PANTALLA/2 - wTit/2, 100, 50, colorTitulo); char buffer[512]; int len = strlen(desc); int count = (letrasMostradas > len) ? len : letrasMostradas; strncpy(buffer, desc, count); buffer[count] = '\0'; int wDesc = MeasureText(desc, 20); int x = Constantes::ANCHO_PANTALLA/2 - wDesc/2; int y = Constantes::ALTO_PANTALLA - 200; DrawText(buffer, x+2, y+2, 20, BLACK); DrawText(buffer, x, y, 20, WHITE); }
-    if (faseFinal == 3) { const char* msg = "Presiona 'E' para volver al menu"; float alphaPulse = 0.5f + sin(GetTime() * 3.0f) * 0.5f; int wMsg = MeasureText(msg, 20); DrawText(msg, Constantes::ANCHO_PANTALLA/2 - wMsg/2, Constantes::ALTO_PANTALLA - 50, 20, Fade(GRAY, alphaPulse)); }
+
+    ClearBackground(BLACK);
+    Texture2D* texFinal = nullptr;
+    const char* titulo = "";
+    const char* desc = "";
+    Color colorTitulo = WHITE;
+
+    if (estadoActual == EstadoJuego::FIN_JUEGO_SACRIFICIO) {
+        texFinal = &texFinalSacrificio;
+        titulo = "EL NUEVO ARQUITECTO";
+        desc = "Aceptas el trono. El Nexo se estabiliza, pero te conviertes\nen su nuevo corazon. Las almas estan atrapadas, pero en calma.\n\n...esperando al proximo Remanente.";
+        colorTitulo = (Color){0, 255, 255, 255};
+    }
+    else {
+        texFinal = &texFinalHuir;
+        titulo = "EL CICLO SE REPITE";
+        desc = "Escapas del Vortice. Detras de ti, el Nexo ruge y Elana grita.\nEl Cisma ha muerto, pero el trono esta vacio...\n\nY el Vortice odia el vacio.";
+        colorTitulo = RED;
+    }
+
+    float alphaImg = (faseFinal == 1) ? alphaFinal : 1.0f;
+    if (texFinal && texFinal->id != 0) {
+        Rectangle src = {0, 0, (float)texFinal->width, (float)texFinal->height};
+        Rectangle dest = {0, 0, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA};
+        DrawTexturePro(*texFinal, src, dest, {0,0}, 0.0f, Fade(WHITE, alphaImg));
+    } else {
+        DrawRectangleGradientV(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, BLACK, Fade(colorTitulo, 0.2f * alphaImg));
+    }
+
+    // TEXTOS MEJORADOS
+    if (faseFinal >= 2) {
+        // TÍTULO
+        int fontSizeTitulo = 60;
+        int wTit = MeasureText(titulo, fontSizeTitulo);
+        int xTit = Constantes::ANCHO_PANTALLA/2 - wTit/2;
+        int yTit = 80;
+
+        // Sombra para título
+        DibujarTextoConBorde(titulo, xTit, yTit, fontSizeTitulo, colorTitulo);
+
+        // DESCRIPCIÓN
+        char buffer[512];
+        int len = strlen(desc);
+        int count = (letrasMostradas > len) ? len : letrasMostradas;
+        strncpy(buffer, desc, count);
+        buffer[count] = '\0';
+
+        int fontSizeDesc = 24;
+        // int wDesc = MeasureText(...); // Eliminado variable sin usar
+        int xDesc = Constantes::ANCHO_PANTALLA/2 - 350; // Centrado manual aprox
+        int yDesc = Constantes::ALTO_PANTALLA - 250;
+
+        // Fondo semitransparente para leer mejor
+        DrawRectangle(0, yDesc - 20, Constantes::ANCHO_PANTALLA, 150, Fade(BLACK, 0.6f));
+
+        // Texto con borde
+        DibujarTextoConBorde(buffer, xDesc, yDesc, fontSizeDesc, WHITE);
+    }
+
+    if (faseFinal == 3) {
+        const char* msg = "Presiona 'E' para volver al menu";
+        float alphaPulse = 0.5f + sin(GetTime() * 3.0f) * 0.5f;
+        int wMsg = MeasureText(msg, 20);
+        int xMsg = Constantes::ANCHO_PANTALLA/2 - wMsg/2;
+        int yMsg = Constantes::ALTO_PANTALLA - 50;
+
+        DibujarTextoConBorde(msg, xMsg, yMsg, 20, Fade(GRAY, alphaPulse));
+    }
 }
 
 // --- NOTAS ---

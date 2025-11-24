@@ -3,18 +3,29 @@
 #include "BalaMonstruosa.h"
 #include "MinaEnemiga.h"
 #include "TrozoDeCarne.h"
+#include "BalaInfernal.h" // Nuevo include
 #include "Constantes.h"
 #include "BalaDeRifle.h"
 
 GestorEntidades::GestorEntidades()
 {
+    // Carga de recursos estáticos
     BalaDeRifle::CargarTextura();
+    BalaMonstruosa::CargarRecursos();
+    BalaInfernal::CargarRecursos();
+    MinaEnemiga::CargarRecursos();
+    TrozoDeCarne::CargarRecursos();
 }
 
 GestorEntidades::~GestorEntidades()
 {
     limpiarTodo();
+    // Descarga de recursos estáticos
     BalaDeRifle::DescargarTextura();
+    BalaMonstruosa::DescargarRecursos();
+    BalaInfernal::DescargarRecursos();
+    MinaEnemiga::DescargarRecursos();
+    TrozoDeCarne::DescargarRecursos();
 }
 
 void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& mapa)
@@ -22,8 +33,6 @@ void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& m
     Vector2 posJugador = jugador.getPosicion();
 
     for (Enemigo* enemigo : enemigos) {
-        // --- CORRECCIÓN CLAVE: Usamos !estaMuerto() en vez de estaVivo() ---
-        // Esto permite que el Zombie se actualice mientras hace su animación de muerte.
         if (!enemigo->estaMuerto()) {
             enemigo->actualizarBase();
             enemigo->actualizarIA(posJugador, mapa);
@@ -76,7 +85,6 @@ void GestorEntidades::dibujarEntidades()
     }
 
     for (Enemigo* enemigo : enemigos) {
-        // --- CORRECCIÓN CLAVE: Dibujamos aunque tenga 0 vida (si está muriendo) ---
         if (!enemigo->estaMuerto()) {
             enemigo->dibujar();
         }

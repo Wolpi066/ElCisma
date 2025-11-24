@@ -351,7 +351,7 @@
 1762636385 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.cpp
 	"BalaMonstruosa.h"
 
-1762636372 c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.h
+1763959162 c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.h
 	"Bala.h"
 
 1763578548 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bateria.cpp
@@ -429,10 +429,11 @@
 	"CajaDeMuniciones.h"
 	"Armadura.h"
 
-1762789196 c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.h
+1763952700 c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.h
 	"raylib.h"
 	"raymath.h"
 	<vector>
+	<string>
 	"Protagonista.h"
 	"BalaInfernal.h"
 
@@ -453,7 +454,7 @@
 1763575891 c:\users\volpi\onedrive\escritorio\elcisma\src\indicadorpuerta.h
 	"Consumible.h"
 
-1762789226 source:c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.cpp
+1763952720 source:c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.cpp
 	"Jefe.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -465,7 +466,7 @@
 	"TrozoDeCarne.h"
 	"BalaInfernal.h"
 
-1763747628 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1763949228 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raylib.h"
@@ -636,11 +637,13 @@
 1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.cpp
 	"SistemaInput.h"
 
-1763668977 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
+1763766354 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
 	"SistemaRender.h"
 	"Constantes.h"
 	"Fantasma.h"
 	"raymath.h"
+	<string>
+	<cstdio>
 
 1763676073 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
 	"Zombie.h"
@@ -649,7 +652,7 @@
 	<string>
 	"Protagonista.h"
 
-1762636393 c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.h
+1763959216 c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.h
 	"Bala.h"
 
 1762636400 source:c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.cpp
@@ -658,7 +661,7 @@
 	"Protagonista.h"
 	"Mapa.h"
 
-1762636060 c:\users\volpi\onedrive\escritorio\elcisma\src\trozodecarne.h
+1763959197 c:\users\volpi\onedrive\escritorio\elcisma\src\trozodecarne.h
 	"Bala.h"
 	"raymath.h"
 
@@ -672,6 +675,6 @@
 1762789168 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.cpp
 	"BalaInfernal.h"
 
-1762788220 c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.h
+1763959178 c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.h
 	"Bala.h"
 

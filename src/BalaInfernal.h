@@ -1,11 +1,14 @@
 #pragma once
 #include "Bala.h"
 
-// NUEVA CLASE PARA EL BULLET HELL
-// (Es una BalaMonstruosa pero más grande y de otro color)
-
 class BalaInfernal : public Bala {
+private:
+    static Texture2D texBalaInfernal;
+
 public:
     BalaInfernal(Vector2 pos, Vector2 dir);
     virtual void dibujar() override;
+
+    static void CargarRecursos();
+    static void DescargarRecursos();
 };
