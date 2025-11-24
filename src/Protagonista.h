@@ -27,11 +27,8 @@ private:
     float radio;
 
     bool linternaEncendida;
-
-    // --- LINTERNA REALISTA ---
-    bool luzApagadaPorFlicker; // Estado del parpadeo
-    float timerFlicker;        // Tiempo para el siguiente cambio
-    // -------------------------
+    bool luzApagadaPorFlicker;
+    float timerFlicker;
 
     Vector2 knockbackVelocidad;
     float knockbackTimer;
@@ -44,8 +41,22 @@ private:
     Texture2D texDisparando;
     Texture2D texMuerto;
 
+    // --- AUDIO ---
+    Sound fxCaminando;
+    Sound fxDisparo;
+    Sound fxGolpe;
+    Sound fxLinterna;
+    Sound fxPocaVida;
+    Sound fxRecargando;
+    Sound fxSinBalas; // <--- NUEVO
+
+    float timerPasos;
+
     float timerVisualDisparo;
     float timerAnimacionMuerte;
+
+    void CargarRecursos();
+    void DescargarRecursos();
 
 public:
     Protagonista(Vector2 pos);

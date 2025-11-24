@@ -4,31 +4,35 @@
 #include <string>
 #include "Protagonista.h"
 
-// Inicialización de estáticos
+// Inicialización Estáticos
 std::vector<Texture2D> MonstruoObeso::animCaminando;
 std::vector<Texture2D> MonstruoObeso::animAtaque;
 std::vector<Texture2D> MonstruoObeso::animMuerte;
 bool MonstruoObeso::texturasCargadas = false;
 
-const float VELOCIDAD_ANIM_OBESO = 8.0f;
-const float VELOCIDAD_ANIM_ATAQUE_OBESO = 9.0f;
-const float VELOCIDAD_ANIM_MUERTE_OBESO = 6.0f;
+Sound MonstruoObeso::fxGrito = { 0 };
+bool MonstruoObeso::recursosSonidoCargados = false;
+
+// --- CONSTANTES DE ANIMACIÓN (Nombres Unificados) ---
+const float VEL_ANIM_WALK = 8.0f;
+const float VEL_ANIM_ATK = 7.0f;
+const float VEL_ANIM_DEATH = 6.0f;
 const float TIEMPO_CADAVER_OBESO = 10.0f;
 
-void MonstruoObeso::CargarTexturas()
-{
-    if (!texturasCargadas)
-    {
+// Audio
+const float DISTANCIA_AUDIO_MAX = 400.0f;
+const float VOLUMEN_GRITO_BASE = 0.9f;
+
+void MonstruoObeso::CargarTexturas() {
+    if (!texturasCargadas) {
         for (int i = 1; i <= 7; i++) {
             std::string path = "assets/Obeso/ObesoCaminando" + std::to_string(i) + ".png";
             animCaminando.push_back(LoadTexture(path.c_str()));
         }
-
         for (int i = 1; i <= 6; i++) {
             std::string path = "assets/Obeso/ObesoAtacando" + std::to_string(i) + ".png";
             animAtaque.push_back(LoadTexture(path.c_str()));
         }
-
         for (int i = 1; i <= 3; i++) {
             std::string path = "assets/Obeso/ObesoMuriendo" + std::to_string(i) + ".png";
             animMuerte.push_back(LoadTexture(path.c_str()));
@@ -37,18 +41,31 @@ void MonstruoObeso::CargarTexturas()
     }
 }
 
-void MonstruoObeso::DescargarTexturas()
-{
-    if (texturasCargadas)
-    {
+void MonstruoObeso::DescargarTexturas() {
+    if (texturasCargadas) {
         for (auto& t : animCaminando) UnloadTexture(t);
         for (auto& t : animAtaque) UnloadTexture(t);
         for (auto& t : animMuerte) UnloadTexture(t);
-
         animCaminando.clear();
         animAtaque.clear();
         animMuerte.clear();
         texturasCargadas = false;
+    }
+}
+
+void MonstruoObeso::CargarSonidos() {
+    if (!recursosSonidoCargados) {
+        if (FileExists("assets/Audio/Sonidos/Enemigos/MonstruoObeso.mp3")) {
+            fxGrito = LoadSound("assets/Audio/Sonidos/Enemigos/MonstruoObeso.mp3");
+        }
+        recursosSonidoCargados = true;
+    }
+}
+
+void MonstruoObeso::DescargarSonidos() {
+    if (recursosSonidoCargados) {
+        if (fxGrito.stream.buffer) UnloadSound(fxGrito);
+        recursosSonidoCargados = false;
     }
 }
 
@@ -67,6 +84,7 @@ MonstruoObeso::MonstruoObeso(Vector2 pos)
       animacionMuerteTerminada(false),
       temporizadorCadaver(0.0f),
       haDaniadoEnEsteAtaque(false),
+      haRugidoInicial(false),
       animacionActual(&animCaminando)
 {
     if (!texturasCargadas) CargarTexturas();
@@ -74,14 +92,13 @@ MonstruoObeso::MonstruoObeso(Vector2 pos)
 
 MonstruoObeso::~MonstruoObeso() {}
 
-void MonstruoObeso::recibirDanio(int cantidad)
-{
+void MonstruoObeso::recibirDanio(int cantidad) {
     if (estaMuriendo) return;
 
+    // Lógica de persecución al recibir daño
     Enemigo::recibirDanio(cantidad);
 
-    if (vida <= 0)
-    {
+    if (vida <= 0) {
         vida = 0;
         estaMuriendo = true;
         frameActual = 0;
@@ -91,55 +108,54 @@ void MonstruoObeso::recibirDanio(int cantidad)
     }
 }
 
-bool MonstruoObeso::estaMuerto() const
-{
-    return animacionMuerteTerminada;
-}
+bool MonstruoObeso::estaMuerto() const { return animacionMuerteTerminada; }
 
-void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
-{
+void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
     float dt = GetFrameTime();
 
-    // --- 1. MUERTE ---
-    if (estaMuriendo)
-    {
-        if (frameActual < (int)animMuerte.size() - 1)
-        {
+    // 1. MUERTE
+    if (estaMuriendo) {
+        if (frameActual < (int)animMuerte.size() - 1) {
             tiempoAnimacion += dt;
-            if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_MUERTE_OBESO))
-            {
+            // Usamos la constante correcta: VEL_ANIM_DEATH
+            if (tiempoAnimacion >= (1.0f / VEL_ANIM_DEATH)) {
                 tiempoAnimacion = 0.0f;
                 frameActual++;
             }
-        }
-        else
-        {
-            frameActual = (int)animMuerte.size() - 1;
-            if (temporizadorCadaver > 0) {
-                temporizadorCadaver -= dt;
-            } else {
-                animacionMuerteTerminada = true;
-            }
+        } else {
+            if (temporizadorCadaver > 0) temporizadorCadaver -= dt;
+            else animacionMuerteTerminada = true;
         }
         return;
     }
 
-    // --- 2. ATAQUE ---
-    if (estadoActual == EstadoIA::ATACANDO)
-    {
+    // 2. AUDIO DIRECCIONAL
+    if (recursosSonidoCargados && !Enemigo::batallaJefeIniciada) {
+        float dist = Vector2Distance(posicion, posJugador);
+        if (dist < DISTANCIA_AUDIO_MAX) {
+            float pan = Remap(posicion.x - posJugador.x, -DISTANCIA_AUDIO_MAX, DISTANCIA_AUDIO_MAX, 0.0f, 1.0f);
+            SetSoundPan(fxGrito, Clamp(pan, 0.0f, 1.0f));
+            float vol = Remap(dist, 0.0f, DISTANCIA_AUDIO_MAX, VOLUMEN_GRITO_BASE, 0.0f);
+            SetSoundVolume(fxGrito, Clamp(vol, 0.0f, 1.0f));
+
+            if (!haRugidoInicial) {
+                PlaySound(fxGrito);
+                haRugidoInicial = true;
+            }
+        }
+    }
+
+    // 3. ATAQUE
+    if (estadoActual == EstadoIA::ATACANDO) {
         animacionActual = &animAtaque;
         tiempoAnimacion += dt;
-
-        if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_ATAQUE_OBESO))
-        {
+        // Usamos la constante correcta: VEL_ANIM_ATK
+        if (tiempoAnimacion >= (1.0f / VEL_ANIM_ATK)) {
             tiempoAnimacion = 0.0f;
             frameActual++;
-
-            // CRASH FIX: No llamamos a atacar() aquí.
-
             if (frameActual >= (int)animAtaque.size()) {
                 estadoActual = EstadoIA::PERSIGUIENDO;
-                temporizadorPausaAtaque = 1.8f;
+                temporizadorPausaAtaque = 2.0f;
                 frameActual = 0;
                 haDaniadoEnEsteAtaque = false;
             }
@@ -147,45 +163,31 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         return;
     }
 
-    // --- 3. MOVIMIENTO ---
+    // 4. MOVIMIENTO
     if (temporizadorPausaAtaque > 0) temporizadorPausaAtaque -= dt;
+    Vector2 velocidadMov = {0,0};
 
-    Vector2 velocidadMov = {0, 0};
-
-    bool veJugador = puedeVearAlJugador(posJugador);
-    bool escuchaJugador = puedeEscucharAlJugador(posJugador);
-
-    if (veJugador || escuchaJugador) {
+    if (puedeVearAlJugador(posJugador) || puedeEscucharAlJugador(posJugador)) {
         estadoActual = EstadoIA::PERSIGUIENDO;
     }
 
-    float distanciaAtaque = getRadio() + 40.0f;
+    float distAtaque = getRadio() + 40.0f;
 
-    if (estadoActual == EstadoIA::PERSIGUIENDO)
-    {
-        Vector2 dirHaciaJugador = Vector2Normalize(Vector2Subtract(posJugador, posicion));
-
-        if (Vector2Distance(posicion, posJugador) <= distanciaAtaque)
-        {
-             if (temporizadorPausaAtaque <= 0) {
-                 estadoActual = EstadoIA::ATACANDO;
-                 frameActual = 0;
-                 tiempoAnimacion = 0.0f;
-                 haDaniadoEnEsteAtaque = false;
-                 return;
-             }
-             else {
-                 setDireccion(dirHaciaJugador);
-             }
+    if (estadoActual == EstadoIA::PERSIGUIENDO) {
+        if (Vector2Distance(posicion, posJugador) <= distAtaque) {
+            if (temporizadorPausaAtaque <= 0) {
+                estadoActual = EstadoIA::ATACANDO;
+                frameActual = 0;
+                tiempoAnimacion = 0.0f;
+                haDaniadoEnEsteAtaque = false;
+                if (recursosSonidoCargados && !Enemigo::batallaJefeIniciada) PlaySound(fxGrito);
+                return;
+            }
+        } else {
+            velocidadMov = Vector2Scale(Vector2Normalize(Vector2Subtract(posJugador, posicion)), velocidad);
         }
-        else
-        {
-             velocidadMov = Vector2Scale(dirHaciaJugador, velocidad);
-             setDireccion(dirHaciaJugador);
-        }
-    }
-    else if (estadoActual == EstadoIA::PATRULLANDO)
-    {
+    } else {
+        // Lógica Patrulla (Simplificada del padre si necesario, o personalizada)
         if (temporizadorPatrulla > 0) {
             temporizadorPatrulla -= dt;
         } else {
@@ -204,55 +206,41 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa)
     }
 
     animacionActual = &animCaminando;
-
     tiempoAnimacion += dt;
-    if (tiempoAnimacion >= (1.0f / VELOCIDAD_ANIM_OBESO))
-    {
+    // Usamos la constante correcta: VEL_ANIM_WALK
+    if (tiempoAnimacion >= (1.0f / VEL_ANIM_WALK)) {
         tiempoAnimacion = 0.0f;
         frameActual++;
-        if (frameActual >= (int)animacionActual->size()) {
-            frameActual = 0;
-        }
+        if (frameActual >= (int)animacionActual->size()) frameActual = 0;
     }
 }
 
-void MonstruoObeso::atacar(Protagonista& jugador)
-{
-    // Seguridad: Solo daña en el frame 3 (golpe visual)
-    if (frameActual == 3 && !haDaniadoEnEsteAtaque)
-    {
-        jugador.recibirDanio(this->danio);
+void MonstruoObeso::atacar(Protagonista& jugador) {
+    if (frameActual == 3 && !haDaniadoEnEsteAtaque) {
+        jugador.recibirDanio(danio);
         haDaniadoEnEsteAtaque = true;
+        jugador.aplicarKnockback(direccion, 300.0f, 0.2f);
     }
 }
 
-void MonstruoObeso::dibujar()
-{
-    if (!texturasCargadas || !animacionActual || animacionActual->empty())
-    {
-        DrawCircleV(posicion, radio, MAROON);
+void MonstruoObeso::dibujar() {
+    if (!texturasCargadas || !animacionActual || animacionActual->empty()) {
+        DrawCircleV(posicion, radio, BROWN);
         return;
     }
-
-    if (frameActual < 0) frameActual = 0;
     if (frameActual >= (int)animacionActual->size()) frameActual = 0;
-
     Texture2D tex = (*animacionActual)[frameActual];
-    float rotacion = atan2f(direccion.y, direccion.x) * RAD2DEG;
 
-    Texture2D texReferencia = animCaminando[0];
-    float escala = (radio * 3.8f) / (float)texReferencia.width;
+    float escala = (radio * 3.5f) / (float)tex.width;
+    float rot = atan2f(direccion.y, direccion.x) * RAD2DEG;
 
-    Rectangle sourceRec = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
-    Rectangle destRec = { posicion.x, posicion.y, (float)tex.width * escala, (float)tex.height * escala };
-    Vector2 origen = { destRec.width / 2.0f, destRec.height / 2.0f };
+    Rectangle src = {0,0,(float)tex.width, (float)tex.height};
+    Rectangle dest = {posicion.x, posicion.y, (float)tex.width*escala, (float)tex.height*escala};
+    Vector2 origin = {dest.width/2, dest.height/2};
 
-    Color colorFinal = WHITE;
-    if (temporizadorDanio > 0) colorFinal = RED;
+    Color color = WHITE;
+    if (temporizadorDanio > 0) color = RED;
+    if (estaMuriendo && temporizadorCadaver < 2.0f) color = Fade(WHITE, temporizadorCadaver/2.0f);
 
-    if (estaMuriendo && temporizadorCadaver < 2.0f) {
-        colorFinal = Fade(WHITE, temporizadorCadaver / 2.0f);
-    }
-
-    DrawTexturePro(tex, sourceRec, destRec, origen, rotacion, colorFinal);
+    DrawTexturePro(tex, src, dest, origin, rot, color);
 }

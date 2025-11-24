@@ -3,9 +3,11 @@
 #include "BalaMonstruosa.h"
 #include "MinaEnemiga.h"
 #include "TrozoDeCarne.h"
-#include "BalaInfernal.h" // Nuevo include
+#include "BalaInfernal.h"
 #include "Constantes.h"
 #include "BalaDeRifle.h"
+#include "Zombie.h"
+#include "MonstruoObeso.h"
 
 GestorEntidades::GestorEntidades()
 {
@@ -15,6 +17,10 @@ GestorEntidades::GestorEntidades()
     BalaInfernal::CargarRecursos();
     MinaEnemiga::CargarRecursos();
     TrozoDeCarne::CargarRecursos();
+
+    // Cargar Sonidos Enemigos
+    Zombie::CargarSonidos();
+    MonstruoObeso::CargarSonidos();
 }
 
 GestorEntidades::~GestorEntidades()
@@ -26,6 +32,9 @@ GestorEntidades::~GestorEntidades()
     BalaInfernal::DescargarRecursos();
     MinaEnemiga::DescargarRecursos();
     TrozoDeCarne::DescargarRecursos();
+
+    Zombie::DescargarSonidos();
+    MonstruoObeso::DescargarSonidos();
 }
 
 void GestorEntidades::actualizarIAEntidades(Protagonista& jugador, const Mapa& mapa)

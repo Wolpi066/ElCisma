@@ -33,6 +33,7 @@ static const float COOLDOWN_MINAS = 2.0f;
 static const float COOLDOWN_ESCOPETA_F2 = 1.0f;
 static const float COOLDOWN_PULSO_F2 = 1.5f;
 
+// --- CONFIGURACIÓN VISUAL ---
 static const float ESCALA_F1 = 0.125f;
 static const float ESCALA_F2 = 0.095f;
 static const float FPS_ANIMACION = 12.0f;
@@ -49,13 +50,15 @@ Jefe::Jefe(Vector2 pos) :
     faseActual(FaseJefe::FASE_UNO),
     enTransicion(false),
     esInvulnerable(false),
-    introFinalizada(false),
+    // --- ORDEN CORRECTO DE INICIALIZACIÓN (SEGÚN .H) ---
+    timerPasos(0.0f),        // 1. timerPasos va antes que introFinalizada en el .h
+    introFinalizada(false),  // 2. Visuales
     timerAnimacion(0.0f),
     frameActual(0),
     anguloBrazoVisual(0.0f),
     pasoIntro(0),
     timerIntroSequence(0.0f),
-    estadoF1(EstadoFaseUno::PAUSANDO),
+    estadoF1(EstadoFaseUno::PAUSANDO), // 3. Estados
     estadoF2(EstadoFaseDos::PAUSANDO),
     temporizadorEstado(2.5f),
     objetivoEmbestida({0, 0}),
@@ -71,18 +74,77 @@ Jefe::Jefe(Vector2 pos) :
     bulletHellBaseDirection(0.0f),
     bulletHellSpawnTimer(0),
     bulletHellAngleEspirales(0.0f)
+    // ---------------------------------------------------
 {
     this->vidaMaxima = VIDA_JEFE_NUEVA;
     this->vida = this->vidaMaxima;
     balasGeneradas.clear();
     dropsGenerados.clear();
+
     CargarTexturas();
+    CargarSonidos(); // Carga el audio aquí
 }
 
 Jefe::~Jefe() {
     DescargarTexturas();
+    DescargarSonidos();
 }
 
+// --- CARGA DE AUDIO SEGURA ---
+Sound CargarSonidoSeguro(const char* ruta) {
+    if (FileExists(ruta)) return LoadSound(ruta);
+    return (Sound){0};
+}
+
+void Jefe::CargarSonidos() {
+    // Carga segura de todos los efectos
+    fxApareciendo = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Apareciendo.mp3");
+    fxBulletHell = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/BulletHell.wav");
+    fxCaida = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase1/Caida.wav");
+    fxCaminando = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase1/Caminando.wav");
+    fxChoque = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase1/Choque.wav");
+    fxEmbestida = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase1/Embestida.wav");
+    fxEstirarBrazo = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase1/EstirandoBrazo.wav");
+    fxSalto = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase1/Salto.wav");
+
+    fxEscopetazo = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase2/Escopetazo.wav");
+    fxExplosion = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase2/Explosion.wav");
+    fxMinaActiva = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase2/MinaActiva.wav");
+    fxTeleport = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase2/Teletransportandose.aiff");
+
+    // --- AJUSTE DE VOLUMENES ---
+    float bossVol = 0.8f;
+    SetSoundVolume(fxApareciendo, bossVol);
+    SetSoundVolume(fxCaida, bossVol);
+    SetSoundVolume(fxCaminando, bossVol);
+    SetSoundVolume(fxChoque, bossVol);
+    SetSoundVolume(fxEmbestida, bossVol);
+    SetSoundVolume(fxEstirarBrazo, bossVol);
+    SetSoundVolume(fxSalto, bossVol);
+    SetSoundVolume(fxEscopetazo, bossVol);
+    SetSoundVolume(fxExplosion, bossVol);
+    SetSoundVolume(fxMinaActiva, bossVol);
+    SetSoundVolume(fxTeleport, bossVol);
+
+    SetSoundVolume(fxBulletHell, 1.0f); // Bullet Hell al máximo
+}
+
+void Jefe::DescargarSonidos() {
+    if(fxApareciendo.stream.buffer) UnloadSound(fxApareciendo);
+    if(fxBulletHell.stream.buffer) UnloadSound(fxBulletHell);
+    if(fxCaida.stream.buffer) UnloadSound(fxCaida);
+    if(fxCaminando.stream.buffer) UnloadSound(fxCaminando);
+    if(fxChoque.stream.buffer) UnloadSound(fxChoque);
+    if(fxEmbestida.stream.buffer) UnloadSound(fxEmbestida);
+    if(fxEstirarBrazo.stream.buffer) UnloadSound(fxEstirarBrazo);
+    if(fxSalto.stream.buffer) UnloadSound(fxSalto);
+    if(fxEscopetazo.stream.buffer) UnloadSound(fxEscopetazo);
+    if(fxExplosion.stream.buffer) UnloadSound(fxExplosion);
+    if(fxMinaActiva.stream.buffer) UnloadSound(fxMinaActiva);
+    if(fxTeleport.stream.buffer) UnloadSound(fxTeleport);
+}
+
+// --- CARGA DE TEXTURAS ---
 void CargarVector(std::vector<Texture2D>& vec, std::string rutaBase, int cantidad, bool baseCero = false) {
     for (int i = (baseCero ? 0 : 1); i <= (baseCero ? cantidad - 1 : cantidad); i++) {
         std::string ruta = rutaBase + std::to_string(i) + ".png";
@@ -136,9 +198,15 @@ bool Jefe::verificarColisionMuros(Vector2 pos, const Mapa& mapa) {
     return false;
 }
 
+// --- ACTUALIZACIÓN ---
+
 void Jefe::actualizar(Protagonista& jugador, const Mapa& mapa) {
 
-    if (!introFinalizada) return;
+    if (!introFinalizada) {
+        // Audio intro
+        if (pasoIntro == 1 && timerIntroSequence < 0.1f) PlaySound(fxApareciendo);
+        return;
+    }
 
     if (faseActual >= FaseJefe::MURIENDO) {
         actualizarFaseMuerte(jugador, mapa);
@@ -192,9 +260,25 @@ void Jefe::actualizar(Protagonista& jugador, const Mapa& mapa) {
 
         if (faseActual == FaseJefe::FASE_UNO && estadoF1 == EstadoFaseUno::PAUSANDO) {
             velocidadActual = Vector2Scale(direccionVista, velocidadLenta);
+            // AUDIO: Pasos pesados
+            if (Vector2Length(velocidadActual) > 0) {
+                timerPasos -= GetFrameTime();
+                if (timerPasos <= 0) {
+                    PlaySound(fxCaminando);
+                    timerPasos = 0.8f;
+                }
+            }
         }
         else if (faseActual == FaseJefe::FASE_DOS && estadoF2 == EstadoFaseDos::PAUSANDO) {
             velocidadActual = Vector2Scale(direccionVista, VELOCIDAD_LENTA_JEFE_F2);
+            // AUDIO: Pasos rápidos
+            if (Vector2Length(velocidadActual) > 0) {
+                timerPasos -= GetFrameTime();
+                if (timerPasos <= 0) {
+                    // PlaySound(fxCaminando); // Opcional
+                    timerPasos = 0.4f;
+                }
+            }
         }
     }
 
@@ -212,6 +296,7 @@ void Jefe::transicionAFaseDos() {
     estadoF1 = EstadoFaseUno::PAUSANDO;
     frameActual = 0;
     timerAnimacion = 0.0f;
+    PlaySound(fxApareciendo); // Grito
 }
 
 void Jefe::actualizarFaseUno(Protagonista& jugador, const Mapa& mapa) {
@@ -226,18 +311,19 @@ void Jefe::actualizarFaseUno(Protagonista& jugador, const Mapa& mapa) {
                 temporizadorEmbestida = ConstantesJefe::TIEMPO_MAX_EMBESTIDA;
                 frameActual = 0;
                 timerAnimacion = 0.0f;
+                PlaySound(fxEmbestida);
             }
             break;
         case EstadoFaseUno::EMBISTIENDO:
             velocidadActual = Vector2Scale(objetivoEmbestida, VELOCIDAD_EMBESTIDA_JEFE_REDUCIDA);
             temporizadorEmbestida -= GetFrameTime();
 
-            // --- CORRECCIÓN COLISIÓN FASE 1 ---
-            // ¡QUITADO GetFrameTime()! Ahora detecta 3 frames por delante (aprox 20px)
+            // Detectar colisión 3 frames adelante
             if (verificarColisionMuros(Vector2Add(posicion, Vector2Scale(velocidadActual, 3.0f)), mapa)) {
                 estadoF1 = EstadoFaseUno::ATURDIDO_EMBESTIDA;
                 temporizadorEstado = ConstantesJefe::COOLDOWN_ATURDIMIENTO;
                 velocidadActual = {0,0};
+                PlaySound(fxChoque);
             }
 
             if (temporizadorEmbestida <= 0) {
@@ -279,6 +365,7 @@ void Jefe::actualizarFaseUno(Protagonista& jugador, const Mapa& mapa) {
                 ejecutarPulsoRadial();
                 estadoF1 = EstadoFaseUno::PAUSANDO;
                 temporizadorEstado = 1.5f;
+                PlaySound(fxCaida);
             }
             break;
         }
@@ -289,6 +376,7 @@ void Jefe::actualizarFaseUno(Protagonista& jugador, const Mapa& mapa) {
                     temporizadorEstado = TIEMPO_BRAZO_EXTENDIENDO;
                     objetivoBrazo = direccionVista;
                     extensionBrazo = 0.0f;
+                    PlaySound(fxEstirarBrazo);
                 }
                 extensionBrazo = 0.0f;
             } else {
@@ -329,6 +417,7 @@ void Jefe::ejecutarPausaF1(Protagonista& jugador) {
         objetivoEmbestida = direccionVista;
     } else if (ataque <= 3) {
         ejecutarSalto(jugador);
+        PlaySound(fxSalto);
     } else if (ataque <= 6) {
         ejecutarEstirarBrazo(jugador);
         float angleRad = atan2f(direccionVista.y, direccionVista.x);
@@ -373,6 +462,7 @@ void Jefe::ejecutarDisparoEscopeta() {
     balasGeneradas.push_back(new BalaMonstruosa(posicion, Vector2Rotate(dir, 0.2f)));
     balasGeneradas.push_back(new BalaMonstruosa(posicion, Vector2Rotate(dir, -0.4f)));
     balasGeneradas.push_back(new BalaMonstruosa(posicion, Vector2Rotate(dir, 0.4f)));
+    PlaySound(fxEscopetazo);
 }
 
 void Jefe::ejecutarPulsoRadial() {
@@ -384,6 +474,7 @@ void Jefe::ejecutarPulsoRadial() {
     balasGeneradas.push_back(new BalaMonstruosa(posicion, Vector2Normalize({1, -1})));
     balasGeneradas.push_back(new BalaMonstruosa(posicion, Vector2Normalize({-1, 1})));
     balasGeneradas.push_back(new BalaMonstruosa(posicion, Vector2Normalize({-1, -1})));
+    PlaySound(fxExplosion);
 }
 
 void Jefe::actualizarFaseDos(Protagonista& jugador, const Mapa& mapa) {
@@ -394,8 +485,6 @@ void Jefe::actualizarFaseDos(Protagonista& jugador, const Mapa& mapa) {
         case EstadoFaseDos::TELETRANSPORTANDO:
             esInvulnerable = true;
             if (temporizadorEstado <= 0) {
-
-                // --- BUCLE SEGURIDAD TP ---
                 int intentos = 0;
                 Vector2 posTest;
                 do {
@@ -404,10 +493,10 @@ void Jefe::actualizarFaseDos(Protagonista& jugador, const Mapa& mapa) {
                     intentos++;
                 } while (verificarColisionMuros(posTest, mapa) && intentos < 50);
                 posicion = posTest;
-
                 esInvulnerable = false;
                 estadoF2 = EstadoFaseDos::PAUSANDO;
                 temporizadorEstado = 0.5f;
+                PlaySound(fxTeleport);
             }
             break;
         case EstadoFaseDos::PLANTANDO_MINAS:
@@ -415,6 +504,7 @@ void Jefe::actualizarFaseDos(Protagonista& jugador, const Mapa& mapa) {
                 ejecutarPlantandoMinas();
                 estadoF2 = EstadoFaseDos::PAUSANDO;
                 temporizadorEstado = COOLDOWN_MINAS;
+                PlaySound(fxMinaActiva);
             }
             break;
         case EstadoFaseDos::DISPARO_ESCOPETA:
@@ -439,6 +529,7 @@ void Jefe::actualizarFaseDos(Protagonista& jugador, const Mapa& mapa) {
                 temporizadorEmbestida = ConstantesJefe::TIEMPO_MAX_EMBESTIDA;
                 frameActual = 0;
                 timerAnimacion = 0.0f;
+                PlaySound(fxEmbestida);
             }
             break;
         case EstadoFaseDos::EMBISTIENDO:
@@ -446,12 +537,13 @@ void Jefe::actualizarFaseDos(Protagonista& jugador, const Mapa& mapa) {
             temporizadorEmbestida -= GetFrameTime();
 
             // --- CORRECCIÓN COLISIÓN FASE 2 ---
-            // ¡Quitado GetFrameTime()! Detecta 3 frames adelante (aprox 20px)
+            // Detectar pared 3 frames adelante (como en F1)
             if (verificarColisionMuros(Vector2Add(posicion, Vector2Scale(velocidadActual, 3.0f)), mapa)) {
                 estadoF2 = EstadoFaseDos::ATURDIDO_EMBESTIDA;
                 temporizadorEstado = ConstantesJefe::COOLDOWN_ATURDIMIENTO;
                 velocidadActual = {0,0};
-                haSoltadoLootStun = false; // Reset loot
+                haSoltadoLootStun = false;
+                PlaySound(fxChoque);
             }
 
             if (temporizadorEmbestida <= 0) {
@@ -517,10 +609,7 @@ void Jefe::ejecutarPausaF2(Protagonista& jugador) {
     }
 }
 
-void Jefe::ejecutarTeletransporte() {
-    // Logica integrada en switch
-}
-
+void Jefe::ejecutarTeletransporte() { /* Integrado */ }
 void Jefe::ejecutarPlantandoMinas() {
     Vector2 dir = direccionVista;
     balasGeneradas.push_back(new MinaEnemiga(posicion, dir));
@@ -529,7 +618,6 @@ void Jefe::ejecutarPlantandoMinas() {
     balasGeneradas.push_back(new MinaEnemiga(posicion, Vector2Rotate(dir, -0.8f)));
     balasGeneradas.push_back(new MinaEnemiga(posicion, Vector2Rotate(dir, 0.8f)));
 }
-
 void Jefe::ejecutarAtaqueSombra(Protagonista& jugador) {}
 void Jefe::ejecutarDisparoInteligente(Protagonista& jugador) {}
 
@@ -560,16 +648,36 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa) {
                 bulletHellBaseDirection = 0.0f;
                 bulletHellSpawnTimer = 0;
                 bulletHellAngleEspirales = 0.0f;
+                // No reproducimos aquí, dejamos que el loop del case BULLET_HELL lo maneje
             }
             break;
+
         case FaseJefe::BULLET_HELL:
         {
+            // --- BUCLE DE 7 SEGUNDOS ---
+            timerAudioLoopBH += GetFrameTime();
+            if (timerAudioLoopBH >= 7.0f) {
+                StopSound(fxBulletHell); // Por si acaso
+                SetSoundVolume(fxBulletHell, 1.0f);
+                PlaySound(fxBulletHell);
+                timerAudioLoopBH = 0.0f;
+            }
+            // --- CORRECCIÓN DEFINITIVA LOOP AUDIO ---
+            // Verificamos en CADA frame. Si se detuvo (por ser corto), lo arranca de nuevo.
+            if (!IsSoundPlaying(fxBulletHell)) {
+                // Aseguramos volumen máximo siempre
+                SetSoundVolume(fxBulletHell, 1.0f);
+                PlaySound(fxBulletHell);
+            }
+            // ---------------------------------------
+
             float tiempoPasado = TIEMPO_BULLET_HELL - temporizadorEstado;
             progresoMuerte = Clamp(tiempoPasado / TIEMPO_BULLET_HELL, 0.0f, 1.0f);
             bulletHellSpawnTimer++;
             bulletHellBaseDirection += 0.025f;
             bulletHellAngleEspirales += BH_ESPIRAL_ROTACION;
 
+            // Lógica de fases del Bullet Hell (Pulsos, Rafagas, Olas, etc.)
             if (temporizadorEstado > 48.0f) {
                 if (bulletHellSpawnTimer % BH_PULSO_COOLDOWN == 0) {
                     float anguloBase = bulletHellBaseDirection;
@@ -632,6 +740,7 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa) {
             }
 
             if (temporizadorEstado <= 0) {
+                StopSound(fxBulletHell); // Parar al terminar
                 faseActual = FaseJefe::DERROTADO;
                 progresoMuerte = 1.0f;
             }
@@ -639,6 +748,8 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa) {
         }
         case FaseJefe::DERROTADO:
             velocidadActual = {0, 0};
+            // Aseguramos que no suene si llega aquí por error
+            if(IsSoundPlaying(fxBulletHell)) StopSound(fxBulletHell);
             break;
         default: break;
     }
@@ -737,7 +848,7 @@ void Jefe::setTemporizadorEstado(float tiempo) { this->temporizadorEstado = tiem
 
 
 // =========================================================================
-// IMPLEMENTACIÓN VISUAL
+// IMPLEMENTACIÓN VISUAL (FINAL)
 // =========================================================================
 
 void Jefe::dibujar() {
@@ -749,7 +860,7 @@ void Jefe::dibujar() {
     Vector2 offsetDibujo = {0, 0};
     Color tint = WHITE;
 
-    // 1. INTRO PERSONALIZADA (Secuencia exacta)
+    // 1. INTRO LENTA (4 seg)
     if (!introFinalizada) {
         animacionActual = &texF1Apareciendo;
         timerIntroSequence += GetFrameTime();
@@ -779,7 +890,7 @@ void Jefe::dibujar() {
                 frameActual = 1;
                 if (timerIntroSequence > 0.5f) { pasoIntro++; timerIntroSequence = 0; }
                 break;
-            case 6: // Frame Final (Fin)
+            case 6: // Frame Final
                 frameActual = 4;
                 introFinalizada = true;
                 break;
@@ -843,20 +954,19 @@ void Jefe::dibujar() {
             case EstadoFaseDos::APUNTANDO_EMBESTIDA:
                 animacionActual = &texF2Caminando; break;
 
-            // --- VISUALES EMBESTIDA F2 ---
+            // VISUAL EMBESTIDA F2
             case EstadoFaseDos::EMBISTIENDO:
                 animacionActual = &texF2Embestida;
-                if (frameActual > 2) frameActual = 2;
+                if (frameActual > 2) frameActual = 2; // Mantiene frame 2
                 break;
             case EstadoFaseDos::RECUPERANDO_EMBESTIDA:
                 animacionActual = &texF2Embestida;
-                frameActual = 4;
+                frameActual = 4; // Anteúltimo
                 break;
             case EstadoFaseDos::ATURDIDO_EMBESTIDA:
                 animacionActual = &texF2Embestida;
-                frameActual = 5;
+                frameActual = 5; // Último (Stun)
                 break;
-            // -----------------------------
 
             case EstadoFaseDos::DISPARO_ESCOPETA:
             case EstadoFaseDos::PLANTANDO_MINAS:
@@ -913,7 +1023,6 @@ void Jefe::dibujar() {
              }
         }
 
-        // Clamps y Loops
         if (freezeF1Stun || freezeF2Dash || !introFinalizada) {
             // Control manual
         }
@@ -945,7 +1054,7 @@ void Jefe::dibujar() {
 
         Vector2 origin = { destRec.width / 2.0f, destRec.height / 2.0f };
 
-        // --- MEJORA BRAZO ---
+        // --- BRAZO ---
         if (faseActual == FaseJefe::FASE_UNO && estadoF1 == EstadoFaseUno::ESTIRANDO_BRAZO) {
             float angleRad = atan2f(objetivoBrazo.y, objetivoBrazo.x);
             float targetRot = (angleRad * RAD2DEG) - 90.0f;
@@ -969,7 +1078,7 @@ void Jefe::dibujar() {
         float w = (float)texMuerto.width;
         if (direccionVista.x < 0) w = -w;
         Rectangle source = {0, 0, w, (float)texMuerto.height};
-        float escalaMuerte = ESCALA_F2 * 0.7f;
+        float escalaMuerte = ESCALA_F2 * 0.7f; // ESCALA REDUCIDA
         Rectangle dest = {posicion.x, posicion.y, fabsf(w)*escalaMuerte, (float)texMuerto.height*escalaMuerte};
         DrawTexturePro(texMuerto, source, dest, {dest.width/2, dest.height/2}, 0.0f, WHITE);
     }

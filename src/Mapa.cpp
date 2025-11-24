@@ -26,15 +26,19 @@ Mapa::Mapa()
       estadoPuerta(EstadoPuerta::CERRADA),
       temporizadorAnimacionPuerta(0.0f)
 {
-    Image img = GenImageChecked(64, 64, 32, 32, GRAY, DARKGRAY);
-    pisoTexture = LoadTextureFromImage(img);
-    UnloadImage(img);
+    // --- CARGA DE SUELOS ---
+    // Si no existen las imagenes, cargará texturas vacías (seguridad)
+    if (FileExists("assets/Ambiente/SueloIndustrial.png"))
+        texSueloIndustrial = LoadTexture("assets/Ambiente/SueloIndustrial.png");
+
+    if (FileExists("assets/Ambiente/SueloJefe.png"))
+        texSueloJefe = LoadTexture("assets/Ambiente/SueloJefe.png");
+    // -----------------------
 
     texPuertaCerrada = LoadTexture("assets/PuertaCerrada.png");
     texPuertaAbriendose = LoadTexture("assets/PuertaAbriendose.png");
     texPuertaAbierta = LoadTexture("assets/PuertaAbierta.png");
 
-    // Carga de texturas de cajas (1 a 5)
     for (int i = 1; i <= 5; i++) {
         std::string path = "assets/Caja" + std::to_string(i) + ".png";
         texturasCajas.push_back(LoadTexture(path.c_str()));
@@ -45,7 +49,9 @@ Mapa::Mapa()
 
 Mapa::~Mapa()
 {
-    UnloadTexture(pisoTexture);
+    UnloadTexture(texSueloIndustrial); // Descargar nuevo
+    UnloadTexture(texSueloJefe);       // Descargar nuevo
+
     UnloadTexture(texPuertaCerrada);
     UnloadTexture(texPuertaAbriendose);
     UnloadTexture(texPuertaAbierta);
@@ -65,6 +71,47 @@ void Mapa::actualizar(float dt)
         }
     }
 }
+
+// --- DIBUJADO INTELIGENTE DEL PISO ---
+void Mapa::dibujarPiso() {
+
+    // 1. PISO INDUSTRIAL (General)
+    if (texSueloIndustrial.id != 0) {
+        // ESCALADO: Si la imagen es muy HD (ej 1024px), la dibujamos más pequeña
+        // o usamos un tile más grande.
+        // Asumamos que queremos tiles de 256x256 en el mundo.
+        float tamanoTileMundo = 256.0f;
+
+        Rectangle source = { 0.0f, 0.0f, (float)texSueloIndustrial.width, (float)texSueloIndustrial.height };
+
+        // Bucle para repetir la textura en todo el mapa (Tiling)
+        for (float y = mundoRect.y; y < mundoRect.y + mundoRect.height; y += tamanoTileMundo) {
+            for (float x = mundoRect.x; x < mundoRect.x + mundoRect.width; x += tamanoTileMundo) {
+                Rectangle dest = { x, y, tamanoTileMundo, tamanoTileMundo };
+                DrawTexturePro(texSueloIndustrial, source, dest, {0,0}, 0.0f, WHITE);
+            }
+        }
+    } else {
+        // Fallback si no hay imagen: Piso gris oscuro
+        DrawRectangleRec(mundoRect, (Color){20, 20, 25, 255});
+    }
+
+    // 2. PISO DEL JEFE (Arena Central)
+    // La arena mide 800x800 y está en 0,0.
+    if (texSueloJefe.id != 0) {
+        float bossSize = 800.0f;
+        Rectangle destBoss = { -bossSize/2.0f, -bossSize/2.0f, bossSize, bossSize };
+        Rectangle sourceBoss = { 0.0f, 0.0f, (float)texSueloJefe.width, (float)texSueloJefe.height };
+
+        // Dibujamos encima del industrial.
+        // Usamos un color ligeramente rojo para integrarlo o WHITE para original.
+        DrawTexturePro(texSueloJefe, sourceBoss, destBoss, {0,0}, 0.0f, WHITE);
+
+        // Borde decorativo rojo suave para fusionar
+        DrawRectangleLinesEx(destBoss, 4.0f, Fade(MAROON, 0.5f));
+    }
+}
+// -------------------------------------
 
 void Mapa::dibujarPuerta(float alpha)
 {
@@ -91,11 +138,14 @@ void Mapa::dibujarPuerta(float alpha)
 
 void Mapa::dibujar()
 {
-    dibujarPiso();
+    dibujarPiso(); // Llamamos a la nueva función
 
     // Dibujar Muros
     for (const auto& muro : muros) {
-        DrawRectangleRec(muro, DARKGRAY);
+        // Color de muro oscuro para resaltar sobre el piso industrial
+        DrawRectangleRec(muro, (Color){10, 10, 10, 255});
+        // Borde sutil
+        DrawRectangleLinesEx(muro, 1.0f, (Color){40, 40, 40, 255});
     }
 
     // Dibujar Cajas Decorativas
@@ -104,7 +154,6 @@ void Mapa::dibujar()
         int idVisual = -1;
         if (i < tiposVisualesCajas.size()) idVisual = tiposVisualesCajas[i];
 
-        // Solo dibujamos si tiene ID válido (Cofres tienen -1 y se ignoran aquí)
         if (idVisual != -1 && idVisual < (int)texturasCajas.size())
         {
             Rectangle cajaRect = cajas[i];
@@ -115,12 +164,8 @@ void Mapa::dibujar()
                 float visualW = cajaRect.width;
                 float visualH = visualW / aspect;
 
-                // Ajuste de altura mínima para cubrir la hitbox
-                if (visualH < cajaRect.height) {
-                    visualH = cajaRect.height;
-                }
+                if (visualH < cajaRect.height) visualH = cajaRect.height;
 
-                // Posicionamiento: Centrado en X, Base en Y (sin offset negativo)
                 float drawX = cajaRect.x + (cajaRect.width - visualW) / 2.0f;
                 float drawY = (cajaRect.y + cajaRect.height) - visualH;
 
@@ -130,7 +175,6 @@ void Mapa::dibujar()
                 DrawTexturePro(tex, source, dest, {0,0}, 0.0f, WHITE);
             }
             else {
-                // Fallback por si no carga la imagen
                 DrawRectangleRec(cajaRect, DARKBROWN);
             }
         }
@@ -149,41 +193,22 @@ void Mapa::abrirPuerta() {
 void Mapa::cerrarPuerta() { estadoPuerta = EstadoPuerta::CERRADA; }
 bool Mapa::estaPuertaAbierta() const { return estadoPuerta == EstadoPuerta::ABIERTA; }
 Rectangle Mapa::getPuertaJefe() const { return puertaJefe; }
-void Mapa::dibujarPiso() {
-    float tileW = (float)pisoTexture.width; float tileH = (float)pisoTexture.height; Rectangle sourceRect = { 0, 0, tileW, tileH };
-    for (float y = mundoRect.y; y < mundoRect.y + mundoRect.height; y += tileH)
-        for (float x = mundoRect.x; x < mundoRect.x + mundoRect.width; x += tileW)
-            DrawTextureRec(pisoTexture, sourceRect, (Vector2){x, y}, WHITE);
-}
 
-// --- FUNCIÓN CLAVE: Agrega a Activas y Estáticas ---
 void Mapa::agregarCajaDecorativa(float x, float y, float w, float h)
 {
-    // 1. Física (Hitbox)
     cajasEstaticas.push_back({x, y, w, h});
     cajas.push_back({x, y, w, h});
 
-    // 2. Visual (Selección inteligente según forma)
     int idTextura = 0;
     float ratio = w / h;
 
-    if (ratio > 1.2f) {
-        // Horizontal: Caja4 o Caja5 (Indices 3, 4)
-        idTextura = GetRandomValue(3, 4);
-    }
-    else if (ratio < 0.8f) {
-        // Vertical: Fallback a cuadradas (0, 1, 2)
-        idTextura = GetRandomValue(0, 2);
-    }
-    else {
-        // Cuadrada: Caja1, 2, 3 (Indices 0, 1, 2)
-        idTextura = GetRandomValue(0, 2);
-    }
+    if (ratio > 1.2f) idTextura = GetRandomValue(3, 4);
+    else if (ratio < 0.8f) idTextura = GetRandomValue(0, 2);
+    else idTextura = GetRandomValue(0, 2);
 
     tiposVisualesCajasEstaticos.push_back(idTextura);
     tiposVisualesCajas.push_back(idTextura);
 }
-
 
 void Mapa::cargarMapa()
 {
@@ -354,10 +379,10 @@ void Mapa::cargarMapa()
     tiposVisualesCajas = tiposVisualesCajasEstaticos;
 }
 
+// ... (Mantener métodos poblarMundo y otros helpers igual que antes) ...
 void Mapa::poblarMundo(GestorEntidades& gestor)
 {
     // --- RESET SEGURO ---
-    // Restauramos las cajas base para no duplicar ni perder las estáticas
     cajas = cajasEstaticas;
     tiposVisualesCajas = tiposVisualesCajasEstaticos;
 
@@ -371,13 +396,11 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
         } else {
             cofreRect = { spawn.pos.x - 7.5f, spawn.pos.y - 12.5f, 15, 25 };
         }
-
-        // Agregamos hitbox y ID -1 (invisible para mapa)
         this->cajas.push_back(cofreRect);
         this->tiposVisualesCajas.push_back(-1);
     };
 
-    // ... (Resto de la función idéntica) ...
+    // ... (Resto de poblar mundo igual al original) ...
     Rectangle zonaAlmacen = { -1480, -1480, 580, 580 };
     Rectangle zonaElectrica = { 920, -1480, 580, 580 };
     Rectangle zonaOficinas = { -1480, 920, 580, 580 };
@@ -399,7 +422,6 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     Rectangle puestoSeguridadE = { 830, -55, 20, 110 };
 
     std::vector<Rectangle> zonasHabitaciones = { zonaAlmacen, zonaElectrica, zonaOficinas, zonaDormis };
-
     int zonaLlaveIdx = GetRandomValue(0, zonasHabitaciones.size() - 1);
     SpawnCofre spawnLlave = getSpawnCofrePegadoAPared(zonasHabitaciones[zonaLlaveIdx]);
     registrarCofreConColision(gestor, spawnLlave, 99);
@@ -508,13 +530,9 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
     std::shuffle(cajasAleatorias.begin(), cajasAleatorias.end(), std::default_random_engine(seed));
 
     int numNotas = GetRandomValue(3, 5);
+    if (numNotas > (int)cajasAleatorias.size()) numNotas = cajasAleatorias.size();
 
-    if (numNotas > (int)cajasAleatorias.size()) {
-        numNotas = cajasAleatorias.size();
-    }
-
-    for (int i = 0; i < numNotas; i++)
-    {
+    for (int i = 0; i < numNotas; i++) {
         Rectangle cajaSpawn = cajasAleatorias[i];
         int notaID = idsDeNotas[i];
         gestor.registrarConsumible(new Nota(getPosicionSpawnNota(cajaSpawn), notaID));

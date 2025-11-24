@@ -10,10 +10,18 @@ std::vector<Texture2D> Zombie::animAtaque;
 std::vector<Texture2D> Zombie::animMuerte;
 bool Zombie::texturasCargadas = false;
 
+// Audio Estático
+Sound Zombie::fxRugido = { 0 };
+bool Zombie::recursosSonidoCargados = false;
+
 const float VELOCIDAD_ANIM_ZOMBIE = 10.0f;
 const float VELOCIDAD_ANIM_ATAQUE = 9.0f;
 const float VELOCIDAD_ANIM_MUERTE = 8.0f;
 const float TIEMPO_CADAVER_EN_PISO = 10.0f;
+
+// Config Audio
+const float DISTANCIA_AUDIO_MAX = 350.0f;
+const float VOLUMEN_RUGIDO_BASE = 0.7f;
 
 void Zombie::CargarTexturas()
 {
@@ -23,6 +31,7 @@ void Zombie::CargarTexturas()
             std::string path = "assets/Zombie/ZombieCaminando" + std::to_string(i) + ".png";
             animCaminando.push_back(LoadTexture(path.c_str()));
         }
+        // Loop extra
         if (animCaminando.size() >= 4) {
             animCaminando.push_back(animCaminando[2]);
             animCaminando.push_back(animCaminando[3]);
@@ -48,7 +57,6 @@ void Zombie::DescargarTexturas()
         for (auto& t : animCaminando) UnloadTexture(t);
         for (auto& t : animAtaque) UnloadTexture(t);
         for (auto& t : animMuerte) UnloadTexture(t);
-
         animCaminando.clear();
         animAtaque.clear();
         animMuerte.clear();
@@ -56,6 +64,23 @@ void Zombie::DescargarTexturas()
     }
 }
 
+void Zombie::CargarSonidos() {
+    if (!recursosSonidoCargados) {
+        if (FileExists("assets/Audio/Sonidos/Enemigos/Rugido.wav")) {
+            fxRugido = LoadSound("assets/Audio/Sonidos/Enemigos/Rugido.wav");
+        }
+        recursosSonidoCargados = true;
+    }
+}
+
+void Zombie::DescargarSonidos() {
+    if (recursosSonidoCargados) {
+        if (fxRugido.stream.buffer) UnloadSound(fxRugido);
+        recursosSonidoCargados = false;
+    }
+}
+
+// CONSTRUCTOR RESTAURADO CON CONSTANTES
 Zombie::Zombie(Vector2 pos)
     : Enemigo(pos,
               Constantes::VIDA_ZOMBIE,
@@ -71,6 +96,7 @@ Zombie::Zombie(Vector2 pos)
       animacionMuerteTerminada(false),
       temporizadorCadaver(0.0f),
       haDaniadoEnEsteAtaque(false),
+      haRugidoInicial(false),
       animacionActual(&animCaminando)
 {
     if (!texturasCargadas) CargarTexturas();
@@ -82,7 +108,7 @@ void Zombie::recibirDanio(int cantidad)
 {
     if (estaMuriendo) return;
 
-    Enemigo::recibirDanio(cantidad);
+    Enemigo::recibirDanio(cantidad); // Lógica base (Flash rojo + Persiguir)
 
     if (vida <= 0)
     {
@@ -104,7 +130,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
 {
     float dt = GetFrameTime();
 
-    // --- 1. MUERTE ---
+    // 1. MUERTE
     if (estaMuriendo)
     {
         if (frameActual < (int)animMuerte.size() - 1)
@@ -128,7 +154,23 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         return;
     }
 
-    // --- 2. ATAQUE ---
+    // --- AUDIO (Solo si vivo y no hay jefe) ---
+    if (recursosSonidoCargados && !Enemigo::batallaJefeIniciada) {
+        float dist = Vector2Distance(posicion, posJugador);
+        if (dist < DISTANCIA_AUDIO_MAX) {
+            float pan = Remap(posicion.x - posJugador.x, -DISTANCIA_AUDIO_MAX, DISTANCIA_AUDIO_MAX, 0.0f, 1.0f);
+            SetSoundPan(fxRugido, Clamp(pan, 0.0f, 1.0f));
+            float vol = Remap(dist, 0.0f, DISTANCIA_AUDIO_MAX, VOLUMEN_RUGIDO_BASE, 0.0f);
+            SetSoundVolume(fxRugido, Clamp(vol, 0.0f, 1.0f));
+
+            if (!haRugidoInicial) {
+                PlaySound(fxRugido);
+                haRugidoInicial = true;
+            }
+        }
+    }
+
+    // 2. ATAQUE
     if (estadoActual == EstadoIA::ATACANDO)
     {
         animacionActual = &animAtaque;
@@ -138,9 +180,6 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         {
             tiempoAnimacion = 0.0f;
             frameActual++;
-
-            // NOTA: El daño ya no se llama aquí para evitar el crash.
-            // Se verifica en el método 'atacar()' llamado por colisiones.
 
             if (frameActual >= (int)animAtaque.size()) {
                 estadoActual = EstadoIA::PERSIGUIENDO;
@@ -152,7 +191,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         return;
     }
 
-    // --- 3. MOVIMIENTO ---
+    // 3. MOVIMIENTO
     if (temporizadorPausaAtaque > 0) temporizadorPausaAtaque -= dt;
 
     Vector2 velocidadMov = {0, 0};
@@ -177,6 +216,10 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
                  frameActual = 0;
                  tiempoAnimacion = 0.0f;
                  haDaniadoEnEsteAtaque = false;
+
+                 // Rugido de ataque (cerca)
+                 if (recursosSonidoCargados && !Enemigo::batallaJefeIniciada) PlaySound(fxRugido);
+
                  return;
              }
              else {
@@ -223,8 +266,6 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
 
 void Zombie::atacar(Protagonista& jugador)
 {
-    // El MotorColisiones llama a esto cuando chocan.
-    // Solo aplicamos daño si la animación está en el frame correcto.
     if (frameActual == 2 && !haDaniadoEnEsteAtaque)
     {
         jugador.recibirDanio(this->danio);

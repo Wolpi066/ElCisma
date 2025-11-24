@@ -6,25 +6,31 @@
 class MonstruoObeso : public Enemigo
 {
 private:
-    // --- SISTEMA DE ANIMACIÓN ---
+    // Animación
     static std::vector<Texture2D> animCaminando;
     static std::vector<Texture2D> animAtaque;
     static std::vector<Texture2D> animMuerte;
     static bool texturasCargadas;
 
-    // Estado visual individual
+    // Audio
+    static Sound fxGrito;
+    static bool recursosSonidoCargados;
+
+    // Estado visual
     int frameActual;
     float tiempoAnimacion;
 
-    // Control de Muerte
+    // Muerte
     bool estaMuriendo;
     bool animacionMuerteTerminada;
     float temporizadorCadaver;
 
-    // Control de Ataque
+    // Ataque
     bool haDaniadoEnEsteAtaque;
 
-    // Puntero a la animación activa
+    // Audio Proximidad
+    bool haRugidoInicial; // <--- NUEVO
+
     std::vector<Texture2D>* animacionActual;
 
 public:
@@ -33,12 +39,12 @@ public:
 
     static void CargarTexturas();
     static void DescargarTexturas();
+    static void CargarSonidos();
+    static void DescargarSonidos();
 
-    // Overrides
     void actualizarIA(Vector2 posJugador, const Mapa& mapa) override;
     void dibujar() override;
     void atacar(Protagonista& jugador) override;
     void recibirDanio(int cantidad) override;
-
     bool estaMuerto() const override;
 };

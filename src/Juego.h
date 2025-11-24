@@ -15,7 +15,7 @@
 enum class EstadoJuego {
     MENU_INICIAL = 0,
     CREDITOS,
-    INTRO_CINEMATICA, // <--- NUEVO ESTADO
+    INTRO_CINEMATICA,
     JUGANDO,
     PAUSA,
     INICIANDO_JEFE,
@@ -53,22 +53,28 @@ private:
     Rectangle triggerRectJefe;
     float temporizadorSpawnJefe;
 
+    Music musicaAmbiente;
+    Music musicaJefe;
+    Music musicaFinal;
+    Sound fxUIHover;
+    Sound fxUIClick;
+    Sound fxPuerta;
+
+    // --- NUEVO: Control de Fade Out ---
+    float volumenMusicaJefe;
+    // ----------------------------------
+
     int opcionDialogo;
     float temporizadorDialogo;
 
-    // --- VARIABLES CINEMÁTICA INTRO (NUEVO) ---
+    // Variables Cinemáticas
     Texture2D texIntro;
     float timerIntro;
-    int faseIntro; // 0: Texto Boot, 1: Imagen Fade In, 2: Imagen Hold, 3: Fade Out
+    int faseIntro;
     int letrasIntroMostradas;
     float timerEscrituraIntro;
-    // ------------------------------------------
+    float timerDespertar;
 
-    // --- VARIABLES EFECTO DESPERTAR (IN-GAME) ---
-    float timerDespertar; // Para el zoom y fade inicial al jugar
-    // --------------------------------------------
-
-    // --- VARIABLES CINEMÁTICA FINAL ---
     Texture2D texFinalSacrificio;
     Texture2D texFinalHuir;
     float alphaFinal;
@@ -76,13 +82,13 @@ private:
     int letrasMostradas;
     int faseFinal;
 
-    // --- POP-UP ---
+    // Popup
     Texture2D texPopupItem;
     const char* nombrePopupItem;
     const char* descPopupItem;
     float escalaPopup;
 
-    // --- MENÚS ---
+    // Menús
     Texture2D texFondoMenuInicio;
     Texture2D texBtnJugar;
     Texture2D texBtnJugarSel;
@@ -105,7 +111,6 @@ private:
 
     int opcionMenuPausa;
 
-    // Metodos internos
     void ResetSustoFantasma();
     void reiniciarJuego();
     void procesarCheats();
@@ -113,10 +118,9 @@ private:
     void actualizar();
     void dibujar();
 
-    // Metodos de Estado
     void actualizarMenuInicial();
     void actualizarCreditos();
-    void actualizarIntro(); // <--- NUEVO
+    void actualizarIntro();
     void actualizarJugando();
     void actualizarPausa();
     void actualizarLeyendoNota();
@@ -130,10 +134,9 @@ private:
     void actualizarMenuMuerte();
     void actualizarItemObtenido();
 
-    // Metodos de Dibujado
     void dibujarMenuInicial();
     void dibujarCreditos();
-    void dibujarIntro(); // <--- NUEVO
+    void dibujarIntro();
     void dibujarJugando();
     void dibujarPausa();
     void dibujarLeyendoNota();

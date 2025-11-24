@@ -26,19 +26,20 @@ class Mapa
 private:
     std::vector<Rectangle> muros;
 
-    // --- SISTEMA DE CAJAS (Vectores Simples) ---
-    // Vectores de Rectángulos directos para máxima compatibilidad con física
-    std::vector<Rectangle> cajas;        // Hitboxes activas (las que usa el juego)
-    std::vector<int> tiposVisualesCajas; // IDs visuales de las activas
+    // --- SISTEMA DE CAJAS ---
+    std::vector<Rectangle> cajas;
+    std::vector<int> tiposVisualesCajas;
 
-    // --- BACKUP PARA REINICIO (Soluciona cajas fantasma) ---
     std::vector<Rectangle> cajasEstaticas;
     std::vector<int> tiposVisualesCajasEstaticos;
-    // ------------------------------------------------------
 
-    std::vector<Texture2D> texturasCajas; // Las 5 texturas cargadas
+    std::vector<Texture2D> texturasCajas;
 
-    Texture2D pisoTexture;
+    // --- NUEVO: TEXTURAS DE SUELO ---
+    Texture2D texSueloIndustrial; // Piso general
+    Texture2D texSueloJefe;       // Arena del jefe
+    // -------------------------------
+
     Rectangle mundoRect;
 
     // Visuales Puerta
@@ -53,8 +54,6 @@ private:
     std::vector<Vector2> spawnsCofres;
 
     void cargarMapa();
-
-    // --- Helper VITAL para agregar cajas correctamente ---
     void agregarCajaDecorativa(float x, float y, float w, float h);
 
     bool esAreaValida(Vector2 pos);
@@ -67,14 +66,13 @@ public:
     ~Mapa();
 
     void actualizar(float dt);
-    void dibujarPiso();
-    void dibujar(); // Dibuja la capa base
-    void dibujarPuerta(float alpha = 1.0f); // Dibuja la puerta (Overlay)
+    void dibujarPiso(); // <--- AQUÍ ESTÁ LA MAGIA
+    void dibujar();
+    void dibujarPuerta(float alpha = 1.0f);
 
     void poblarMundo(GestorEntidades& gestor);
     Vector2 getPosicionSpawnValida(Rectangle zona);
 
-    // Getters para física y renderizado
     const std::vector<Rectangle>& getMuros() const;
     const std::vector<Rectangle>& getCajas() const;
 

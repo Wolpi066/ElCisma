@@ -31,18 +31,50 @@ Protagonista::Protagonista(Vector2 pos) :
     proximoDisparoEsCheat(false),
     bateriaCongelada(false),
     timerVisualDisparo(0.0f),
-    timerAnimacionMuerte(0.0f)
+    timerAnimacionMuerte(0.0f),
+    timerPasos(0.0f)
 {
-    texCaminando = LoadTexture("assets/Protagonista/Caminando.png");
-    texDisparando = LoadTexture("assets/Protagonista/Disparando.png");
-    texMuerto = LoadTexture("assets/Protagonista/Muerto.png");
+    CargarRecursos();
 }
 
 Protagonista::~Protagonista()
 {
+    DescargarRecursos();
+}
+
+Sound LoadSoundSafe(const char* path) {
+    if (FileExists(path)) return LoadSound(path);
+    return (Sound){0};
+}
+
+void Protagonista::CargarRecursos() {
+    texCaminando = LoadTexture("assets/Protagonista/Caminando.png");
+    texDisparando = LoadTexture("assets/Protagonista/Disparando.png");
+    texMuerto = LoadTexture("assets/Protagonista/Muerto.png");
+
+    fxCaminando = LoadSoundSafe("assets/Audio/Sonidos/Protagonista/Caminando.wav");
+    fxDisparo = LoadSoundSafe("assets/Audio/Sonidos/Protagonista/Disparo.wav");
+    fxGolpe = LoadSoundSafe("assets/Audio/Sonidos/Protagonista/Golpe.wav");
+    fxLinterna = LoadSoundSafe("assets/Audio/Sonidos/Protagonista/Linterna.wav");
+    fxPocaVida = LoadSoundSafe("assets/Audio/Sonidos/Protagonista/PocaVida.mp3");
+    fxRecargando = LoadSoundSafe("assets/Audio/Sonidos/Protagonista/Recargando.wav");
+
+    // Asegúrate de tener este archivo o renómbralo
+    fxSinBalas = LoadSoundSafe("assets/Audio/Sonidos/Protagonista/SinBalas.wav");
+}
+
+void Protagonista::DescargarRecursos() {
     UnloadTexture(texCaminando);
     UnloadTexture(texDisparando);
     UnloadTexture(texMuerto);
+
+    if(fxCaminando.stream.buffer) UnloadSound(fxCaminando);
+    if(fxDisparo.stream.buffer) UnloadSound(fxDisparo);
+    if(fxGolpe.stream.buffer) UnloadSound(fxGolpe);
+    if(fxLinterna.stream.buffer) UnloadSound(fxLinterna);
+    if(fxPocaVida.stream.buffer) UnloadSound(fxPocaVida);
+    if(fxRecargando.stream.buffer) UnloadSound(fxRecargando);
+    if(fxSinBalas.stream.buffer) UnloadSound(fxSinBalas);
 }
 
 void Protagonista::reset()
@@ -86,6 +118,20 @@ void Protagonista::actualizarInterno(Camera2D camera, Vector2 direccionMovimient
     if (knockbackTimer > 0) knockbackTimer -= GetFrameTime();
     if (timerVisualDisparo > 0) timerVisualDisparo -= GetFrameTime();
 
+    // AUDIO: Pasos
+    if (Vector2Length(direccionMovimiento) > 0.1f) {
+        timerPasos -= GetFrameTime();
+        if (timerPasos <= 0) {
+            PlaySound(fxCaminando);
+            timerPasos = 0.4f;
+        }
+    }
+
+    // AUDIO: Poca Vida
+    if (vida <= 30 && !IsSoundPlaying(fxPocaVida)) {
+        PlaySound(fxPocaVida);
+    }
+
     Vector2 posMouse = GetScreenToWorld2D(GetMousePosition(), camera);
     Vector2 dirDeseada = Vector2Normalize(Vector2Subtract(posMouse, posicion));
 
@@ -95,6 +141,7 @@ void Protagonista::actualizarInterno(Camera2D camera, Vector2 direccionMovimient
 
     if (!bateriaCongelada && IsKeyPressed(KEY_F)) {
         linternaEncendida = !linternaEncendida;
+        PlaySound(fxLinterna);
     }
 
     if (!bateriaCongelada && linternaEncendida && bateria > 0) {
@@ -106,25 +153,18 @@ void Protagonista::actualizarInterno(Camera2D camera, Vector2 direccionMovimient
     }
     if (bateria <= 0) linternaEncendida = false;
 
-    // --- FLICKER RÁPIDO (Estilo Terror) ---
+    // --- FLICKER ---
     float umbralCritico = 30.0f;
     if (linternaEncendida && bateria <= umbralCritico)
     {
         timerFlicker -= GetFrameTime();
-
         if (timerFlicker <= 0.0f)
         {
             luzApagadaPorFlicker = !luzApagadaPorFlicker;
-
             if (luzApagadaPorFlicker) {
-                // TIEMPO APAGADO: Muy corto (micro-corte)
-                // 0.02s a 0.08s
                 timerFlicker = (float)GetRandomValue(2, 8) / 100.0f;
             } else {
-                // TIEMPO ENCENDIDO: Corto y errático
                 float factorSalud = (float)bateria / umbralCritico;
-
-                // Min 0.05s (casi muriendo), Max 0.25s (batería 30)
                 int minTime = 5 + (int)(10 * factorSalud);
                 int maxTime = 15 + (int)(30 * factorSalud);
                 timerFlicker = (float)GetRandomValue(minTime, maxTime) / 100.0f;
@@ -142,16 +182,25 @@ int Protagonista::intentarDisparar(bool quiereDisparar)
 {
     if (vida <= 0) return 0;
 
-    if (quiereDisparar && temporizadorDisparo <= 0 && municion > 0) {
-        municion--;
-        temporizadorDisparo = Constantes::TIEMPO_RECARGA_DISPARO;
-        timerVisualDisparo = DURACION_FRAME_DISPARO;
+    // Intentar disparar
+    if (quiereDisparar && temporizadorDisparo <= 0) {
+        if (municion > 0) {
+            municion--;
+            temporizadorDisparo = Constantes::TIEMPO_RECARGA_DISPARO;
+            timerVisualDisparo = DURACION_FRAME_DISPARO;
+            PlaySound(fxDisparo);
 
-        if (proximoDisparoEsCheat) {
-            proximoDisparoEsCheat = false;
-            return 2;
+            if (proximoDisparoEsCheat) {
+                proximoDisparoEsCheat = false;
+                return 2;
+            }
+            return 1;
+        } else {
+            // SIN MUNICIÓN
+            PlaySound(fxSinBalas);
+            // Pequeño cooldown para no spamear el click
+            temporizadorDisparo = 0.2f;
         }
-        return 1;
     }
     return 0;
 }
@@ -209,8 +258,11 @@ void Protagonista::recibirDanio(int cantidad)
 
     if (tieneArmadura) {
         tieneArmadura = false;
+        // Sonido de armadura rompiéndose (opcional, usamos golpe por ahora)
+        PlaySound(fxGolpe);
     } else {
         vida -= cantidad;
+        PlaySound(fxGolpe);
     }
 
     if (vida <= 0) {
@@ -242,17 +294,26 @@ void Protagonista::aplicarKnockback(Vector2 direccion, float fuerza, float durac
 void Protagonista::recargarBateria(const int& cantidad) {
     bateria += cantidad;
     if (bateria > Constantes::BATERIA_MAX) bateria = Constantes::BATERIA_MAX;
+    // Eliminado sonido recarga aquí
 }
 void Protagonista::curarVida(const int& cantidad) {
     vida += cantidad;
     if (vida > Constantes::VIDA_MAX_JUGADOR) vida = Constantes::VIDA_MAX_JUGADOR;
+    // Eliminado sonido recarga aquí
 }
 void Protagonista::recargarMunicion(const int& cantidad) {
     municion += cantidad;
     if (municion > Constantes::MUNICION_MAX) municion = Constantes::MUNICION_MAX;
+    PlaySound(fxRecargando); // SOLO AQUÍ suena recarga
 }
-void Protagonista::recibirArmadura() { tieneArmadura = true; }
-void Protagonista::recibirLlave() { tieneLlave = true; }
+void Protagonista::recibirArmadura() {
+    tieneArmadura = true;
+    // Eliminado sonido recarga aquí
+}
+void Protagonista::recibirLlave() {
+    tieneLlave = true;
+    // Eliminado sonido recarga aquí
+}
 void Protagonista::quitarLlave() { tieneLlave = false; }
 void Protagonista::activarCheatDisparo() { proximoDisparoEsCheat = true; }
 void Protagonista::setBateriaCongelada(bool congelada) { bateriaCongelada = congelada; }
