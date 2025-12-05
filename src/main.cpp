@@ -1,3 +1,4 @@
+
 #include "raylib.h"
 #include "Juego.h"
 #include "SistemaArchivos.h"
@@ -32,3 +33,4 @@ int main() {
     CloseWindow();
     return 0;
 }
+

@@ -551,7 +551,7 @@
 	"Llave.h"
 	"raymath.h"
 
-1763998513 source:c:\users\volpi\onedrive\escritorio\elcisma\src\main.cpp
+1764976232 source:c:\users\volpi\onedrive\escritorio\elcisma\src\main.cpp
 	"raylib.h"
 	"Juego.h"
 	"SistemaArchivos.h"
@@ -560,7 +560,7 @@
 1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.h
 	<string>
 
-1763734162 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
+1764012834 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
 	"Mapa.h"
 	"Constantes.h"
 	"raymath.h"
@@ -681,4 +681,91 @@
 
 1763959178 c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.h
 	"Bala.h"
+
+1764973433 source:c:\users\volpi\onedrive\escritorio\elcisma\src\tau_main.cpp
+	"raylib.h"
+	<tau/tau.h>
+	<iostream>
+	"Constantes.h"
+	"Protagonista.h"
+	"Zombie.h"
+	"MonstruoObeso.h"
+	"Jefe.h"
+	"Botiquin.h"
+	"CajaDeMuniciones.h"
+	"Bateria.h"
+	"Armadura.h"
+	"Llave.h"
+	"BalaDeRifle.h"
+	<windows.h>
+
+1755608188 c:\users\volpi\onedrive\escritorio\elcisma\tau\tau.h
+	<tau/types.h>
+	<tau/misc.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<stdarg.h>
+	<errno.h>
+	<libgen.h>
+	<unistd.h>
+	<sys/types.h>
+	<sys/wait.h>
+	<signal.h>
+	<time.h>
+	<fcntl.h>
+	<sys/stat.h>
+	<windows.h>
+	<io.h>
+	<valgrind.h>
+	<exception>
+	<limits.h>
+	<time.h>
+	<sys/syscall.h>
+	<unistd.h>
+	<time.h>
+	<mach/mach_time.h>
+
+1755608188 c:\users\volpi\onedrive\escritorio\elcisma\tau\types.h
+	<tau/compilers.h>
+	<cstdint>
+	<stdint.h>
+
+1755608188 c:\users\volpi\onedrive\escritorio\elcisma\tau\compilers.h
+
+1755608188 c:\users\volpi\onedrive\escritorio\elcisma\tau\misc.h
+	<inttypes.h>
+
+1764974631 source:c:\users\volpi\onedrive\escritorio\elcisma\src\test_suite.cpp
+	"raylib.h"
+	<tau/tau.h>
+	<iostream>
+	"Constantes.h"
+	"Protagonista.h"
+	"Zombie.h"
+	"MonstruoObeso.h"
+	"Jefe.h"
+	"Botiquin.h"
+	"CajaDeMuniciones.h"
+	"Bateria.h"
+	"Armadura.h"
+	"Llave.h"
+	"BalaDeRifle.h"
+	<windows.h>
+
+1764977810 source:c:\users\volpi\onedrive\escritorio\elcisma\test_runner.cpp
+	<vector>
+	<cmath>
+	<iostream>
+	<tau/tau.h>
+	"raylib.h"
+	"src/Protagonista.h"
+	"src/Zombie.h"
+	"src/MonstruoObeso.h"
+	"src/Fantasma.h"
+	"src/Jefe.h"
+	"src/Cofre.h"
+	"src/Nota.h"
+	"src/Consumible.h"
+	"src/Constantes.h"
 
