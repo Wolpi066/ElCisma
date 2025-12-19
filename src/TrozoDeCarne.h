@@ -12,11 +12,11 @@ private:
     float progresoSalto;
     float temporizadorSuelo;
     bool estaEnSuelo;
-    bool sonidoImpactoJugado; // Nuevo
+    bool sonidoImpactoJugado;
 
     static Texture2D texAire;
     static Texture2D texSuelo;
-    static Sound fxImpacto; // Nuevo
+    static Sound fxImpacto;
 
     static const float TIEMPO_VUELO;
     static const float TIEMPO_EN_SUELO;

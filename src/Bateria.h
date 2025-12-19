@@ -11,7 +11,7 @@ public:
     Bateria(Vector2 pos);
     ~Bateria();
 
-    int usar(Protagonista& jugador) override; // Cambio a int
+    int usar(Protagonista& jugador) override;
     void dibujar() override;
     Texture2D getTextura() override;
 

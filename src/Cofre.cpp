@@ -1,7 +1,6 @@
 #include "Cofre.h"
 #include "raylib.h"
 
-// Inicialización estática
 Texture2D Cofre::texCerrado = { 0 };
 Texture2D Cofre::texAbierto = { 0 };
 bool Cofre::texturasCargadas = false;
@@ -83,7 +82,6 @@ int Cofre::usar(Protagonista& jugador) {
     if (abierto) return 0;
 
     this->abierto = true;
-    // Sonido de apertura iría aquí
     return this->tipoDeLoot;
 }
 
@@ -95,7 +93,6 @@ bool Cofre::estaConsumido() const {
     return false;
 }
 
-// --- NUEVO ---
 bool Cofre::estaAbierto() const {
     return abierto;
 }

@@ -26,14 +26,12 @@ Mapa::Mapa()
       estadoPuerta(EstadoPuerta::CERRADA),
       temporizadorAnimacionPuerta(0.0f)
 {
-    // --- CARGA DE SUELOS ---
-    // Si no existen las imagenes, cargará texturas vacías (seguridad)
+    // Si no existen las imagenes, cargará texturas vacías
     if (FileExists("assets/Ambiente/SueloIndustrial.png"))
         texSueloIndustrial = LoadTexture("assets/Ambiente/SueloIndustrial.png");
 
     if (FileExists("assets/Ambiente/SueloJefe.png"))
         texSueloJefe = LoadTexture("assets/Ambiente/SueloJefe.png");
-    // -----------------------
 
     texPuertaCerrada = LoadTexture("assets/PuertaCerrada.png");
     texPuertaAbriendose = LoadTexture("assets/PuertaAbriendose.png");
@@ -49,8 +47,8 @@ Mapa::Mapa()
 
 Mapa::~Mapa()
 {
-    UnloadTexture(texSueloIndustrial); // Descargar nuevo
-    UnloadTexture(texSueloJefe);       // Descargar nuevo
+    UnloadTexture(texSueloIndustrial);
+    UnloadTexture(texSueloJefe);
 
     UnloadTexture(texPuertaCerrada);
     UnloadTexture(texPuertaAbriendose);
@@ -72,19 +70,15 @@ void Mapa::actualizar(float dt)
     }
 }
 
-// --- DIBUJADO INTELIGENTE DEL PISO ---
 void Mapa::dibujarPiso() {
 
-    // 1. PISO INDUSTRIAL (General)
     if (texSueloIndustrial.id != 0) {
-        // ESCALADO: Si la imagen es muy HD (ej 1024px), la dibujamos más pequeña
-        // o usamos un tile más grande.
-        // Asumamos que queremos tiles de 256x256 en el mundo.
+
         float tamanoTileMundo = 256.0f;
 
         Rectangle source = { 0.0f, 0.0f, (float)texSueloIndustrial.width, (float)texSueloIndustrial.height };
 
-        // Bucle para repetir la textura en todo el mapa (Tiling)
+        // Tiling
         for (float y = mundoRect.y; y < mundoRect.y + mundoRect.height; y += tamanoTileMundo) {
             for (float x = mundoRect.x; x < mundoRect.x + mundoRect.width; x += tamanoTileMundo) {
                 Rectangle dest = { x, y, tamanoTileMundo, tamanoTileMundo };
@@ -96,22 +90,16 @@ void Mapa::dibujarPiso() {
         DrawRectangleRec(mundoRect, (Color){20, 20, 25, 255});
     }
 
-    // 2. PISO DEL JEFE (Arena Central)
-    // La arena mide 800x800 y está en 0,0.
     if (texSueloJefe.id != 0) {
         float bossSize = 800.0f;
         Rectangle destBoss = { -bossSize/2.0f, -bossSize/2.0f, bossSize, bossSize };
         Rectangle sourceBoss = { 0.0f, 0.0f, (float)texSueloJefe.width, (float)texSueloJefe.height };
 
-        // Dibujamos encima del industrial.
-        // Usamos un color ligeramente rojo para integrarlo o WHITE para original.
         DrawTexturePro(texSueloJefe, sourceBoss, destBoss, {0,0}, 0.0f, WHITE);
 
-        // Borde decorativo rojo suave para fusionar
         DrawRectangleLinesEx(destBoss, 4.0f, Fade(MAROON, 0.5f));
     }
 }
-// -------------------------------------
 
 void Mapa::dibujarPuerta(float alpha)
 {
@@ -138,17 +126,14 @@ void Mapa::dibujarPuerta(float alpha)
 
 void Mapa::dibujar()
 {
-    dibujarPiso(); // Llamamos a la nueva función
+    dibujarPiso();
 
     // Dibujar Muros
     for (const auto& muro : muros) {
-        // Color de muro oscuro para resaltar sobre el piso industrial
         DrawRectangleRec(muro, (Color){10, 10, 10, 255});
-        // Borde sutil
         DrawRectangleLinesEx(muro, 1.0f, (Color){40, 40, 40, 255});
     }
 
-    // Dibujar Cajas Decorativas
     for (size_t i = 0; i < cajas.size(); i++)
     {
         int idVisual = -1;
@@ -281,8 +266,8 @@ void Mapa::cargarMapa()
     muros.push_back({ -salaX, salaY-pasilloW, salaX - (bossW/2), pasilloW });
     muros.push_back({ (bossW/2), salaY-pasilloW, salaX - (bossW/2), pasilloW });
 
-    // --- OBJETOS CON SPRITES (Decoración) ---
 
+    // OBJETOS CON SPRITES
     muros.push_back({ -1480, -1400, 20, 400 });
     muros.push_back({ -1430, -1400, 20, 400 });
     muros.push_back({ -1250, -1300, 20, 300 });
@@ -330,7 +315,7 @@ void Mapa::cargarMapa()
     agregarCajaDecorativa(1130, 1090, 40, 40);
     agregarCajaDecorativa(1270, 1110, 40, 40);
 
-    // Pasillos con cajas decorativas corregidas (60x60 en vez de 100x20)
+    // Pasillos con cajas decorativas corregidas
     muros.push_back({ -850, -100, 100, 20 });
     muros.push_back({ -850, 100, 100, 20 });
     muros.push_back({ -850, -100, 20, 220 });
@@ -379,10 +364,8 @@ void Mapa::cargarMapa()
     tiposVisualesCajas = tiposVisualesCajasEstaticos;
 }
 
-// ... (Mantener métodos poblarMundo y otros helpers igual que antes) ...
 void Mapa::poblarMundo(GestorEntidades& gestor)
 {
-    // --- RESET SEGURO ---
     cajas = cajasEstaticas;
     tiposVisualesCajas = tiposVisualesCajasEstaticos;
 
@@ -400,7 +383,6 @@ void Mapa::poblarMundo(GestorEntidades& gestor)
         this->tiposVisualesCajas.push_back(-1);
     };
 
-    // ... (Resto de poblar mundo igual al original) ...
     Rectangle zonaAlmacen = { -1480, -1480, 580, 580 };
     Rectangle zonaElectrica = { 920, -1480, 580, 580 };
     Rectangle zonaOficinas = { -1480, 920, 580, 580 };

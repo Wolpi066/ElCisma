@@ -15,7 +15,6 @@ static const float TIEMPO_MOVIMIENTO = 2.0f;
 static const float TIEMPO_VIDA_MINA = 5.0f;
 static const float TIEMPO_EXPLOSION = 0.3f;
 
-// Helper seguro
 Sound LoadSoundSafeMina(const char* path) {
     if (FileExists(path)) return LoadSound(path);
     return (Sound){0};
@@ -24,7 +23,6 @@ Sound LoadSoundSafeMina(const char* path) {
 void MinaEnemiga::CargarRecursos() {
     if (texMinaMov.id == 0) texMinaMov = LoadTexture("assets/Jefe/Proyectiles/Mina1.png");
     if (texMinaArmada.id == 0) texMinaArmada = LoadTexture("assets/Jefe/Proyectiles/Mina2.png");
-    // Reusamos MinaActiva del jefe
     if (fxMinaBip.stream.buffer == 0) fxMinaBip = LoadSoundSafeMina("assets/Audio/Sonidos/Jefe/Fase2/MinaActiva.wav");
 }
 
@@ -67,7 +65,6 @@ void MinaEnemiga::actualizar(Protagonista& jugador, const Mapa& mapa)
     } else {
         temporizadorVida -= GetFrameTime();
 
-        // SONIDO BIP CADA 0.5s
         timerBip += GetFrameTime();
         if (timerBip >= 0.5f) {
             PlaySound(fxMinaBip);

@@ -33,9 +33,8 @@ public:
 
     bool estaConsumido() const override;
 
-    // --- NUEVO: Para que Juego.cpp sepa ignorarlo ---
+    // Para que Juego.cpp sepa ignorarlo
     bool estaAbierto() const;
-    // ------------------------------------------------
 
     static void CargarTexturas();
     static void DescargarTexturas();

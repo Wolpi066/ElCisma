@@ -12,19 +12,18 @@ private:
     Camera2D camera;
     LightInfo linterna;
 
-    // --- Minimapa ---
+    // Minimapa
     RenderTexture2D minimapaTextura;
     RenderTexture2D nieblaMinimapa;
     Texture2D texMinimapaFrame;
     float minimapaZoom;
     Vector2 minimapaOffset;
 
-    // --- HUD VISUAL (ICONOS) ---
+    // HUD VISUAL
     Texture2D texBateria[6];
     Texture2D texVida[4];
     Texture2D texIconoMunicion;
 
-    // (Sin texturas de paneles, usamos código)
 
     void dibujarMundo(const Rectangle& cameraView, Mapa& mapa, GestorEntidades& gestor, Protagonista& jugador);
     void dibujarHUD(Protagonista& jugador);

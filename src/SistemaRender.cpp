@@ -5,8 +5,8 @@
 #include <string>
 #include <cstdio>
 
-// --- HELPERS UI ---
 
+// HELPERS UI
 void DibujarMarcoTech(Rectangle rect, Color colorBorde, const char* titulo = nullptr) {
     DrawRectangleGradientV((int)rect.x, (int)rect.y, (int)rect.width, (int)rect.height, Fade(BLACK, 0.85f), Fade(DARKBLUE, 0.40f));
 
@@ -47,7 +47,6 @@ void DrawTextShadow(const char* text, int x, int y, int fontSize, Color color) {
     DrawText(text, x + 1, y + 1, fontSize, BLACK);
     DrawText(text, x, y, fontSize, color);
 }
-// ----------------------------------------------
 
 SistemaRender::SistemaRender() : camera({0})
 {
@@ -249,10 +248,8 @@ void SistemaRender::dibujarMundo(const Rectangle& cameraView, Mapa& mapa, Gestor
     gestor.dibujarEntidades();
 }
 
-// --- HUD PROFESIONAL ---
 void SistemaRender::dibujarHUD(Protagonista& jugador)
 {
-    // ESCALAS
     float scaleIconLarge = 0.17f;
     float scaleIconBattery = 0.22f;
     float scaleAmmo = 0.09f;
@@ -260,14 +257,11 @@ void SistemaRender::dibujarHUD(Protagonista& jugador)
     int margin = 20;
     Color colorCyan = (Color){0, 255, 255, 255};
 
-    // ==================================================
-    // 1. PANEL ESTADO (Top-Left)
-    // ==================================================
-    // Aumentado a 200x145 (Más alto para separar)
+    // PANEL ESTADO
     Rectangle rectStatus = { (float)margin, (float)margin, 200, 145 };
     DibujarMarcoTech(rectStatus, colorCyan, "STATUS");
 
-    // --- VIDA (BIEN ARRIBA Y A LA IZQUIERDA) ---
+    // VIDA
     int vida = jugador.getVida();
     int maxVida = Constantes::VIDA_MAX_JUGADOR;
     float pctVida = (float)vida / maxVida;
@@ -275,7 +269,6 @@ void SistemaRender::dibujarHUD(Protagonista& jugador)
 
     Texture2D tVida = texVida[idxVida];
 
-    // Pegado a la izquierda (x+5) y Arriba (y+10)
     int iconX = (int)rectStatus.x + 5;
     int iconY = (int)rectStatus.y + 10;
 
@@ -285,25 +278,23 @@ void SistemaRender::dibujarHUD(Protagonista& jugador)
         DrawTextDigital(TextFormat("HP: %d", vida), iconX, iconY, 20, RED);
     }
 
-    // --- BATERÍA (BIEN ABAJO) ---
+    // BATERÍA
     int bateria = jugador.getBateria();
     int idxBat = (bateria >= 80) ? 5 : (bateria >= 60 ? 4 : (bateria >= 40 ? 3 : (bateria >= 20 ? 2 : (bateria > 0 ? 1 : 0))));
     Texture2D tBat = texBateria[idxBat];
 
     int batX = iconX;
-    // Anclado al fondo del panel: Y = PanelY + PanelH - IconoH - Margen(5)
     int batY = (int)(rectStatus.y + rectStatus.height) - (int)(tBat.height * scaleIconBattery) - 5;
 
     if (tBat.id != 0) {
         // Icono Batería
         DrawTextureEx(tBat, {(float)batX, (float)batY}, 0.0f, scaleIconBattery, WHITE);
 
-        // --- BARRA PWR (A la derecha, BAJADA) ---
+        // BARRA PWR
         int barX = batX + (int)(tBat.width * scaleIconBattery) + 15;
-        // Bajada: Centro + 5px
         int barY = batY + (int)((tBat.height * scaleIconBattery) / 2) + 5;
 
-        int barW = 140; // Barra Larga
+        int barW = 140;
         int barH = 16;
 
         float pctBat = (float)bateria / 100.0f;
@@ -318,10 +309,7 @@ void SistemaRender::dibujarHUD(Protagonista& jugador)
         DrawTextDigital(TextFormat("BAT: %d%%", bateria), batX, batY, 20, YELLOW);
     }
 
-    // ==================================================
-    // 2. PANEL MUNICIÓN (Bottom-Left)
-    // ==================================================
-    // Ancho 220px
+    // PANEL MUNICIÓN
     Rectangle rectAmmo = { (float)margin, (float)Constantes::ALTO_PANTALLA - 70 - margin, 220, 70 };
     DibujarMarcoTech(rectAmmo, colorCyan, "WEAPON");
 
@@ -343,9 +331,7 @@ void SistemaRender::dibujarHUD(Protagonista& jugador)
         DrawTextDigital(TextFormat("BALAS: %d", jugador.getMunicion()), (int)rectAmmo.x + 10, (int)rectAmmo.y + 20, 20, SKYBLUE);
     }
 
-    // ==================================================
-    // 3. TARJETA (Top-Right)
-    // ==================================================
+    // TARJETA (Top-Right)
     if (jugador.getTieneLlave()) {
         const char* txt = "KEY";
         Rectangle rectKey = { (float)minimapaOffset.x - 60, (float)margin + 10, 50, 30 };

@@ -13,13 +13,11 @@ private:
     int bateria;
     bool tieneArmadura;
 
-    // Lógica de Vista
     Vector2 direccionVista;
     float anguloVista;
     float anguloCono;
     float alcanceLinterna;
 
-    // Lógica de Juego
     float temporizadorDisparo;
     float tiempoInmune;
     float temporizadorBateria;
@@ -36,19 +34,17 @@ private:
     bool proximoDisparoEsCheat;
     bool bateriaCongelada;
 
-    // --- VISUALES ---
     Texture2D texCaminando;
     Texture2D texDisparando;
     Texture2D texMuerto;
 
-    // --- AUDIO ---
     Sound fxCaminando;
     Sound fxDisparo;
     Sound fxGolpe;
     Sound fxLinterna;
     Sound fxPocaVida;
     Sound fxRecargando;
-    Sound fxSinBalas; // <--- NUEVO
+    Sound fxSinBalas;
 
     float timerPasos;
 
@@ -84,7 +80,6 @@ public:
     void activarCheatDisparo();
     void setBateriaCongelada(bool congelada);
 
-    // --- Getters ---
     bool estaVivo() const;
     bool haFinalizadoAnimacionMuerte() const;
 

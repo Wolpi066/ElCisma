@@ -15,13 +15,11 @@ private:
     float velocidadInicial;
     Vector2 direccionNormalizada;
 
-    // Audio Bip
     float timerBip;
 
-    // Recursos Estáticos
     static Texture2D texMinaMov;
     static Texture2D texMinaArmada;
-    static Sound fxMinaBip; // <--- Nuevo
+    static Sound fxMinaBip;
 
 public:
     MinaEnemiga(Vector2 pos, Vector2 dir);

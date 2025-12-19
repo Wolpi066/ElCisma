@@ -36,9 +36,8 @@ void Llave::dibujar() {
     if (consumido) return;
 
     if (texLlave.id != 0) {
-        // --- ESCALADO INTELIGENTE ---
-        float tamanoDeseado = 30.0f; // Tamaño en pixeles en el mundo
-        float escala = tamanoDeseado / (float)texLlave.width; // Calculamos escala para que mida 30px
+        float tamanoDeseado = 30.0f;
+        float escala = tamanoDeseado / (float)texLlave.width;
 
         Vector2 posDibujo = { posicion.x - (texLlave.width * escala) / 2, posicion.y - (texLlave.height * escala) / 2 };
 

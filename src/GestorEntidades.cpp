@@ -11,14 +11,12 @@
 
 GestorEntidades::GestorEntidades()
 {
-    // Carga de recursos estáticos
     BalaDeRifle::CargarTextura();
     BalaMonstruosa::CargarRecursos();
     BalaInfernal::CargarRecursos();
     MinaEnemiga::CargarRecursos();
     TrozoDeCarne::CargarRecursos();
 
-    // Cargar Sonidos Enemigos
     Zombie::CargarSonidos();
     MonstruoObeso::CargarSonidos();
 }
@@ -26,7 +24,7 @@ GestorEntidades::GestorEntidades()
 GestorEntidades::~GestorEntidades()
 {
     limpiarTodo();
-    // Descarga de recursos estáticos
+
     BalaDeRifle::DescargarTextura();
     BalaMonstruosa::DescargarRecursos();
     BalaInfernal::DescargarRecursos();

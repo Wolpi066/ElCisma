@@ -15,7 +15,7 @@ public:
     void dibujar() override;
     Texture2D getTextura() override;
 
-    // --- CRÍTICO: Habilita agarrarlo con 'E' ---
+    // Habilita agarrarlo con 'E'
     bool esInteraccionPorTecla() const override;
 
     static void CargarTextura();

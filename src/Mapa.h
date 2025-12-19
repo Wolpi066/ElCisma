@@ -4,7 +4,6 @@
 #include <list>
 #include "Cofre.h"
 
-// Pre-declaraciones
 class Enemigo;
 class Consumible;
 class Jefe;
@@ -26,7 +25,6 @@ class Mapa
 private:
     std::vector<Rectangle> muros;
 
-    // --- SISTEMA DE CAJAS ---
     std::vector<Rectangle> cajas;
     std::vector<int> tiposVisualesCajas;
 
@@ -35,14 +33,11 @@ private:
 
     std::vector<Texture2D> texturasCajas;
 
-    // --- NUEVO: TEXTURAS DE SUELO ---
-    Texture2D texSueloIndustrial; // Piso general
-    Texture2D texSueloJefe;       // Arena del jefe
-    // -------------------------------
+    Texture2D texSueloIndustrial;
+    Texture2D texSueloJefe;
 
     Rectangle mundoRect;
 
-    // Visuales Puerta
     Texture2D texPuertaCerrada;
     Texture2D texPuertaAbriendose;
     Texture2D texPuertaAbierta;
@@ -66,7 +61,7 @@ public:
     ~Mapa();
 
     void actualizar(float dt);
-    void dibujarPiso(); // <--- AQUÍ ESTÁ LA MAGIA
+    void dibujarPiso();
     void dibujar();
     void dibujarPuerta(float alpha = 1.0f);
 

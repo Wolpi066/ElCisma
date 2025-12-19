@@ -26,7 +26,6 @@ Vector2 Consumible::getPosicion() const {
 }
 
 Rectangle Consumible::getRect() const {
-    // Area de interaccion un poco mas grande (30x30)
     return { posicion.x - 15, posicion.y - 15, 30, 30 };
 }
 
@@ -34,7 +33,6 @@ bool Consumible::esInteraccionPorTecla() const {
     return false;
 }
 
-// Esto arregla el error del template en GestorEntidades
 bool Consumible::estaMuerto() const {
     return false;
 }

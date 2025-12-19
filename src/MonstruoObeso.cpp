@@ -4,7 +4,6 @@
 #include <string>
 #include "Protagonista.h"
 
-// Inicialización Estáticos
 std::vector<Texture2D> MonstruoObeso::animCaminando;
 std::vector<Texture2D> MonstruoObeso::animAtaque;
 std::vector<Texture2D> MonstruoObeso::animMuerte;
@@ -13,13 +12,11 @@ bool MonstruoObeso::texturasCargadas = false;
 Sound MonstruoObeso::fxGrito = { 0 };
 bool MonstruoObeso::recursosSonidoCargados = false;
 
-// --- CONSTANTES DE ANIMACIÓN (Nombres Unificados) ---
 const float VEL_ANIM_WALK = 8.0f;
 const float VEL_ANIM_ATK = 7.0f;
 const float VEL_ANIM_DEATH = 6.0f;
 const float TIEMPO_CADAVER_OBESO = 10.0f;
 
-// Audio
 const float DISTANCIA_AUDIO_MAX = 400.0f;
 const float VOLUMEN_GRITO_BASE = 0.9f;
 
@@ -95,7 +92,6 @@ MonstruoObeso::~MonstruoObeso() {}
 void MonstruoObeso::recibirDanio(int cantidad) {
     if (estaMuriendo) return;
 
-    // Lógica de persecución al recibir daño
     Enemigo::recibirDanio(cantidad);
 
     if (vida <= 0) {
@@ -113,11 +109,10 @@ bool MonstruoObeso::estaMuerto() const { return animacionMuerteTerminada; }
 void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
     float dt = GetFrameTime();
 
-    // 1. MUERTE
+    // MUERTE
     if (estaMuriendo) {
         if (frameActual < (int)animMuerte.size() - 1) {
             tiempoAnimacion += dt;
-            // Usamos la constante correcta: VEL_ANIM_DEATH
             if (tiempoAnimacion >= (1.0f / VEL_ANIM_DEATH)) {
                 tiempoAnimacion = 0.0f;
                 frameActual++;
@@ -129,7 +124,7 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
         return;
     }
 
-    // 2. AUDIO DIRECCIONAL
+    // AUDIO DIRECCIONAL
     if (recursosSonidoCargados && !Enemigo::batallaJefeIniciada) {
         float dist = Vector2Distance(posicion, posJugador);
         if (dist < DISTANCIA_AUDIO_MAX) {
@@ -145,11 +140,10 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
         }
     }
 
-    // 3. ATAQUE
+    // ATAQUE
     if (estadoActual == EstadoIA::ATACANDO) {
         animacionActual = &animAtaque;
         tiempoAnimacion += dt;
-        // Usamos la constante correcta: VEL_ANIM_ATK
         if (tiempoAnimacion >= (1.0f / VEL_ANIM_ATK)) {
             tiempoAnimacion = 0.0f;
             frameActual++;
@@ -163,7 +157,7 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
         return;
     }
 
-    // 4. MOVIMIENTO
+    // MOVIMIENTO
     if (temporizadorPausaAtaque > 0) temporizadorPausaAtaque -= dt;
     Vector2 velocidadMov = {0,0};
 
@@ -187,7 +181,6 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
             velocidadMov = Vector2Scale(Vector2Normalize(Vector2Subtract(posJugador, posicion)), velocidad);
         }
     } else {
-        // Lógica Patrulla (Simplificada del padre si necesario, o personalizada)
         if (temporizadorPatrulla > 0) {
             temporizadorPatrulla -= dt;
         } else {
@@ -207,7 +200,6 @@ void MonstruoObeso::actualizarIA(Vector2 posJugador, const Mapa& mapa) {
 
     animacionActual = &animCaminando;
     tiempoAnimacion += dt;
-    // Usamos la constante correcta: VEL_ANIM_WALK
     if (tiempoAnimacion >= (1.0f / VEL_ANIM_WALK)) {
         tiempoAnimacion = 0.0f;
         frameActual++;

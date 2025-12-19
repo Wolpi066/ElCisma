@@ -36,7 +36,6 @@ void Armadura::dibujar() {
     if (consumido) return;
 
     if (texArmadura.id != 0) {
-        // --- ESCALADO INTELIGENTE ---
         float tamanoDeseado = 32.0f;
         float escala = tamanoDeseado / (float)texArmadura.width;
 

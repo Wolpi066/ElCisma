@@ -36,8 +36,7 @@ void Bateria::dibujar() {
     if (consumido) return;
 
     if (texBateria.id != 0) {
-        // --- ESCALADO INTELIGENTE POR DIMENSION MAXIMA ---
-        float tamanoDeseado = 20.0f; // Un poco mas chica que el botiquin
+        float tamanoDeseado = 20.0f;
         float maxDim = (float)((texBateria.width > texBateria.height) ? texBateria.width : texBateria.height);
         float escala = tamanoDeseado / maxDim;
 

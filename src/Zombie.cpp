@@ -4,13 +4,11 @@
 #include <string>
 #include "Protagonista.h"
 
-// Inicialización de estáticos
 std::vector<Texture2D> Zombie::animCaminando;
 std::vector<Texture2D> Zombie::animAtaque;
 std::vector<Texture2D> Zombie::animMuerte;
 bool Zombie::texturasCargadas = false;
 
-// Audio Estático
 Sound Zombie::fxRugido = { 0 };
 bool Zombie::recursosSonidoCargados = false;
 
@@ -19,7 +17,6 @@ const float VELOCIDAD_ANIM_ATAQUE = 9.0f;
 const float VELOCIDAD_ANIM_MUERTE = 8.0f;
 const float TIEMPO_CADAVER_EN_PISO = 10.0f;
 
-// Config Audio
 const float DISTANCIA_AUDIO_MAX = 350.0f;
 const float VOLUMEN_RUGIDO_BASE = 0.7f;
 
@@ -80,7 +77,6 @@ void Zombie::DescargarSonidos() {
     }
 }
 
-// CONSTRUCTOR RESTAURADO CON CONSTANTES
 Zombie::Zombie(Vector2 pos)
     : Enemigo(pos,
               Constantes::VIDA_ZOMBIE,
@@ -108,7 +104,7 @@ void Zombie::recibirDanio(int cantidad)
 {
     if (estaMuriendo) return;
 
-    Enemigo::recibirDanio(cantidad); // Lógica base (Flash rojo + Persiguir)
+    Enemigo::recibirDanio(cantidad);
 
     if (vida <= 0)
     {
@@ -130,7 +126,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
 {
     float dt = GetFrameTime();
 
-    // 1. MUERTE
+    // MUERTE
     if (estaMuriendo)
     {
         if (frameActual < (int)animMuerte.size() - 1)
@@ -154,7 +150,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         return;
     }
 
-    // --- AUDIO (Solo si vivo y no hay jefe) ---
+    // AUDIO
     if (recursosSonidoCargados && !Enemigo::batallaJefeIniciada) {
         float dist = Vector2Distance(posicion, posJugador);
         if (dist < DISTANCIA_AUDIO_MAX) {
@@ -170,7 +166,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         }
     }
 
-    // 2. ATAQUE
+    // ATAQUE
     if (estadoActual == EstadoIA::ATACANDO)
     {
         animacionActual = &animAtaque;
@@ -191,7 +187,7 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
         return;
     }
 
-    // 3. MOVIMIENTO
+    // MOVIMIENTO
     if (temporizadorPausaAtaque > 0) temporizadorPausaAtaque -= dt;
 
     Vector2 velocidadMov = {0, 0};
@@ -217,7 +213,6 @@ void Zombie::actualizarIA(Vector2 posJugador, const Mapa& mapa)
                  tiempoAnimacion = 0.0f;
                  haDaniadoEnEsteAtaque = false;
 
-                 // Rugido de ataque (cerca)
                  if (recursosSonidoCargados && !Enemigo::batallaJefeIniciada) PlaySound(fxRugido);
 
                  return;

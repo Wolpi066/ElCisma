@@ -5,12 +5,6 @@ IndicadorPuerta::IndicadorPuerta(Vector2 pos) : Consumible(pos) {
 }
 
 void IndicadorPuerta::dibujar() {
-    // --- CORRECCIÓN: INVISIBLE ---
-    // Ya no dibujamos el cuadrado dorado.
-    // El objeto existe fisicamente para la interacción, pero no se ve.
-
-    // (Si necesitas debuggear, descomenta la linea de abajo)
-    // DrawRectangleRec(getRect(), Fade(GOLD, 0.5f));
 }
 
 int IndicadorPuerta::usar(Protagonista& jugador) {

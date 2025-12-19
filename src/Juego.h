@@ -60,14 +60,11 @@ private:
     Sound fxUIClick;
     Sound fxPuerta;
 
-    // --- NUEVO: Control de Fade Out ---
     float volumenMusicaJefe;
-    // ----------------------------------
 
     int opcionDialogo;
     float temporizadorDialogo;
 
-    // Variables Cinemáticas
     Texture2D texIntro;
     float timerIntro;
     int faseIntro;

@@ -9,7 +9,6 @@
 #include "TrozoDeCarne.h"
 #include "BalaInfernal.h"
 
-// --- BALANCE ---
 static const int VIDA_JEFE_NUEVA = 100;
 static const int DANIO_CONTACTO_NUEVO = 5;
 static const int DANIO_BRAZO_NUEVO = 5;
@@ -33,7 +32,6 @@ static const float COOLDOWN_MINAS = 2.0f;
 static const float COOLDOWN_ESCOPETA_F2 = 1.0f;
 static const float COOLDOWN_PULSO_F2 = 1.5f;
 
-// --- CONFIGURACIÓN VISUAL ---
 static const float ESCALA_F1 = 0.125f;
 static const float ESCALA_F2 = 0.095f;
 static const float FPS_ANIMACION = 12.0f;
@@ -50,9 +48,8 @@ Jefe::Jefe(Vector2 pos) :
     faseActual(FaseJefe::FASE_UNO),
     enTransicion(false),
     esInvulnerable(false),
-    // --- ORDEN CORRECTO DE INICIALIZACIÓN (SEGÚN .H) ---
-    timerPasos(0.0f),        // 1. timerPasos va antes que introFinalizada en el .h
-    introFinalizada(false),  // 2. Visuales
+    timerPasos(0.0f),
+    introFinalizada(false),
     timerAnimacion(0.0f),
     frameActual(0),
     anguloBrazoVisual(0.0f),
@@ -74,7 +71,6 @@ Jefe::Jefe(Vector2 pos) :
     bulletHellBaseDirection(0.0f),
     bulletHellSpawnTimer(0),
     bulletHellAngleEspirales(0.0f)
-    // ---------------------------------------------------
 {
     this->vidaMaxima = VIDA_JEFE_NUEVA;
     this->vida = this->vidaMaxima;
@@ -82,7 +78,7 @@ Jefe::Jefe(Vector2 pos) :
     dropsGenerados.clear();
 
     CargarTexturas();
-    CargarSonidos(); // Carga el audio aquí
+    CargarSonidos();
 }
 
 Jefe::~Jefe() {
@@ -90,14 +86,12 @@ Jefe::~Jefe() {
     DescargarSonidos();
 }
 
-// --- CARGA DE AUDIO SEGURA ---
 Sound CargarSonidoSeguro(const char* ruta) {
     if (FileExists(ruta)) return LoadSound(ruta);
     return (Sound){0};
 }
 
 void Jefe::CargarSonidos() {
-    // Carga segura de todos los efectos
     fxApareciendo = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Apareciendo.mp3");
     fxBulletHell = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/BulletHell.wav");
     fxCaida = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase1/Caida.wav");
@@ -112,7 +106,6 @@ void Jefe::CargarSonidos() {
     fxMinaActiva = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase2/MinaActiva.wav");
     fxTeleport = CargarSonidoSeguro("assets/Audio/Sonidos/Jefe/Fase2/Teletransportandose.aiff");
 
-    // --- AJUSTE DE VOLUMENES ---
     float bossVol = 0.8f;
     SetSoundVolume(fxApareciendo, bossVol);
     SetSoundVolume(fxCaida, bossVol);
@@ -126,7 +119,7 @@ void Jefe::CargarSonidos() {
     SetSoundVolume(fxMinaActiva, bossVol);
     SetSoundVolume(fxTeleport, bossVol);
 
-    SetSoundVolume(fxBulletHell, 1.0f); // Bullet Hell al máximo
+    SetSoundVolume(fxBulletHell, 1.0f);
 }
 
 void Jefe::DescargarSonidos() {
@@ -144,7 +137,6 @@ void Jefe::DescargarSonidos() {
     if(fxTeleport.stream.buffer) UnloadSound(fxTeleport);
 }
 
-// --- CARGA DE TEXTURAS ---
 void CargarVector(std::vector<Texture2D>& vec, std::string rutaBase, int cantidad, bool baseCero = false) {
     for (int i = (baseCero ? 0 : 1); i <= (baseCero ? cantidad - 1 : cantidad); i++) {
         std::string ruta = rutaBase + std::to_string(i) + ".png";
@@ -186,7 +178,6 @@ void Jefe::DescargarTexturas() {
     UnloadTexture(texMuerto);
 }
 
-// --- HELPER: DETECCIÓN DE PAREDES ---
 bool Jefe::verificarColisionMuros(Vector2 pos, const Mapa& mapa) {
     Rectangle rectFuturo = getRect();
     rectFuturo.x = pos.x - rectFuturo.width/2;
@@ -198,12 +189,9 @@ bool Jefe::verificarColisionMuros(Vector2 pos, const Mapa& mapa) {
     return false;
 }
 
-// --- ACTUALIZACIÓN ---
-
 void Jefe::actualizar(Protagonista& jugador, const Mapa& mapa) {
 
     if (!introFinalizada) {
-        // Audio intro
         if (pasoIntro == 1 && timerIntroSequence < 0.1f) PlaySound(fxApareciendo);
         return;
     }
@@ -260,7 +248,6 @@ void Jefe::actualizar(Protagonista& jugador, const Mapa& mapa) {
 
         if (faseActual == FaseJefe::FASE_UNO && estadoF1 == EstadoFaseUno::PAUSANDO) {
             velocidadActual = Vector2Scale(direccionVista, velocidadLenta);
-            // AUDIO: Pasos pesados
             if (Vector2Length(velocidadActual) > 0) {
                 timerPasos -= GetFrameTime();
                 if (timerPasos <= 0) {
@@ -271,11 +258,9 @@ void Jefe::actualizar(Protagonista& jugador, const Mapa& mapa) {
         }
         else if (faseActual == FaseJefe::FASE_DOS && estadoF2 == EstadoFaseDos::PAUSANDO) {
             velocidadActual = Vector2Scale(direccionVista, VELOCIDAD_LENTA_JEFE_F2);
-            // AUDIO: Pasos rápidos
             if (Vector2Length(velocidadActual) > 0) {
                 timerPasos -= GetFrameTime();
                 if (timerPasos <= 0) {
-                    // PlaySound(fxCaminando); // Opcional
                     timerPasos = 0.4f;
                 }
             }
@@ -296,7 +281,7 @@ void Jefe::transicionAFaseDos() {
     estadoF1 = EstadoFaseUno::PAUSANDO;
     frameActual = 0;
     timerAnimacion = 0.0f;
-    PlaySound(fxApareciendo); // Grito
+    PlaySound(fxApareciendo);
 }
 
 void Jefe::actualizarFaseUno(Protagonista& jugador, const Mapa& mapa) {
@@ -318,7 +303,6 @@ void Jefe::actualizarFaseUno(Protagonista& jugador, const Mapa& mapa) {
             velocidadActual = Vector2Scale(objetivoEmbestida, VELOCIDAD_EMBESTIDA_JEFE_REDUCIDA);
             temporizadorEmbestida -= GetFrameTime();
 
-            // Detectar colisión 3 frames adelante
             if (verificarColisionMuros(Vector2Add(posicion, Vector2Scale(velocidadActual, 3.0f)), mapa)) {
                 estadoF1 = EstadoFaseUno::ATURDIDO_EMBESTIDA;
                 temporizadorEstado = ConstantesJefe::COOLDOWN_ATURDIMIENTO;
@@ -536,8 +520,6 @@ void Jefe::actualizarFaseDos(Protagonista& jugador, const Mapa& mapa) {
             velocidadActual = Vector2Scale(objetivoEmbestida, VELOCIDAD_EMBESTIDA_JEFE_REDUCIDA);
             temporizadorEmbestida -= GetFrameTime();
 
-            // --- CORRECCIÓN COLISIÓN FASE 2 ---
-            // Detectar pared 3 frames adelante (como en F1)
             if (verificarColisionMuros(Vector2Add(posicion, Vector2Scale(velocidadActual, 3.0f)), mapa)) {
                 estadoF2 = EstadoFaseDos::ATURDIDO_EMBESTIDA;
                 temporizadorEstado = ConstantesJefe::COOLDOWN_ATURDIMIENTO;
@@ -648,13 +630,11 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa) {
                 bulletHellBaseDirection = 0.0f;
                 bulletHellSpawnTimer = 0;
                 bulletHellAngleEspirales = 0.0f;
-                // No reproducimos aquí, dejamos que el loop del case BULLET_HELL lo maneje
             }
             break;
 
         case FaseJefe::BULLET_HELL:
         {
-            // --- BUCLE DE 7 SEGUNDOS ---
             timerAudioLoopBH += GetFrameTime();
             if (timerAudioLoopBH >= 7.0f) {
                 StopSound(fxBulletHell); // Por si acaso
@@ -662,14 +642,10 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa) {
                 PlaySound(fxBulletHell);
                 timerAudioLoopBH = 0.0f;
             }
-            // --- CORRECCIÓN DEFINITIVA LOOP AUDIO ---
-            // Verificamos en CADA frame. Si se detuvo (por ser corto), lo arranca de nuevo.
             if (!IsSoundPlaying(fxBulletHell)) {
-                // Aseguramos volumen máximo siempre
                 SetSoundVolume(fxBulletHell, 1.0f);
                 PlaySound(fxBulletHell);
             }
-            // ---------------------------------------
 
             float tiempoPasado = TIEMPO_BULLET_HELL - temporizadorEstado;
             progresoMuerte = Clamp(tiempoPasado / TIEMPO_BULLET_HELL, 0.0f, 1.0f);
@@ -677,7 +653,6 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa) {
             bulletHellBaseDirection += 0.025f;
             bulletHellAngleEspirales += BH_ESPIRAL_ROTACION;
 
-            // Lógica de fases del Bullet Hell (Pulsos, Rafagas, Olas, etc.)
             if (temporizadorEstado > 48.0f) {
                 if (bulletHellSpawnTimer % BH_PULSO_COOLDOWN == 0) {
                     float anguloBase = bulletHellBaseDirection;
@@ -740,7 +715,7 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa) {
             }
 
             if (temporizadorEstado <= 0) {
-                StopSound(fxBulletHell); // Parar al terminar
+                StopSound(fxBulletHell);
                 faseActual = FaseJefe::DERROTADO;
                 progresoMuerte = 1.0f;
             }
@@ -748,7 +723,6 @@ void Jefe::actualizarFaseMuerte(Protagonista& jugador, const Mapa& mapa) {
         }
         case FaseJefe::DERROTADO:
             velocidadActual = {0, 0};
-            // Aseguramos que no suene si llega aquí por error
             if(IsSoundPlaying(fxBulletHell)) StopSound(fxBulletHell);
             break;
         default: break;
@@ -846,11 +820,6 @@ EstadoFaseDos Jefe::getEstadoF2() const { return estadoF2; }
 void Jefe::setEstadoF2(EstadoFaseDos nuevoEstado) { this->estadoF2 = nuevoEstado; }
 void Jefe::setTemporizadorEstado(float tiempo) { this->temporizadorEstado = tiempo; }
 
-
-// =========================================================================
-// IMPLEMENTACIÓN VISUAL (FINAL)
-// =========================================================================
-
 void Jefe::dibujar() {
 
     std::vector<Texture2D>* animacionActual = nullptr;
@@ -860,50 +829,47 @@ void Jefe::dibujar() {
     Vector2 offsetDibujo = {0, 0};
     Color tint = WHITE;
 
-    // 1. INTRO LENTA (4 seg)
     if (!introFinalizada) {
         animacionActual = &texF1Apareciendo;
         timerIntroSequence += GetFrameTime();
 
         switch (pasoIntro) {
-            case 0: // Espera inicial 1s
+            case 0:
                 frameActual = 0;
                 if (timerIntroSequence > 1.0f) { pasoIntro++; timerIntroSequence = 0; }
                 break;
-            case 1: // Frame 1 (3s)
+            case 1:
                 frameActual = 0;
                 if (timerIntroSequence > 3.0f) { pasoIntro++; timerIntroSequence = 0; }
                 break;
-            case 2: // Frame 2 (3s)
+            case 2:
                 frameActual = 1;
                 if (timerIntroSequence > 3.0f) { pasoIntro++; timerIntroSequence = 0; }
                 break;
-            case 3: // Frame 3 (1s)
+            case 3:
                 frameActual = 2;
                 if (timerIntroSequence > 1.0f) { pasoIntro++; timerIntroSequence = 0; }
                 break;
-            case 4: // Frame 1 (3s)
+            case 4:
                 frameActual = 0;
                 if (timerIntroSequence > 3.0f) { pasoIntro++; timerIntroSequence = 0; }
                 break;
-            case 5: // Frame 2 (0.5s)
+            case 5:
                 frameActual = 1;
                 if (timerIntroSequence > 0.5f) { pasoIntro++; timerIntroSequence = 0; }
                 break;
-            case 6: // Frame Final
+            case 6:
                 frameActual = 4;
                 introFinalizada = true;
                 break;
         }
     }
-    // 2. TRANSICIÓN
     else if (enTransicion) {
         animacionActual = &texTransformacion;
         offsetDibujo.x = (float)GetRandomValue(-2, 2);
         offsetDibujo.y = (float)GetRandomValue(-2, 2);
         escalaActual = ESCALA_F1;
     }
-    // 3. FASE 1
     else if (faseActual == FaseJefe::FASE_UNO) {
         switch(estadoF1) {
             case EstadoFaseUno::PAUSANDO:
@@ -947,25 +913,23 @@ void Jefe::dibujar() {
                 break;
         }
     }
-    // 4. FASE 2
     else if (faseActual == FaseJefe::FASE_DOS) {
         switch(estadoF2) {
             case EstadoFaseDos::PAUSANDO:
             case EstadoFaseDos::APUNTANDO_EMBESTIDA:
                 animacionActual = &texF2Caminando; break;
 
-            // VISUAL EMBESTIDA F2
             case EstadoFaseDos::EMBISTIENDO:
                 animacionActual = &texF2Embestida;
-                if (frameActual > 2) frameActual = 2; // Mantiene frame 2
+                if (frameActual > 2) frameActual = 2;
                 break;
             case EstadoFaseDos::RECUPERANDO_EMBESTIDA:
                 animacionActual = &texF2Embestida;
-                frameActual = 4; // Anteúltimo
+                frameActual = 4;
                 break;
             case EstadoFaseDos::ATURDIDO_EMBESTIDA:
                 animacionActual = &texF2Embestida;
-                frameActual = 5; // Último (Stun)
+                frameActual = 5;
                 break;
 
             case EstadoFaseDos::DISPARO_ESCOPETA:
@@ -976,7 +940,6 @@ void Jefe::dibujar() {
                 animacionActual = &texF2Teleport; break;
         }
     }
-    // 5. MURIENDO/BULLET HELL
     else if (faseActual == FaseJefe::MURIENDO) {
         animacionActual = &texF2Enloqueciendo;
         frameActual = 0;
@@ -996,7 +959,6 @@ void Jefe::dibujar() {
         tint = (sinf(t) > 0) ? RED : (Color){255, 100, 255, 255};
     }
 
-    // --- RENDER ---
     if (animacionActual && !animacionActual->empty()) {
 
         bool controlManual = (faseActual == FaseJefe::FASE_UNO &&
@@ -1014,7 +976,6 @@ void Jefe::dibujar() {
             }
         }
 
-        // Avance específico arranque dash F2
         if (estadoF2 == EstadoFaseDos::EMBISTIENDO && frameActual < 2) {
              timerAnimacion += GetFrameTime();
              if (timerAnimacion >= (1.0f / 12.0f)) {
@@ -1024,7 +985,6 @@ void Jefe::dibujar() {
         }
 
         if (freezeF1Stun || freezeF2Dash || !introFinalizada) {
-            // Control manual
         }
         else if (estadoF1 == EstadoFaseUno::TIRANDO_CARNE || faseActual == FaseJefe::TRANSFORMANDO) {
             frameActual = Clamp(frameActual, 0, (int)animacionActual->size() - 1);
@@ -1054,7 +1014,6 @@ void Jefe::dibujar() {
 
         Vector2 origin = { destRec.width / 2.0f, destRec.height / 2.0f };
 
-        // --- BRAZO ---
         if (faseActual == FaseJefe::FASE_UNO && estadoF1 == EstadoFaseUno::ESTIRANDO_BRAZO) {
             float angleRad = atan2f(objetivoBrazo.y, objetivoBrazo.x);
             float targetRot = (angleRad * RAD2DEG) - 90.0f;
@@ -1078,7 +1037,7 @@ void Jefe::dibujar() {
         float w = (float)texMuerto.width;
         if (direccionVista.x < 0) w = -w;
         Rectangle source = {0, 0, w, (float)texMuerto.height};
-        float escalaMuerte = ESCALA_F2 * 0.7f; // ESCALA REDUCIDA
+        float escalaMuerte = ESCALA_F2 * 0.7f;
         Rectangle dest = {posicion.x, posicion.y, fabsf(w)*escalaMuerte, (float)texMuerto.height*escalaMuerte};
         DrawTexturePro(texMuerto, source, dest, {dest.width/2, dest.height/2}, 0.0f, WHITE);
     }

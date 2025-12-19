@@ -6,7 +6,6 @@ bool CajaDeMuniciones::texturaCargada = false;
 
 void CajaDeMuniciones::CargarTextura() {
     if (!texturaCargada) {
-        // RUTA CORREGIDA SEGUN TU INDICACION
         texMunicion = LoadTexture("assets/Consumibles/CajaDeMunicion.png");
         texturaCargada = true;
     }

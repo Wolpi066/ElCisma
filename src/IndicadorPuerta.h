@@ -8,7 +8,6 @@ public:
     int usar(Protagonista& jugador) override;
     void dibujar() override;
 
-    // Implementacion obligatoria
     Texture2D getTextura() override;
 
     bool esInteraccionPorTecla() const override;

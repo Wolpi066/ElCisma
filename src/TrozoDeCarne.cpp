@@ -12,7 +12,6 @@ const float TrozoDeCarne::TIEMPO_VUELO = 0.7f;
 const float TrozoDeCarne::TIEMPO_EN_SUELO = 8.0f;
 const float TrozoDeCarne::RADIO_CHARCO = 30.0f;
 
-// Helper seguro
 Sound LoadSoundSafeCarne(const char* path) {
     if (FileExists(path)) return LoadSound(path);
     return (Sound){0};
@@ -21,7 +20,6 @@ Sound LoadSoundSafeCarne(const char* path) {
 void TrozoDeCarne::CargarRecursos() {
     if (texAire.id == 0) texAire = LoadTexture("assets/Jefe/Proyectiles/TrozoDeCarne1.png");
     if (texSuelo.id == 0) texSuelo = LoadTexture("assets/Jefe/Proyectiles/TrozoDeCarne2.png");
-    // Usamos el mismo sonido de caida del jefe o uno nuevo si tuvieras
     if (fxImpacto.stream.buffer == 0) fxImpacto = LoadSoundSafeCarne("assets/Audio/Sonidos/Jefe/Fase1/Caida.wav");
 }
 
@@ -55,7 +53,6 @@ void TrozoDeCarne::actualizar(Protagonista& jugador, const Mapa& mapa)
             danio = 0;
             radio = RADIO_CHARCO;
 
-            // SONIDO IMPACTO
             if (!sonidoImpactoJugado) {
                 SetSoundVolume(fxImpacto, 1.0f); // Volumen alto
                 PlaySound(fxImpacto);

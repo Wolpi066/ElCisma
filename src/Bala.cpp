@@ -12,18 +12,16 @@ Bala::Bala(Vector2 pos, Vector2 dir, float rapidez, int dmg, OrigenBala org, flo
     activa(true),
     esCheat(esCheat)
 {
-    // Almacena velocidad por SEGUNDO (px/sec)
+    // px/sec
     this->velocidad = Vector2Scale(Vector2Normalize(dir), rapidez);
 }
 
 void Bala::actualizar(Protagonista& jugador, const Mapa& mapa)
 {
-    // Implementación vacía para balas normales
 }
 
 void Bala::recibirDanio(int cantidad, OrigenBala origenDanio)
 {
-    // Implementación vacía para balas normales
 }
 
 void Bala::actualizarVidaUtil(Vector2 posJugador) {
@@ -71,7 +69,7 @@ Vector2 Bala::getPosicion() const {
 }
 
 Vector2 Bala::getVelocidad() const {
-    // Devuelve la velocidad por SEGUNDO
+    // Devuelve la velocidad por seg
     return this->velocidad;
 }
 

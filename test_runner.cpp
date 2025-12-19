@@ -1,25 +1,22 @@
-// 1. LIMPIEZA WINDOWS
+// LIMPIEZA WINDOWS
 #define NOGDI
 #define NOUSER
 #define WIN32_LEAN_AND_MEAN
 
-// 2. LIBRERÍAS ESTÁNDAR
+// LIBRERÍAS ESTÁNDAR
 #include <vector>
 #include <cmath>
 #include <iostream>
 
-// 3. FRAMEWORK TAU
+// FRAMEWORK TAU
 #include <tau/tau.h>
 #ifdef tau
 #undef tau
 #endif
 
-// 4. RAYLIB
+// RAYLIB
 #include "raylib.h"
 
-// --------------------------------------------------------------------------
-// ACCESS HACK
-// --------------------------------------------------------------------------
 #define private public
 #define protected public
 
@@ -40,11 +37,10 @@ public:
 
 #undef private
 #undef protected
-// --------------------------------------------------------------------------
 
 #include "src/Constantes.h"
 
-// --- SETUP GLOBAL ---
+// SETUP GLOBAL
 struct EntornoDePruebas {
     EntornoDePruebas() {
         SetTraceLogLevel(LOG_NONE);
@@ -63,9 +59,7 @@ struct EntornoDePruebas {
 EntornoDePruebas g_entorno;
 
 
-// ==========================================================================
-// SUITE 1: PROTAGONISTA
-// ==========================================================================
+// PROTAGONISTA
 TEST(Protagonista, ValoresIniciales) {
     Protagonista p({0,0});
     CHECK(p.getVida() == Constantes::VIDA_MAX_JUGADOR);
@@ -89,10 +83,8 @@ TEST(Protagonista, ItemsEspeciales) {
     CHECK(p.tieneLlave == true);
 }
 
-// ==========================================================================
-// SUITE 2: ENEMIGOS
-// ==========================================================================
 
+// ENEMIGOS
 TEST(Enemigo_Zombie, StatsBasicos) {
     Zombie z({100, 100});
     CHECK(z.vida == Constantes::VIDA_ZOMBIE);
@@ -103,17 +95,17 @@ TEST(Enemigo_Zombie, RecibirDanioYMorir) {
     Zombie z({0,0});
     int vidaInicial = z.vida;
 
-    // 1. Recibe daño
+    // Recibe daño
     z.recibirDanio(1);
     CHECK(z.vida == vidaInicial - 1);
 
-    // 2. Golpe letal
+    // Golpe letal
     z.recibirDanio(100);
 
-    // 3. Verificamos muerte
+    // Verificamos muerte
     CHECK(z.vida <= 0);
 
-    // Verificamos el estado lógico inmediato:
+    // Verificamos el estado lógico inmediato
     CHECK(z.estaMuriendo == true);
 }
 
@@ -129,30 +121,25 @@ TEST(Enemigo_Fantasma, LogicaBasica) {
     CHECK(f.vida < Constantes::VIDA_FANTASMA);
 }
 
-// ==========================================================================
-// SUITE 3: JEFE FINAL
-// ==========================================================================
 
+// JEFE FINAL
 TEST(Jefe, InicializacionMonstruosa) {
     Jefe boss({500, 500});
 
-    // El jefe define su propia vida estática en el .cpp (100),
-    // ignorando Constantes.h (800). Verificamos contra su variable interna.
     CHECK(boss.vida == boss.vidaMaxima);
-    CHECK(boss.vida == 100); // Valor hardcodeado en Jefe.cpp
+    CHECK(boss.vida == 100);
     CHECK(boss.faseActual == FaseJefe::FASE_UNO);
 }
 
 TEST(Jefe, SistemaDeDanio_Blindaje) {
     Jefe boss({0,0});
     int vidaFull = boss.vida;
-    Vector2 posJugador = {0, 10}; // Posición relativa
+    Vector2 posJugador = {0, 10};
 
     boss.recibirDanio(1000, posJugador);
 
-    // La vida debe bajar, pero solo un poco (blindaje del jefe)
     CHECK(boss.vida < vidaFull);
-    // Verificar que NO bajó 1000 de golpe
+
     CHECK(boss.vida > 0);
 }
 
@@ -161,17 +148,14 @@ TEST(Jefe, TransicionDeFase_Trigger) {
 
     CHECK(boss.enTransicion == false);
 
-    // Forzamos la transición
     boss.transicionAFaseDos();
 
     CHECK(boss.enTransicion == true);
     CHECK(boss.faseActual == FaseJefe::FASE_UNO); // Aún no cambia
 }
 
-// ==========================================================================
-// SUITE 4: INTERACTIVOS
-// ==========================================================================
 
+// INTERACTIVOS
 TEST(Interactivos_Cofre, UsarCofre) {
     Cofre c({0,0}, 1, CofreOrientacion::HORIZONTAL);
     Protagonista p({0,0});
@@ -186,7 +170,7 @@ TEST(Interactivos_Nota, Propiedades) {
     CHECK(n.notaID == 55);
     Protagonista p({0,0});
     n.usar(p);
-    // Verificamos que no explote
+
     CHECK(n.notaID == 55);
 }
 

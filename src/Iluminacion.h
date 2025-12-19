@@ -3,9 +3,8 @@
 #include "raymath.h"
 #include <vector>
 
-// Pre-declaracion para evitar #include circular
 class Protagonista;
-class Camera2D; // <-- ¡¡AÑADIDO!!
+class Camera2D;
 
 #define MAX_SHADOWS 512
 
@@ -31,17 +30,15 @@ class Iluminacion
 private:
     static void ComputeShadowVolumeForEdge(LightInfo* light, Vector2 sp, Vector2 ep);
 
-    // --- ¡¡FIRMA ACTUALIZADA!! ---
     static void DrawLightMask(LightInfo* light, Camera2D& camera, Protagonista& jugador);
 
 public:
     static void SetupLight(LightInfo* light, Vector2 pos, Color color, float radius, float intensity);
     static void MoveLight(LightInfo* light, Vector2 pos);
 
-    // --- ¡¡FIRMA ACTUALIZADA!! ---
     static void UpdateLightShadows(
         LightInfo* light,
-        const std::vector<Rectangle>& muros, // <-- AHORA ES MUROS
+        const std::vector<Rectangle>& muros,
         const Rectangle& puerta,
         bool puertaEstaAbierta,
         Camera2D& camera,

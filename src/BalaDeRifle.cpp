@@ -2,7 +2,6 @@
 #include "Constantes.h"
 #include "raymath.h"
 
-// Inicialización estática
 Texture2D BalaDeRifle::texBalaRifle = { 0 };
 bool BalaDeRifle::texturaCargada = false;
 
@@ -57,15 +56,12 @@ void BalaDeRifle::dibujar()
     if (!activa) return;
 
     if (texturaCargada) {
-        // Calcular rotación basada en la velocidad
         float rotacion = atan2f(velocidad.y, velocidad.x) * RAD2DEG;
 
         Rectangle sourceRec = { 0.0f, 0.0f, (float)texBalaRifle.width, (float)texBalaRifle.height };
 
-        // --- AJUSTE DE TAMAÑO ---
-        // Aumentamos el largo (ancho) y reducimos el grosor (alto)
-        float ancho = 55.0f; // Bastante más larga para dar sensación de velocidad
-        float alto = 7.0f;   // Más fina/angosta
+        float ancho = 55.0f;
+        float alto = 7.0f;
         // ------------------------
 
         Rectangle destRec = { posicion.x, posicion.y, ancho, alto };

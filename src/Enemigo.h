@@ -42,9 +42,7 @@ protected:
     virtual void elegirNuevoDestinoPatrulla(const Mapa& mapa);
 
 public:
-    // --- NUEVO: Control Global de Audio ---
     static bool batallaJefeIniciada;
-    // -------------------------------------
 
     Enemigo(Vector2 pos, int vida, int danio, float vel, float rad,
             float rangoV, float anguloV, float rangoE);

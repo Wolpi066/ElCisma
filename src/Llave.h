@@ -11,7 +11,7 @@ public:
     Llave(Vector2 pos);
     ~Llave();
 
-    int usar(Protagonista& jugador) override; // Cambio a int
+    int usar(Protagonista& jugador) override;
     void dibujar() override;
     Texture2D getTextura() override;
 

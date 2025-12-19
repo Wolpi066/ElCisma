@@ -14,7 +14,7 @@ enum class OrigenBala {
 class Bala {
 protected:
     Vector2 posicion;
-    Vector2 velocidad; // (Velocidad por SEGUNDO)
+    Vector2 velocidad;
     int danio;
     OrigenBala origen;
     float radio;

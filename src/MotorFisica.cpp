@@ -2,7 +2,7 @@
 #include "raymath.h"
 #include "Constantes.h"
 #include "TrozoDeCarne.h"
-#include "MinaEnemiga.h" // <-- ¡NUEVO!
+#include "MinaEnemiga.h"
 
 Vector2 MotorFisica::calcularMovimientoValido(
     Vector2 posActual,
@@ -115,7 +115,7 @@ void MotorFisica::moverJugador(
 
     if (estaEnCharco)
     {
-        velocidad = Vector2Scale(velocidad, 0.5f); // 50% lento
+        velocidad = Vector2Scale(velocidad, 0.5f);
     }
 
     bool chocoDummy = false;
@@ -151,7 +151,7 @@ void MotorFisica::moverEnemigos(
         if (Vector2LengthSqr(dirDeseada) == 0.0f) {
             continue;
         }
-        // ... (lógica de steering omitida por brevedad) ...
+
         Vector2 vectorEvitacion = { 0, 0 };
         float pesoEvitacion = 0.0f;
         Rectangle rectEnemigo = enemigo->getRect();
@@ -186,7 +186,6 @@ void MotorFisica::moverEnemigos(
         } else {
             dirFinal = dirDeseada;
         }
-        // ... (fin lógica de steering) ...
 
         Vector2 velocidad = Vector2Scale(dirFinal, enemigo->getVelocidad());
         enemigo->setDireccion(dirFinal);

@@ -15,9 +15,7 @@ bool SistemaInput::quiereDisparar()
     return IsMouseButtonDown(MOUSE_LEFT_BUTTON);
 }
 
-// --- ¡¡NUEVO!! ---
 bool SistemaInput::quiereInteractuar()
 {
-    // Usamos IsKeyPressed para que solo se active una vez
     return IsKeyPressed(KEY_E);
 }

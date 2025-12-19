@@ -551,7 +551,7 @@
 	"Llave.h"
 	"raymath.h"
 
-1764976232 source:c:\users\volpi\onedrive\escritorio\elcisma\src\main.cpp
+1764985773 source:c:\users\volpi\onedrive\escritorio\elcisma\src\main.cpp
 	"raylib.h"
 	"Juego.h"
 	"SistemaArchivos.h"
@@ -753,7 +753,7 @@
 	"BalaDeRifle.h"
 	<windows.h>
 
-1764977810 source:c:\users\volpi\onedrive\escritorio\elcisma\test_runner.cpp
+1764978091 source:c:\users\volpi\onedrive\escritorio\elcisma\test_runner.cpp
 	<vector>
 	<cmath>
 	<iostream>

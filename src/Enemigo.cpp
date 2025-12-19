@@ -27,7 +27,6 @@ void Enemigo::recibirDanio(int cantidad) {
     this->vida -= cantidad;
     if (this->vida < 0) this->vida = 0;
 
-    // Lógica crítica: Perseguir al recibir daño
     this->estadoActual = EstadoIA::PERSIGUIENDO;
     this->temporizadorDanio = 0.2f;
 }
@@ -76,17 +75,11 @@ bool Enemigo::puedeEscucharAlJugador(Vector2 posJugador) {
 }
 
 void Enemigo::elegirNuevoDestinoPatrulla(const Mapa& mapa) {
-    // Seleccionar un punto aleatorio alrededor
     float radioPatrulla = (float)GetRandomValue(150, 300);
     float anguloPatrulla = (float)GetRandomValue(0, 360) * DEG2RAD;
 
     destinoPatrulla.x = posicion.x + cosf(anguloPatrulla) * radioPatrulla;
     destinoPatrulla.y = posicion.y + sinf(anguloPatrulla) * radioPatrulla;
 
-    // Asignar tiempo de patrulla
     temporizadorPatrulla = (float)GetRandomValue(2, 5);
-
-    // Nota: La detección de colisión para el destino de patrulla se ha simplificado
-    // para evitar warnings y mantener la fluidez. El motor de física manejará
-    // las colisiones reales al moverse.
 }

@@ -20,7 +20,7 @@
 #include "Spawner.h"
 #include "Jefe.h"
 
-// --- Helpers Visuales ---
+// Helpers Visuales
 void DibujarTextoGlitch(const char* texto, int posX, int posY, int fontSize, Color colorPrincipal) {
     float offset = sin(GetTime() * 15.0f) * 1.0f;
     float offset2 = cos(GetTime() * 10.0f) * 1.0f;
@@ -45,7 +45,6 @@ void DibujarCajaDialogo() {
     DrawRectangleLinesEx(frame, 2.0f, Fade(PURPLE, 0.5f));
 }
 
-// --- CONSTRUCTOR ---
 Juego::Juego()
     : jugador({0, 500}),
       miMapa(),
@@ -59,11 +58,10 @@ Juego::Juego()
       jefeHaSpawned(false),
       triggerRectJefe({ -200, -200, 400, 400 }),
       temporizadorSpawnJefe(0.0f),
-      // --- ORDEN CORRECTO DE INICIALIZACIÓN (SEGÚN .H) ---
-      volumenMusicaJefe(1.0f), // 1. Volumen antes que dialogos
-      opcionDialogo(1),        // 2. Dialogos
+      volumenMusicaJefe(1.0f),
+      opcionDialogo(1),
       temporizadorDialogo(0.0f),
-      timerIntro(0.0f),        // 3. Cinemáticas
+      timerIntro(0.0f),
       faseIntro(0),
       letrasIntroMostradas(0),
       timerEscrituraIntro(0.0f),
@@ -72,14 +70,13 @@ Juego::Juego()
       timerEscritura(0.0f),
       letrasMostradas(0),
       faseFinal(0),
-      texPopupItem({0}),       // 4. Popup
+      texPopupItem({0}),
       nombrePopupItem(""),
       descPopupItem(""),
       escalaPopup(0.0f),
-      opcionMenuInicial(0),    // 5. Menús
+      opcionMenuInicial(0),
       opcionMenuMuerteSeleccionada(0),
-      opcionMenuPausa(0)       // Al final
-      // ---------------------------------------------------
+      opcionMenuPausa(0)
 {
     SetExitKey(KEY_NULL);
 
@@ -87,7 +84,6 @@ Juego::Juego()
     ResetSustoFantasma();
     renderizador.inicializarMinimapa(miMapa);
 
-    // --- CARGA DE ASSETS VISUALES ---
     texFondoMenuInicio = LoadTexture("assets/HUD/MenuInicio.png");
     texBtnJugar = LoadTexture("assets/HUD/Botones/MenuInicio/Jugar.png");
     texBtnJugarSel = LoadTexture("assets/HUD/Botones/MenuInicio/JugarSeleccionado.png");
@@ -110,7 +106,6 @@ Juego::Juego()
     texFinalHuir = LoadTexture("assets/FinalHuir.png");
     texIntro = LoadTexture("assets/Intro.png");
 
-    // --- CARGA DE AUDIO ---
     musicaAmbiente = LoadMusicStream("assets/Audio/Musica/Ambientacion.wav");
     musicaJefe = LoadMusicStream("assets/Audio/Musica/Jefe.mp3");
     musicaFinal = LoadMusicStream("assets/Audio/Musica/Final.mp3");
@@ -118,9 +113,6 @@ Juego::Juego()
     fxUIHover = LoadSound("assets/Audio/Sonidos/HUD/Hover.wav");
     fxUIClick = LoadSound("assets/Audio/Sonidos/HUD/Click.wav");
     fxPuerta = LoadSound("assets/Audio/Sonidos/PuertaAbierta.wav");
-
-    // NOTA: NO iniciamos música ambiente aquí para que el menú esté en silencio
-    // Se iniciará en actualizarMenuInicial() al pulsar JUGAR.
 }
 
 Juego::~Juego() {
@@ -186,21 +178,17 @@ void Juego::reiniciarJuego() {
     StopMusicStream(musicaJefe);
     StopMusicStream(musicaFinal);
 
-    // Al reiniciar (volvemos a jugar), arranca el ambiente
     PlayMusicStream(musicaAmbiente);
 
     HideCursor();
 }
 
 void Juego::actualizar() {
-    // --- GESTIÓN DE MÚSICA (Streams) ---
-    // Es obligatorio llamar a esto en cada frame para que la música avance
     UpdateMusicStream(musicaAmbiente);
     UpdateMusicStream(musicaJefe);
     UpdateMusicStream(musicaFinal);
 
-    // 1. LÓGICA DE FADE OUT (Música Jefe)
-    // Si el jefe ha muerto, bajamos el volumen gradualmente
+    // FADE OUT
     if (jefeHaSpawned && !gestor.getJefes().empty()) {
         Jefe* jefe = gestor.getJefes()[0];
         if (jefe->getFase() == FaseJefe::DERROTADO) {
@@ -214,8 +202,6 @@ void Juego::actualizar() {
         }
     }
 
-    // 2. INICIO MÚSICA JEFE
-    // Al entrar a la sala del jefe, cortamos ambiente y lanzamos rock
     if (estadoActual == EstadoJuego::INICIANDO_JEFE && !IsMusicStreamPlaying(musicaJefe)) {
         StopMusicStream(musicaAmbiente);
         volumenMusicaJefe = 1.0f;
@@ -223,8 +209,6 @@ void Juego::actualizar() {
         PlayMusicStream(musicaJefe);
     }
 
-    // 3. INICIO MÚSICA FINAL
-    // Al terminar el juego (Huida o Sacrificio)
     if ((estadoActual == EstadoJuego::FIN_JUEGO_SACRIFICIO || estadoActual == EstadoJuego::FIN_JUEGO_HUIR)
         && !IsMusicStreamPlaying(musicaFinal))
     {
@@ -233,21 +217,17 @@ void Juego::actualizar() {
         PlayMusicStream(musicaFinal);
     }
 
-    // 4. LIMPIEZA EN MENÚ INICIAL
-    // Si volvemos al menú, silencio total (respetando tu petición de que ambiente solo suene al jugar)
     if (estadoActual == EstadoJuego::MENU_INICIAL) {
         if (IsMusicStreamPlaying(musicaJefe)) StopMusicStream(musicaJefe);
         if (IsMusicStreamPlaying(musicaFinal)) StopMusicStream(musicaFinal);
         if (IsMusicStreamPlaying(musicaAmbiente)) StopMusicStream(musicaAmbiente);
     }
 
-    // 5. LIMPIEZA EN MUERTE
-    // Si morimos, cortar la música del jefe inmediatamente
     if (estadoActual == EstadoJuego::MENU_MUERTE) {
         if (IsMusicStreamPlaying(musicaJefe)) StopMusicStream(musicaJefe);
     }
 
-    // --- MÁQUINA DE ESTADOS DEL JUEGO ---
+    // FSM
     switch (estadoActual) {
         case EstadoJuego::MENU_INICIAL: actualizarMenuInicial(); break;
         case EstadoJuego::CREDITOS: actualizarCreditos(); break;
@@ -301,7 +281,7 @@ void Juego::dibujar() {
     EndDrawing();
 }
 
-// --- JUEGO PRINCIPAL ---
+// JUEGO PRINCIPAL
 void Juego::actualizarJugando() {
     procesarCheats();
     if (timerDespertar > 0.0f) timerDespertar -= GetFrameTime();
@@ -359,7 +339,7 @@ void Juego::actualizarJugando() {
             if (dynamic_cast<IndicadorPuerta*>(itemMasCercano)) {
                 if (jugador.getTieneLlave()) {
                     miMapa.abrirPuerta();
-                    PlaySound(fxPuerta); // Sonido puerta
+                    PlaySound(fxPuerta);
                     for (Consumible* itemPuerta : gestor.getConsumibles()) {
                         if (dynamic_cast<IndicadorPuerta*>(itemPuerta)) itemPuerta->consumir();
                     }
@@ -414,7 +394,6 @@ void Juego::actualizarJugando() {
     gestor.recolectarBasura();
     temporizadorPartida += GetFrameTime();
 
-    // Lógica Fantasma / Final
     if (jefeHaSpawned && !gestor.getJefes().empty() && gestor.getJefes()[0]->estaEnFaseFinal()) {
         Fantasma::jefeEnCombate = false; Fantasma::despertado = true; Fantasma::modoDialogo = true;
         estadoActual = EstadoJuego::DIALOGO_FINAL; temporizadorDialogo = 3.0f;
@@ -454,7 +433,7 @@ void Juego::dibujarJugando() {
     }
 }
 
-// --- PAUSA ---
+// PAUSA
 void Juego::actualizarPausa() {
     ShowCursor();
     if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P)) { estadoActual = EstadoJuego::JUGANDO; HideCursor(); return; }
@@ -504,12 +483,12 @@ void Juego::dibujarPausa() {
     DibujarBtn(tJugar, startX, startY, "JUGAR"); DibujarBtn(tSalir, startX, startY + btnH + spacing, "SALIR");
 }
 
-// --- CINEMÁTICA INTRO (DESPERTAR) ---
+// CINEMÁTICA INTRO
 void Juego::actualizarIntro() {
     float dt = GetFrameTime();
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) { reiniciarJuego(); return; }
 
-    if (faseIntro == 0) { // Texto Boot
+    if (faseIntro == 0) {
         timerEscrituraIntro += dt;
         if (timerEscrituraIntro >= 0.05f) { letrasIntroMostradas++; timerEscrituraIntro = 0.0f; }
         if (letrasIntroMostradas > 120) {
@@ -517,15 +496,15 @@ void Juego::actualizarIntro() {
             if (timerIntro > 2.0f) { faseIntro = 1; timerIntro = 0.0f; }
         }
     }
-    else if (faseIntro == 1) { // Fade In Imagen
+    else if (faseIntro == 1) {
         timerIntro += dt;
         if (timerIntro > 3.0f) { faseIntro = 2; timerIntro = 0.0f; }
     }
-    else if (faseIntro == 2) { // Hold
+    else if (faseIntro == 2) {
         timerIntro += dt;
         if (timerIntro > 2.0f) { faseIntro = 3; timerIntro = 0.0f; }
     }
-    else if (faseIntro == 3) { // Fade Out
+    else if (faseIntro == 3) {
         timerIntro += dt;
         if (timerIntro > 1.0f) { reiniciarJuego(); }
     }
@@ -550,7 +529,7 @@ void Juego::dibujarIntro() {
     }
 }
 
-// --- CINEMÁTICA FINAL ---
+// CINEMÁTICA FINAL
 void Juego::actualizarFinJuego() {
     float dt = GetFrameTime();
     if (faseFinal == 0) { alphaFinal += dt * 0.5f; if (alphaFinal >= 1.0f) { alphaFinal = 0.0f; faseFinal = 1; } }
@@ -594,9 +573,7 @@ void Juego::dibujarFinJuego() {
         DrawRectangleGradientV(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, BLACK, Fade(colorTitulo, 0.2f * alphaImg));
     }
 
-    // TEXTOS MEJORADOS
     if (faseFinal >= 2) {
-        // TÍTULO
         int fontSizeTitulo = 60;
         int wTit = MeasureText(titulo, fontSizeTitulo);
         int xTit = Constantes::ANCHO_PANTALLA/2 - wTit/2;
@@ -604,7 +581,6 @@ void Juego::dibujarFinJuego() {
 
         DibujarTextoConBorde(titulo, xTit, yTit, fontSizeTitulo, colorTitulo);
 
-        // DESCRIPCIÓN
         char buffer[512];
         int len = strlen(desc);
         int count = (letrasMostradas > len) ? len : letrasMostradas;
@@ -630,7 +606,7 @@ void Juego::dibujarFinJuego() {
     }
 }
 
-// --- NOTAS ---
+// NOTAS
 void Juego::actualizarLeyendoNota() { jugador.actualizarInterno(renderizador.getCamera(), {0, 0}); if (SistemaInput::quiereInteractuar() || IsKeyPressed(KEY_ESCAPE)) { estadoActual = EstadoJuego::JUGANDO; notaActualID = 0; } }
 void Juego::dibujarLeyendoNota() {
     renderizador.dibujarTodo(jugador, miMapa, gestor); DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.8f));
@@ -658,11 +634,11 @@ void Juego::dibujarLeyendoNota() {
     DrawText(textoCerrar, (int)(frame.x + frame.width - MeasureText(textoCerrar, 20) - 20), (int)(frame.y + frame.height - 40), 20, Fade(GREEN, 0.5f + alphaCerrar * 0.5f));
 }
 
-// --- JEFE ---
+// JEFE
 void Juego::actualizarIniciandoJefe() { jugador.actualizarInterno(renderizador.getCamera(), {0, 0}); temporizadorSpawnJefe -= GetFrameTime(); if (temporizadorSpawnJefe <= 0) { gestor.registrarJefe(new Jefe({0.0f, 0.0f})); jefeHaSpawned = true; estadoActual = EstadoJuego::JUGANDO; } }
 void Juego::dibujarIniciandoJefe() { dibujarJugando(); const char* textoSpawn = "LA PUERTA SE HA SELLADO.\n\nSIENTES UNA DISTORSION EN EL CENTRO DE LA SALA..."; float alpha = 1.0f; if (temporizadorSpawnJefe < 1.0f) alpha = temporizadorSpawnJefe; DibujarTextoGlitch(textoSpawn, Constantes::ANCHO_PANTALLA / 2 - MeasureText(textoSpawn, 20) / 2, Constantes::ALTO_PANTALLA - 150, 20, Fade(RED, alpha)); }
 
-// --- DIÁLOGOS ---
+// DIÁLOGOS
 void Juego::actualizarDialogo() { jugador.actualizarInterno(renderizador.getCamera(), {0, 0}); gestor.actualizarIAEntidades(jugador, miMapa); temporizadorDialogo -= GetFrameTime(); if (temporizadorDialogo <= 0) { estadoActual = EstadoJuego::DIALOGO_INTRO; opcionDialogo = 1; for (Enemigo* enemigo : gestor.getEnemigos()) if (dynamic_cast<Fantasma*>(enemigo)) { enemigo->setPosicion(Vector2Add(jugador.getPosicion(), Vector2Scale(jugador.getDireccionVista(), 80.0f))); break; } } }
 void Juego::dibujarDialogo() { renderizador.dibujarTodo(jugador, miMapa, gestor); DrawRectangle(0, Constantes::ALTO_PANTALLA - 100, Constantes::ANCHO_PANTALLA, 100, Fade(BLACK, 0.8f)); DrawText("El 'Fantasma' se acerca... su movimiento es erratico pero decidido...", 20, Constantes::ALTO_PANTALLA - 80, 20, WHITE); DrawText("Sientes una presencia abrumadora... no es hostil, es... triste.", 20, Constantes::ALTO_PANTALLA - 50, 20, WHITE); }
 void Juego::actualizarDialogoIntro() { jugador.actualizarInterno(renderizador.getCamera(), {0, 0}); if (SistemaInput::quiereInteractuar()) { estadoActual = EstadoJuego::DIALOGO_PREGUNTAS; opcionDialogo = 1; } }
@@ -674,11 +650,11 @@ void Juego::dibujarDialogoRespuesta() { renderizador.dibujarTodo(jugador, miMapa
 void Juego::actualizarDialogoDecisionFinal() { jugador.actualizarInterno(renderizador.getCamera(), {0, 0}); if (IsKeyPressed(KEY_ONE) || IsKeyPressed(KEY_UP)) opcionDialogo = 1; if (IsKeyPressed(KEY_TWO) || IsKeyPressed(KEY_DOWN)) opcionDialogo = 2; if (SistemaInput::quiereInteractuar()) { if (opcionDialogo == 1) estadoActual = EstadoJuego::FIN_JUEGO_SACRIFICIO; else estadoActual = EstadoJuego::FIN_JUEGO_HUIR; faseFinal = 0; alphaFinal = 0.0f; } }
 void Juego::dibujarDialogoDecisionFinal() { renderizador.dibujarTodo(jugador, miMapa, gestor); DibujarCajaDialogo(); Rectangle frame = { Constantes::ANCHO_PANTALLA * 0.1f, Constantes::ALTO_PANTALLA * 0.25f, Constantes::ANCHO_PANTALLA * 0.8f, Constantes::ALTO_PANTALLA * 0.5f }; DibujarTextoGlitch("ELANA: El Cisma esta muerto, pero el Vortice sigue aqui.\nInestable. Remanente, tu eres el unico hibrido estable.\nPuedes tomar su lugar... o puedes huir.\n\nSi te vas, esto volvera a empezar. El Nexo... siempre reclama.", (int)(frame.x + 20), (int)(frame.y + 30), 20, (Color){200, 200, 255, 255}); DrawLine((int)(frame.x + 20), (int)(frame.y + 150), (int)(frame.x + frame.width - 20), (int)(frame.y + 150), Fade(PURPLE, 0.2f)); Color color1 = (opcionDialogo == 1) ? YELLOW : GRAY; Color color2 = (opcionDialogo == 2) ? YELLOW : GRAY; DibujarTextoGlitch("[1] Me quedare. Tomare el lugar del Cisma.", (int)(frame.x + 40), (int)(frame.y + 180), 20, color1); DibujarTextoGlitch("[2] No es mi problema. Me voy de aqui.", (int)(frame.x + 40), (int)(frame.y + 210), 20, color2); if(opcionDialogo == 1) DibujarTextoGlitch(">", (int)(frame.x + 20), (int)(frame.y + 180), 20, YELLOW); else DibujarTextoGlitch(">", (int)(frame.x + 20), (int)(frame.y + 210), 20, YELLOW); const char* textoCerrar = "Presiona 'E' para decidir"; float alphaCerrar = (sin(GetTime() * 2.0f) + 1.0f) / 2.0f; DrawText(textoCerrar, (int)(frame.x + frame.width - MeasureText(textoCerrar, 20) - 20), (int)(frame.y + frame.height - 40), 20, Fade(PURPLE, 0.5f + alphaCerrar * 0.5f)); }
 
-// --- ITEM POPUP ---
+// ITEM POPUP
 void Juego::actualizarItemObtenido() { if (escalaPopup < 1.0f) escalaPopup += GetFrameTime() * 3.0f; else escalaPopup = 1.0f; if (IsKeyPressed(KEY_E) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) estadoActual = EstadoJuego::JUGANDO; }
 void Juego::dibujarItemObtenido() { renderizador.dibujarTodo(jugador, miMapa, gestor); DrawRectangle(0, 0, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA, Fade(BLACK, 0.85f)); DrawLine(0, Constantes::ALTO_PANTALLA/2, Constantes::ANCHO_PANTALLA, Constantes::ALTO_PANTALLA/2, Fade(GREEN, 0.3f)); if (texPopupItem.id != 0) { float tamanoMaximo = 250.0f; float aspect = (float)texPopupItem.width / (float)texPopupItem.height; float finalW, finalH; if (aspect >= 1.0f) { finalW = tamanoMaximo * escalaPopup; finalH = (tamanoMaximo / aspect) * escalaPopup; } else { finalH = tamanoMaximo * escalaPopup; finalW = (tamanoMaximo * aspect) * escalaPopup; } float rotacion = sin(GetTime() * 1.5f) * 10.0f; Rectangle source = { 0, 0, (float)texPopupItem.width, (float)texPopupItem.height }; Rectangle dest = { (float)Constantes::ANCHO_PANTALLA/2, (float)Constantes::ALTO_PANTALLA/2 - 80, finalW, finalH }; Vector2 origin = { dest.width/2, dest.height/2 }; DrawTexturePro(texPopupItem, source, dest, origin, rotacion, WHITE); DrawCircleGradient((int)dest.x, (int)dest.y, 100 * escalaPopup, Fade(GREEN, 0.2f), Fade(BLACK, 0.0f)); } else { DrawRectangle(Constantes::ANCHO_PANTALLA/2 - 50, Constantes::ALTO_PANTALLA/2 - 130, 100, 100, PURPLE); DrawText("NO IMAGE", Constantes::ANCHO_PANTALLA/2 - 40, Constantes::ALTO_PANTALLA/2 - 90, 20, WHITE); } const char* titulo = "OBJETO ENCONTRADO"; int wTitulo = MeasureText(titulo, 30); DrawText(titulo, Constantes::ANCHO_PANTALLA/2 - wTitulo/2, Constantes::ALTO_PANTALLA/2 + 60, 30, Fade(GREEN, escalaPopup)); if (nombrePopupItem) { int wNombre = MeasureText(nombrePopupItem, 40); DibujarTextoGlitch(nombrePopupItem, Constantes::ANCHO_PANTALLA/2 - wNombre/2, Constantes::ALTO_PANTALLA/2 + 100, 40, WHITE); } if (descPopupItem) { int wDesc = MeasureText(descPopupItem, 20); DrawText(descPopupItem, Constantes::ANCHO_PANTALLA/2 - wDesc/2, Constantes::ALTO_PANTALLA/2 + 150, 20, GRAY); } if (escalaPopup >= 1.0f) { const char* msg = "Continuar [E]"; DrawText(msg, Constantes::ANCHO_PANTALLA - MeasureText(msg, 20) - 30, Constantes::ALTO_PANTALLA - 40, 20, Fade(WHITE, 0.5f + sin(GetTime()*5)*0.5f)); } }
 
-// --- MENU INICIO ---
+// MENU INICIO
 void Juego::actualizarMenuInicial() {
     ShowCursor();
 
@@ -740,14 +716,14 @@ void Juego::actualizarMenuInicial() {
             timerIntro = 0.0f;
             letrasIntroMostradas = 0;
             timerEscrituraIntro = 0.0f;
-            // Iniciar música ambiente al entrar al juego
+
             PlayMusicStream(musicaAmbiente);
         }
         else if (opcionMenuInicial == 1) estadoActual = EstadoJuego::CREDITOS;
         else if (opcionMenuInicial == 2) CloseWindow();
     }
 }
-// ... (Resto de métodos dibujarMenuInicial, dibujarCreditos, etc. sin cambios) ...
+
 void Juego::dibujarMenuInicial() { if (texFondoMenuInicio.id != 0) { Rectangle src = { 0, 0, (float)texFondoMenuInicio.width, (float)texFondoMenuInicio.height }; Rectangle dest = { 0, 0, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA }; DrawTexturePro(texFondoMenuInicio, src, dest, {0,0}, 0.0f, WHITE); } else { ClearBackground(BLACK); DibujarTextoGlitch("ERROR: FONDO NO ENCONTRADO", 50, 50, 20, RED); } float btnW = 300.0f; float btnH = 80.0f; float spacing = 25.0f; float startY = (float)Constantes::ALTO_PANTALLA * 0.5f; float centerX = ((float)Constantes::ANCHO_PANTALLA - btnW) / 2.0f; Color tinteBoton = { 180, 180, 180, 255 }; auto DibujarBotonSeguro = [&](Texture2D& tex, int yOffset, bool seleccionado, const char* textoError) { float posY = startY + yOffset * (btnH + spacing); if (tex.id != 0) { Rectangle source = { 0.0f, 0.0f, (float)tex.width, (float)tex.height }; Rectangle dest = { centerX, posY, btnW, btnH }; Color colorFinal = seleccionado ? WHITE : tinteBoton; DrawTexturePro(tex, source, dest, {0,0}, 0.0f, colorFinal); } else { Color color = seleccionado ? MAGENTA : DARKGRAY; DrawRectangle((int)centerX, (int)posY, (int)btnW, (int)btnH, Fade(color, 0.7f)); DrawText(textoError, (int)centerX + 10, (int)posY + 20, 20, WHITE); } }; DibujarBotonSeguro((opcionMenuInicial == 0) ? texBtnJugarSel : texBtnJugar, 0, (opcionMenuInicial == 0), "ERR: Jugar"); DibujarBotonSeguro((opcionMenuInicial == 1) ? texBtnCreditosSel : texBtnCreditos, 1, (opcionMenuInicial == 1), "ERR: Creditos"); DibujarBotonSeguro((opcionMenuInicial == 2) ? texBtnSalirInicioSel : texBtnSalirInicio, 2, (opcionMenuInicial == 2), "ERR: Salir"); }
 void Juego::actualizarCreditos() { if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_E) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) estadoActual = EstadoJuego::MENU_INICIAL; }
 void Juego::dibujarCreditos() { if (texFondoCreditos.id != 0) { Rectangle src = { 0, 0, (float)texFondoCreditos.width, (float)texFondoCreditos.height }; Rectangle dest = { 0, 0, (float)Constantes::ANCHO_PANTALLA, (float)Constantes::ALTO_PANTALLA }; DrawTexturePro(texFondoCreditos, src, dest, {0,0}, 0.0f, WHITE); } else { ClearBackground(BLACK); DibujarTextoGlitch("CREDITOS", 50, 50, 40, PURPLE); } int startY = 220; int stepY = 35; DrawText("Desarrollo:", 50, startY, 20, WHITE); DrawText("Mailen Acosta Vera", 50, startY + stepY, 20, GRAY); DrawText("Emiliano Volpino", 50, startY + stepY * 2, 20, GRAY); startY += 130; DrawText("Arte:", 50, startY, 20, WHITE); DrawText("Generado por IA / Assets Propios", 50, startY + stepY, 20, GRAY); startY += 100; DrawText("Motor:", 50, startY, 20, WHITE); DrawText("C++ & Raylib", 50, startY + stepY, 20, GRAY); startY += 100; DrawText("Agradecimientos Especiales:", 50, startY, 20, WHITE); DrawText("A Ignacio Rodriguez y Santi", 50, startY + stepY, 20, GRAY); const char* msg = "Volver [E]"; DrawText(msg, Constantes::ANCHO_PANTALLA - MeasureText(msg, 20) - 40, Constantes::ALTO_PANTALLA - 60, 20, WHITE); }

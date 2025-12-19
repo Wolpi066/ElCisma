@@ -45,7 +45,6 @@ private:
     bool enTransicion;
     bool esInvulnerable;
 
-    // --- AUDIO ---
     Sound fxApareciendo;
     Sound fxBulletHell;
     float timerAudioLoopBH;
@@ -56,15 +55,12 @@ private:
     Sound fxEstirarBrazo;
     Sound fxSalto;
     Sound fxEscopetazo;
-    Sound fxExplosion; // Usado para minas o impacto fuerte
+    Sound fxExplosion;
     Sound fxMinaActiva;
     Sound fxTeleport;
 
-    // Control de audio pasos
     float timerPasos;
-    // -------------
 
-    // --- VISUALES ---
     bool introFinalizada;
     float timerAnimacion;
     int frameActual;
@@ -127,8 +123,8 @@ private:
     // Métodos Internos
     void CargarTexturas();
     void DescargarTexturas();
-    void CargarSonidos();     // <--- NUEVO
-    void DescargarSonidos();  // <--- NUEVO
+    void CargarSonidos();
+    void DescargarSonidos();
     bool verificarColisionMuros(Vector2 pos, const Mapa& mapa);
 
     void actualizarFaseUno(Protagonista& jugador, const Mapa& mapa);

@@ -35,7 +35,6 @@ int Botiquin::usar(Protagonista& jugador) {
     return 0;
 }
 
-// --- CORRECCIÓN: Ahora se puede agarrar con la 'E' ---
 bool Botiquin::esInteraccionPorTecla() const {
     return true;
 }

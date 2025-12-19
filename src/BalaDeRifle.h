@@ -12,9 +12,7 @@ public:
     BalaDeRifle(Vector2 pos, Vector2 dir, bool esCheat = false);
     ~BalaDeRifle();
 
-    // --- CORRECCIÓN: La firma debe coincidir con la clase base 'Bala' ---
     void actualizar(Protagonista& jugador, const Mapa& mapa) override;
-    // --------------------------------------------------------------------
 
     void dibujar() override;
 
