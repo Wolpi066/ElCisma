@@ -310,105 +310,105 @@
 1762344866 source:c:\users\volpi\onedrive\escritorio\nochemovidita\src\nota.cpp
 	"Nota.h"
 
-1763576337 source:c:\users\volpi\onedrive\escritorio\elcisma\src\armadura.cpp
+1766146438 source:c:\users\volpi\onedrive\escritorio\elcisma\src\armadura.cpp
 	"Armadura.h"
 	"raymath.h"
 
-1763575078 c:\users\volpi\onedrive\escritorio\elcisma\src\armadura.h
+1766101786 c:\users\volpi\onedrive\escritorio\elcisma\src\armadura.h
 	"Consumible.h"
 
-1763575010 c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.h
+1766105374 c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.h
 	"raylib.h"
 	"Protagonista.h"
 
-1763999614 c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.h
+1766105595 c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.h
 	"raylib.h"
 	"Constantes.h"
 	<vector>
 
-1763257967 c:\users\volpi\onedrive\escritorio\elcisma\src\constantes.h
+1766105355 c:\users\volpi\onedrive\escritorio\elcisma\src\constantes.h
 
-1762636321 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bala.cpp
+1766146480 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bala.cpp
 	"Bala.h"
 	"Constantes.h"
 	"raymath.h"
 	"Protagonista.h"
 	"Mapa.h"
 
-1762636151 c:\users\volpi\onedrive\escritorio\elcisma\src\bala.h
+1766101797 c:\users\volpi\onedrive\escritorio\elcisma\src\bala.h
 	"raylib.h"
 	"raymath.h"
 
-1763404930 source:c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.cpp
+1766146502 source:c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.cpp
 	"BalaDeRifle.h"
 	"Constantes.h"
 	"raymath.h"
 
-1763404730 c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.h
+1766101812 c:\users\volpi\onedrive\escritorio\elcisma\src\baladerifle.h
 	"Bala.h"
 	"raylib.h"
 
-1763959169 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.cpp
+1766146561 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.cpp
 	"BalaMonstruosa.h"
 
-1763959162 c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.h
+1766101823 c:\users\volpi\onedrive\escritorio\elcisma\src\balamonstruosa.h
 	"Bala.h"
 
-1763578548 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bateria.cpp
+1766146574 source:c:\users\volpi\onedrive\escritorio\elcisma\src\bateria.cpp
 	"Bateria.h"
 	"raymath.h"
 
-1763575056 c:\users\volpi\onedrive\escritorio\elcisma\src\bateria.h
+1766101827 c:\users\volpi\onedrive\escritorio\elcisma\src\bateria.h
 	"Consumible.h"
 
-1763643179 source:c:\users\volpi\onedrive\escritorio\elcisma\src\botiquin.cpp
+1766146586 source:c:\users\volpi\onedrive\escritorio\elcisma\src\botiquin.cpp
 	"Botiquin.h"
 	"raymath.h"
 
-1763643164 c:\users\volpi\onedrive\escritorio\elcisma\src\botiquin.h
+1766101845 c:\users\volpi\onedrive\escritorio\elcisma\src\botiquin.h
 	"Consumible.h"
 
-1763590852 source:c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.cpp
+1766146595 source:c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.cpp
 	"CajaDeMuniciones.h"
 	"raymath.h"
 
-1763575067 c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.h
+1766101850 c:\users\volpi\onedrive\escritorio\elcisma\src\cajademuniciones.h
 	"Consumible.h"
 
-1763734765 source:c:\users\volpi\onedrive\escritorio\elcisma\src\cofre.cpp
+1766146615 source:c:\users\volpi\onedrive\escritorio\elcisma\src\cofre.cpp
 	"Cofre.h"
 	"raylib.h"
 
-1763734759 c:\users\volpi\onedrive\escritorio\elcisma\src\cofre.h
+1766101870 c:\users\volpi\onedrive\escritorio\elcisma\src\cofre.h
 	"Consumible.h"
 
-1763575023 source:c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.cpp
+1766146624 source:c:\users\volpi\onedrive\escritorio\elcisma\src\consumible.cpp
 	"Consumible.h"
 
-1764011396 source:c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.cpp
+1766146660 source:c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.cpp
 	"Enemigo.h"
 	"Protagonista.h"
 	"Mapa.h"
 	<cmath>
 	<cstdlib>
 
-1764010009 c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.h
+1766105385 c:\users\volpi\onedrive\escritorio\elcisma\src\enemigo.h
 	"raylib.h"
 	"raymath.h"
 	<vector>
 
-1763596439 source:c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.cpp
+1766146758 source:c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.cpp
 	"Fantasma.h"
 	"Constantes.h"
 	"raymath.h"
 	"Protagonista.h"
 	"Mapa.h"
 
-1763595666 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
+1766105415 c:\users\volpi\onedrive\escritorio\elcisma\src\fantasma.h
 	"Enemigo.h"
 	"raylib.h"
 
-1764007390 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
+1766146775 source:c:\users\volpi\onedrive\escritorio\elcisma\src\gestorentidades.cpp
 	"GestorEntidades.h"
 	"Mapa.h"
 	"BalaMonstruosa.h"
@@ -433,7 +433,7 @@
 	"CajaDeMuniciones.h"
 	"Armadura.h"
 
-1764010111 c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.h
+1766105467 c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.h
 	"raylib.h"
 	"raymath.h"
 	<vector>
@@ -447,18 +447,18 @@
 	"rlgl.h"
 	"Protagonista.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\iluminacion.h
+1766105437 c:\users\volpi\onedrive\escritorio\elcisma\src\iluminacion.h
 	"raylib.h"
 	"raymath.h"
 	<vector>
 
-1763644770 source:c:\users\volpi\onedrive\escritorio\elcisma\src\indicadorpuerta.cpp
+1766146797 source:c:\users\volpi\onedrive\escritorio\elcisma\src\indicadorpuerta.cpp
 	"IndicadorPuerta.h"
 
-1763575891 c:\users\volpi\onedrive\escritorio\elcisma\src\indicadorpuerta.h
+1766105442 c:\users\volpi\onedrive\escritorio\elcisma\src\indicadorpuerta.h
 	"Consumible.h"
 
-1764010223 source:c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.cpp
+1766147056 source:c:\users\volpi\onedrive\escritorio\elcisma\src\jefe.cpp
 	"Jefe.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -470,7 +470,7 @@
 	"TrozoDeCarne.h"
 	"BalaInfernal.h"
 
-1764010471 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
+1766147357 source:c:\users\volpi\onedrive\escritorio\elcisma\src\juego.cpp
 	"Juego.h"
 	"Constantes.h"
 	"raylib.h"
@@ -491,7 +491,7 @@
 	"Spawner.h"
 	"Jefe.h"
 
-1764006263 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
+1766105487 c:\users\volpi\onedrive\escritorio\elcisma\src\juego.h
 	"raylib.h"
 	"Protagonista.h"
 	"Mapa.h"
@@ -504,13 +504,13 @@
 	<vector>
 	<list>
 
-1764012821 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
+1766105519 c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.h
 	"raylib.h"
 	<vector>
 	<list>
 	"Cofre.h"
 
-1763757622 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
+1766105644 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.h
 	"raylib.h"
 	"Iluminacion.h"
 	"Protagonista.h"
@@ -518,7 +518,7 @@
 	"GestorEntidades.h"
 	<vector>
 
-1762477943 c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.h
+1766105563 c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.h
 	"Protagonista.h"
 	"GestorEntidades.h"
 
@@ -533,34 +533,34 @@
 	"Mapa.h"
 	"Fantasma.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.h
+1766105629 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.h
 	"raylib.h"
 
-1763575033 c:\users\volpi\onedrive\escritorio\elcisma\src\llave.h
+1766105494 c:\users\volpi\onedrive\escritorio\elcisma\src\llave.h
 	"Consumible.h"
 
-1763731534 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
+1766105577 c:\users\volpi\onedrive\escritorio\elcisma\src\nota.h
 	"Consumible.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\spawner.h
+1766105674 c:\users\volpi\onedrive\escritorio\elcisma\src\spawner.h
 	"raylib.h"
 	<stdexcept>
 	<new>
 
-1763591002 source:c:\users\volpi\onedrive\escritorio\elcisma\src\llave.cpp
+1766147379 source:c:\users\volpi\onedrive\escritorio\elcisma\src\llave.cpp
 	"Llave.h"
 	"raymath.h"
 
-1764985773 source:c:\users\volpi\onedrive\escritorio\elcisma\src\main.cpp
+1766147417 source:c:\users\volpi\onedrive\escritorio\elcisma\src\main.cpp
 	"raylib.h"
 	"Juego.h"
 	"SistemaArchivos.h"
 	"Constantes.h"
 
-1762437467 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.h
+1766105617 c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.h
 	<string>
 
-1764012834 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
+1766147996 source:c:\users\volpi\onedrive\escritorio\elcisma\src\mapa.cpp
 	"Mapa.h"
 	"Constantes.h"
 	"raymath.h"
@@ -584,24 +584,24 @@
 	"Cofre.h"
 	"Nota.h"
 
-1764009532 c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.h
+1766105694 c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.h
 	"Enemigo.h"
 	<vector>
 	<string>
 
-1764009552 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
+1766105554 c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.h
 	"Enemigo.h"
 	<vector>
 	<string>
 
-1764011381 source:c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.cpp
+1766148184 source:c:\users\volpi\onedrive\escritorio\elcisma\src\monstruoobeso.cpp
 	"MonstruoObeso.h"
 	"Constantes.h"
 	"raymath.h"
 	<string>
 	"Protagonista.h"
 
-1762608398 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.cpp
+1766148267 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorcolisiones.cpp
 	"MotorColisiones.h"
 	"Spawner.h"
 	"Botiquin.h"
@@ -614,34 +614,34 @@
 	"TrozoDeCarne.h"
 	"MinaEnemiga.h"
 
-1762608179 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
+1766148320 source:c:\users\volpi\onedrive\escritorio\elcisma\src\motorfisica.cpp
 	"MotorFisica.h"
 	"raymath.h"
 	"Constantes.h"
 	"TrozoDeCarne.h"
 	"MinaEnemiga.h"
 
-1763731950 source:c:\users\volpi\onedrive\escritorio\elcisma\src\nota.cpp
+1766148412 source:c:\users\volpi\onedrive\escritorio\elcisma\src\nota.cpp
 	"Nota.h"
 	"raymath.h"
 	"Constantes.h"
 
-1763999625 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
+1766148465 source:c:\users\volpi\onedrive\escritorio\elcisma\src\protagonista.cpp
 	"Protagonista.h"
 	"raymath.h"
 	"Constantes.h"
 	<vector>
 	<cmath>
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.cpp
+1766148496 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemaarchivos.cpp
 	"SistemaArchivos.h"
 	<fstream>
 	<iostream>
 
-1762437467 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.cpp
+1766148504 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemainput.cpp
 	"SistemaInput.h"
 
-1763766354 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
+1766148629 source:c:\users\volpi\onedrive\escritorio\elcisma\src\sistemarender.cpp
 	"SistemaRender.h"
 	"Constantes.h"
 	"Fantasma.h"
@@ -649,34 +649,34 @@
 	<string>
 	<cstdio>
 
-1764011197 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
+1766148703 source:c:\users\volpi\onedrive\escritorio\elcisma\src\zombie.cpp
 	"Zombie.h"
 	"Constantes.h"
 	"raymath.h"
 	<string>
 	"Protagonista.h"
 
-1763999650 c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.h
+1766105531 c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.h
 	"Bala.h"
 
-1763999661 source:c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.cpp
+1766148031 source:c:\users\volpi\onedrive\escritorio\elcisma\src\minaenemiga.cpp
 	"MinaEnemiga.h"
 	"raymath.h"
 	"Protagonista.h"
 	"Mapa.h"
 
-1763999673 c:\users\volpi\onedrive\escritorio\elcisma\src\trozodecarne.h
+1766105681 c:\users\volpi\onedrive\escritorio\elcisma\src\trozodecarne.h
 	"Bala.h"
 	"raymath.h"
 
-1763999678 source:c:\users\volpi\onedrive\escritorio\elcisma\src\trozodecarne.cpp
+1766148646 source:c:\users\volpi\onedrive\escritorio\elcisma\src\trozodecarne.cpp
 	"TrozoDeCarne.h"
 	"raylib.h"
 	"raymath.h"
 	"Protagonista.h"
 	"Mapa.h"
 
-1763959184 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.cpp
+1766146525 source:c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.cpp
 	"BalaInfernal.h"
 
 1763959178 c:\users\volpi\onedrive\escritorio\elcisma\src\balainfernal.h
